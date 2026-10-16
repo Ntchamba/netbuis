@@ -1,0 +1,31 @@
+# Secrets
+.env
+!.env.example
+
+# Journaux de vérification (non versionnés, voir ORCHESTRATION.md §4.5)
+logs/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+backend/staticfiles/
+backend/media/*
+!backend/media/.gitkeep
+
+# Node / dashboard
+node_modules/
+dist/
+
+# Flutter / mobile
+.dart_tool/
+mobile/build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Clés
+*.pem
+*.keystore
+*.jks

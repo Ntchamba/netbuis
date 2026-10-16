@@ -5,10 +5,10 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T006b 🔒
-- **Prochaine tâche** : T007 🔒
-- **Dernière mise à jour** : 2026-10-11
-- **Branche** : etape-1/socle
+- **Tâche en cours** : T007 🔒 🔄
+- **Prochaine tâche** : T008
+- **Dernière mise à jour** : 2026-10-16
+- **Branche** : etape-2/acces
 
 ## Tâches (dans l'ordre d'exécution)
 
@@ -24,8 +24,8 @@
 | | | **PHASE 1 — Accès : compte par numéro de téléphone (Étape 2)** | | | |
 | ✅ | T005b | Backend : champs de compte pour l'administration et le blocage | a1 | 2026-10-11 | logs/T005b-verification.md ; migration 0002 ; à reprendre : can_login() sur l'admin Django (T007), champ langue (T008), IsMerchant supprimée → IsActiveBusinessOwner (T008) |
 | ✅ | T006 | 🔒 Backend : code SMS (OTP) | a1 | 2026-10-11 | logs/T006-verification.md ; vérificateur CONFORME ; validé par Jeff le 2026-10-11 (corrections en T006b) ; avant mise en service : cache partagé, limite IP sur verify, verrou limite par numéro ; OTP_TEST_MODE inutilisé |
-| 🔒 | T006b | 🔒 Backend : durcissement du code SMS (demandé par Jeff) | a1 | 2026-10-11 | logs/T006b-verification.md ; vérificateur CONFORME après 1 correction ; taux IP verify 30/h (choix à valider) ; docker-compose.yml en attente de Jeff ; en attente relecture Jeff |
-| ☐ | T007 | 🔒 Backend : jetons et connexion administrateur | a1 | | |
+| ✅ | T006b | 🔒 Backend : durcissement du code SMS (demandé par Jeff) | a1 | 2026-10-11 | logs/T006b-verification.md ; vérificateur CONFORME après 1 correction ; taux IP verify 30/h (choix à valider) ; docker-compose.yml en attente de Jeff ; validé par Jeff le 2026-10-16 |
+| 🔄 | T007 | 🔒 Backend : jetons et connexion administrateur | a1 | | |
 | ☐ | T008 | Backend : compte, droits et admin Django | a1 | | |
 | ☐ | T008b | Backend : réglages de plateforme (`PlatformSetting`) | a1 | | |
 | ☐ | T009 | Mobile : données et état de la connexion | b1 | | |
@@ -168,3 +168,4 @@
 |---|---|
 | 2026-10-11 | Pilotage copié dans netbuis/ ; Flutter 3.47.7 installé dans ~/development/flutter (SDK Android absent) ; Jeff demande T001–T003 en parallèle (dossiers séparés). |
 | 2026-10-11 | Coupure du PC pendant la construction de l'APK (T003) ; reprise, APK debug construit, T003 validée. |
+| 2026-10-16 | Reprise en session cloud sur le dépôt GitHub Ntchamba/netbuis (branche etape-2/acces). T006b validée par Jeff. Dépôt assaini : `.gitignore` ajouté ; `backend/.env`, `backend/.venv`, `logs/` et caches Python retirés du suivi (fichiers conservés sur le disque) ; agents copiés de `netbuis-pilotage/.claude/` vers `.claude/`. ⚠️ `backend/.env` avait été poussé sur GitHub : Jeff doit changer son mot de passe PostgreSQL. |
