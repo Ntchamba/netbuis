@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>NetBuis — Créer mon compte business (1/4)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:{{bg}};color:{{textPrimary}};display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;position:relative">
+
+  <div style="padding:20px 20px 14px 20px;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <a href="Profil.dc.html" aria-label="Retour" style="width:34px;height:34px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2.4"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="font-size:15px;font-weight:800">Créer mon compte business</div>
+      <button onClick="{{toggleTheme}}" aria-label="Changer de thème" style="width:34px;height:34px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0">
+        <sc-if value="{{isDark}}" hint-placeholder-val="{{true}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </sc-if>
+        <sc-if value="{{isLight}}" hint-placeholder-val="{{false}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:11px;font-weight:700;color:{{textSecondary}}">ÉTAPE 1 SUR 4</span>
+      <span style="font-size:11px;font-weight:700;color:{{accent}}">Informations de base</span>
+    </div>
+    <div style="margin-top:8px;height:5px;border-radius:999px;background:{{progressTrack}};overflow:hidden">
+      <div style="width:25%;height:100%;background:{{accent}};border-radius:999px"></div>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:4px 20px 20px 20px;display:flex;flex-direction:column;gap:16px">
+
+    <div style="display:flex;flex-direction:column;gap:4px;background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:3px">
+      <div style="display:flex;gap:3px">
+        <button onClick="{{selectBoutique}}" style="flex:1;border:none;border-radius:9px;padding:7px 2px 6px 2px;font-size:10.5px;font-weight:700;cursor:pointer;background:{{boutiqueTabBg}};color:{{boutiqueTabText}};display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:15px;line-height:1">🏪</span><span>Commerce</span>
+        </button>
+        <button onClick="{{selectEntreprise}}" style="flex:1;border:none;border-radius:9px;padding:7px 2px 6px 2px;font-size:10.5px;font-weight:700;cursor:pointer;background:{{entrepriseTabBg}};color:{{entrepriseTabText}};display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:15px;line-height:1">🏢</span><span>Entreprise</span>
+        </button>
+        <button onClick="{{selectStructure}}" style="flex:1;border:none;border-radius:9px;padding:7px 2px 6px 2px;font-size:10.5px;font-weight:700;cursor:pointer;background:{{structureTabBg}};color:{{structureTabText}};display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:15px;line-height:1">🏛️</span><span>Structure</span>
+        </button>
+      </div>
+      <div style="display:flex;gap:3px">
+        <button onClick="{{selectParticulier}}" style="flex:1;border:none;border-radius:9px;padding:7px 2px 6px 2px;font-size:10.5px;font-weight:700;cursor:pointer;background:{{particulierTabBg}};color:{{particulierTabText}};display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:15px;line-height:1">🙋</span><span>Particulier</span>
+        </button>
+        <button onClick="{{selectPrestataire}}" style="flex:1;border:none;border-radius:9px;padding:7px 2px 6px 2px;font-size:10.5px;font-weight:700;cursor:pointer;background:{{prestataireTabBg}};color:{{prestataireTabText}};display:flex;flex-direction:column;align-items:center;gap:2px">
+          <span style="font-size:15px;line-height:1">🧰</span><span>Prestataire</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="background:{{noteBg}};border:1px solid {{noteBorder}};border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
+      <span style="font-size:11.5px;color:{{textSecondary}};line-height:1.4;flex:1">{{typeNote}}</span>
+      <button onClick="{{toggleListen}}" aria-label="Écouter cette explication" style="width:28px;height:28px;flex-shrink:0;border-radius:50%;background:{{accent}};border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19 9a4 4 0 010 6"></path></svg>
+      </button>
+    </div>
+    <sc-if value="{{listening}}" hint-placeholder-val="{{false}}">
+    <div style="margin-top:-6px;background:{{accent}};border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:13px">🔊</span>
+      <span style="font-size:11.5px;font-weight:700;color:#1A1200">Lecture audio en cours...</span>
+    </div>
+    </sc-if>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">{{nameFieldLabel}}</div>
+      <div style="background:{{inputBg}};border:1px solid {{inputBorder}};border-radius:12px;padding:13px 14px">
+        <span style="font-size:14px;color:{{nameFieldColor}}">{{nameFieldValue}}</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">{{ownerFieldLabel}}</div>
+      <div style="background:{{inputBg}};border:1px solid {{inputBorder}};border-radius:12px;padding:13px 14px">
+        <span style="font-size:14px">Jeff N.</span>
+      </div>
+      <sc-if value="{{showOwnerHint}}" hint-placeholder-val="{{false}}">
+      <div style="font-size:11px;color:{{textSecondary}};line-height:1.4;margin-top:6px">{{ownerFieldHint}}</div>
+      </sc-if>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Photo de {{photoLabelSuffix}}</div>
+      <div style="background:{{inputBg}};border:1px dashed {{uploadBorder}};border-radius:12px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="1.8"><path d="M4 7h3l2-3h6l2 3h3v13H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+        <span style="font-size:12px;color:{{textSecondary}}">Ajouter une photo</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">{{ownerPhotoLabel}} <span style="font-weight:400;color:{{textSecondary}}">(obligatoire, vérification)</span></div>
+      <div style="background:{{inputBg}};border:1px dashed {{uploadBorder}};border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="1.8"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path></svg>
+        <span style="font-size:12.5px;color:{{textSecondary}}">Prendre une photo de vous</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Ville / Quartier</div>
+      <a href="#" style="background:{{inputBg}};border:1px solid {{inputBorder}};border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px">Maroua, Hardé</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Repère <span style="font-weight:400;color:{{textSecondary}}">(optionnel)</span></div>
+      <div style="background:{{inputBg}};border:1px solid {{inputBorder}};border-radius:12px;padding:13px 14px">
+        <span style="font-size:13.5px;color:{{textSecondary}};font-style:italic">Ex. à côté du Grand Manguier</span>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">Numéro de téléphone</div>
+      <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;opacity:0.75">
+        <span style="font-size:14px">+237 6•• •• •• 12</span>
+        <span style="font-size:11px;font-weight:700;color:{{accent}}">✓ vérifié</span>
+      </div>
+    </div>
+
+    <div style="height:70px"></div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 22px 20px;background:{{bg}};border-top:1px solid {{cardBorder}}">
+    <a href="{{nextHref}}" style="display:block;text-align:center;background:{{accent}};border-radius:14px;padding:15px;color:#1A1200;font-size:15px;font-weight:700">Continuer</a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F2942E"},"theme":{"editor":"enum","default":"dark","options":["dark","light"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: (props && props.theme) || 'dark', accountType: 'boutique', listening: false };
+    this.toggleTheme = this.toggleTheme.bind(this);
+    this.selectBoutique = this.selectBoutique.bind(this);
+    this.selectEntreprise = this.selectEntreprise.bind(this);
+    this.selectParticulier = this.selectParticulier.bind(this);
+    this.selectPrestataire = this.selectPrestataire.bind(this);
+    this.selectStructure = this.selectStructure.bind(this);
+    this.toggleListen = this.toggleListen.bind(this);
+    this._listenTimer = null;
+  }
+  toggleTheme() {
+    this.setState({ theme: this.state.theme === 'dark' ? 'light' : 'dark' });
+  }
+  toggleListen() {
+    if (this.state.listening) { return; }
+    this.setState({ listening: true });
+    if (this._listenTimer) { clearTimeout(this._listenTimer); }
+    this._listenTimer = setTimeout(() => { this.setState({ listening: false }); }, 2600);
+  }
+  selectBoutique() {
+    this.setState({ accountType: 'boutique' });
+  }
+  selectEntreprise() {
+    this.setState({ accountType: 'entreprise' });
+  }
+  selectParticulier() {
+    this.setState({ accountType: 'particulier' });
+  }
+  selectPrestataire() {
+    this.setState({ accountType: 'prestataire' });
+  }
+  selectStructure() {
+    this.setState({ accountType: 'structure' });
+  }
+  renderVals() {
+    const isDark = (this.state.theme || this.props.theme || 'dark') === 'dark';
+    const dark = { bg: '#0D0D0F', cardBg: '#1B1B1E', cardBorder: '#2A2A2E', textPrimary: '#FFFFFF', textSecondary: '#9A9A9E', textTertiary: '#7A7A7E', inputBg: '#1B1B1E', inputBorder: '#2A2A2E', uploadBorder: '#3A3A3E', progressTrack: '#2A2A2E', noteBg: '#1B1B1E', noteBorder: '#2A2A2E' };
+    const light = { bg: '#F7F7F8', cardBg: '#FFFFFF', cardBorder: '#E3E3E7', textPrimary: '#18181B', textSecondary: '#63636A', textTertiary: '#8E8E93', inputBg: '#FFFFFF', inputBorder: '#E3E3E7', uploadBorder: '#C9C9CE', progressTrack: '#E3E3E7', noteBg: '#FFFFFF', noteBorder: '#E3E3E7' };
+    const c = isDark ? dark : light;
+    const accent = this.props.accent ?? '#F2942E';
+    const accountType = this.state.accountType || 'boutique';
+    const isBoutique = accountType === 'boutique';
+    const isEntreprise = accountType === 'entreprise';
+    const isParticulier = accountType === 'particulier';
+    const isPrestataire = accountType === 'prestataire';
+    const isStructure = accountType === 'structure';
+    const nameFieldLabel = isBoutique ? 'Nom du commerce' : (isEntreprise ? 'Nom de l’entreprise' : (isStructure ? 'Nom de l’établissement' : 'Comment souhaitez-vous apparaître ?'));
+    const nameFieldValue = isBoutique ? 'Ex. Boutique Mama Aïcha' : (isEntreprise ? 'Ex. NetBuis Services SARL' : (isPrestataire ? 'Ex. Moussa, technicien frigoriste' : (isStructure ? 'Ex. Hôtel Le Sahel, Clinique Bonne Santé' : 'Ex. Aïcha, couturière')));
+    const photoLabelSuffix = isBoutique ? 'votre commerce' : (isEntreprise ? 'l’entreprise' : (isStructure ? 'l’établissement' : 'votre activité'));
+    const nextHref = isBoutique ? 'CreationBusiness-Secteur.dc.html' : (isEntreprise ? 'CreationBusiness-Entreprise-Forme.dc.html' : (isPrestataire ? 'CreationBusiness-Prestataire-Categorie.dc.html' : (isStructure ? 'CreationBusiness-Structure-Type.dc.html' : 'CreationBusiness-Secteur.dc.html')));
+    const typeNote = isBoutique ? '🏪 Commerce : pour une boutique, une supérette ou tout petit commerce à emplacement fixe — nom, photos, secteur puis produits vendus.' : (isEntreprise ? '🏢 Entreprise : parcours dédié — forme juridique (SARL, SA, GIC...), puis secteur d’activité.' : (isPrestataire ? '🧰 Prestataire de service (technicien, enseignant à domicile, services médicaux indépendants...) : parcours dédié avec catégorie de service et vérification d’identité (CNI).' : (isStructure ? '🏛️ Structure : pour un supermarché, un restaurant, un hôtel ou un centre de santé — des structures avec leurs propres informations à préciser (spécialités, chambres, horaires...), différentes d’un simple commerce.' : '🙋 Particulier vendeur : parcours simplifié, comme un commerce mais sans structure formelle.')));
+    const ownerFieldLabel = isEntreprise ? 'Nom du représentant légal' : (isStructure ? 'Nom du responsable' : ((isParticulier || isPrestataire) ? 'Votre nom complet' : 'Nom du propriétaire'));
+    const ownerFieldHint = isEntreprise ? 'Gérant, Directeur Général, PDG... selon la forme juridique de votre entreprise.' : (isStructure ? 'Directeur, gérant, responsable de l’établissement...' : ((isParticulier || isPrestataire) ? 'Pour la vérification de votre identité — peut différer du nom affiché publiquement ci-dessus.' : ''));
+    const showOwnerHint = isEntreprise || isParticulier || isPrestataire || isStructure;
+    const ownerPhotoLabel = isEntreprise ? 'Photo du représentant légal' : (isStructure ? 'Photo du responsable' : ((isParticulier || isPrestataire) ? 'Votre photo (vérification)' : 'Photo du propriétaire'));
+    return {
+      accent: accent,
+      isDark: isDark,
+      isLight: !isDark,
+      toggleTheme: this.toggleTheme,
+      toggleListen: this.toggleListen,
+      listening: this.state.listening,
+      selectBoutique: this.selectBoutique,
+      selectEntreprise: this.selectEntreprise,
+      selectParticulier: this.selectParticulier,
+      selectPrestataire: this.selectPrestataire,
+      selectStructure: this.selectStructure,
+      bg: c.bg, cardBg: c.cardBg, cardBorder: c.cardBorder, textPrimary: c.textPrimary, textSecondary: c.textSecondary, textTertiary: c.textTertiary, inputBg: c.inputBg, inputBorder: c.inputBorder, uploadBorder: c.uploadBorder, progressTrack: c.progressTrack, noteBg: c.noteBg, noteBorder: c.noteBorder,
+      boutiqueTabBg: isBoutique ? accent : 'transparent',
+      boutiqueTabText: isBoutique ? '#1A1200' : c.textSecondary,
+      entrepriseTabBg: isEntreprise ? accent : 'transparent',
+      entrepriseTabText: isEntreprise ? '#1A1200' : c.textSecondary,
+      particulierTabBg: isParticulier ? accent : 'transparent',
+      particulierTabText: isParticulier ? '#1A1200' : c.textSecondary,
+      prestataireTabBg: isPrestataire ? accent : 'transparent',
+      prestataireTabText: isPrestataire ? '#1A1200' : c.textSecondary,
+      structureTabBg: isStructure ? accent : 'transparent',
+      structureTabText: isStructure ? '#1A1200' : c.textSecondary,
+      nameFieldLabel: nameFieldLabel,
+      nameFieldValue: nameFieldValue,
+      nameFieldColor: c.textSecondary,
+      photoLabelSuffix: photoLabelSuffix,
+      nextHref: nextHref,
+      typeNote: typeNote,
+      isEntreprise: isEntreprise,
+      ownerFieldLabel: ownerFieldLabel,
+      ownerFieldHint: ownerFieldHint,
+      showOwnerHint: showOwnerHint,
+      ownerPhotoLabel: ownerPhotoLabel
+    };
+  }
+}
+</script>
+</body>
+</html>

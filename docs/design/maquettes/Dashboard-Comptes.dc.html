@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>NetBuis Admin — Comptes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="width:1440px;height:900px;background:{{bg}};color:{{textPrimary}};display:flex;box-sizing:border-box;overflow:hidden">
+
+  <div style="width:240px;flex-shrink:0;background:{{sidebarBg}};border-right:1px solid {{cardBorder}};display:flex;flex-direction:column;padding:24px 0">
+    <div style="padding:0 24px 28px 24px;font-size:19px;font-weight:800;letter-spacing:0.5px"><span style="color:{{textPrimary}}">NET</span><span style="color:{{accent}}">BUIS</span><span style="color:{{textTertiary}};font-weight:600;font-size:12px;margin-left:6px">Admin</span></div>
+    <a href="Dashboard-Vue.dc.html" style="margin:0 12px 4px 12px;padding:11px 14px;border-radius:10px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:{{textSecondary}}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+      Vue d'ensemble
+    </a>
+    <a href="Dashboard-Demandes.dc.html" style="margin:0 12px 4px 12px;padding:11px 14px;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:600;color:{{textSecondary}}">
+      <span style="display:flex;align-items:center;gap:12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"></path><path d="M3 7v10l9 4 9-4V7"></path></svg>
+        Demandes
+      </span>
+      <span style="background:{{dangerBg}};color:{{danger}};font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px">7</span>
+    </a>
+    <a href="Dashboard-Comptes.dc.html" style="margin:0 12px 4px 12px;padding:11px 14px;border-radius:10px;background:{{accent}};color:#1A1200;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:700">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"></path><circle cx="18" cy="8.5" r="2.6"></circle><path d="M15.8 13.8c2.9.4 5.2 2.9 5.2 6.2"></path></svg>
+      Comptes
+    </a>
+    <a href="#" style="margin:0 12px 4px 12px;padding:11px 14px;border-radius:10px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:{{textSecondary}}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="2"><path d="M12 2l2.6 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.4-.4z"></path></svg>
+      Équipe &amp; abonnements
+    </a>
+    <div style="flex:1"></div>
+    <div style="margin:0 12px;padding:12px 14px;border-radius:10px;border-top:1px solid {{cardBorder}};display:flex;align-items:center;gap:10px;padding-top:16px">
+      <div style="width:32px;height:32px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:{{accent}}">AD</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:700">Admin NetBuis</div>
+        <div style="font-size:11px;color:{{textTertiary}}">Déconnexion</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+
+    <div style="padding:22px 32px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid {{cardBorder}}">
+      <div style="font-size:21px;font-weight:800">Comptes</div>
+      <button onClick="{{toggleTheme}}" aria-label="Changer de thème" style="width:38px;height:38px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+        <sc-if value="{{isDark}}" hint-placeholder-val="{{true}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </sc-if>
+        <sc-if value="{{isLight}}" hint-placeholder-val="{{false}}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+
+    <div style="padding:18px 32px 0 32px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:8px">
+        <sc-for list="{{filters}}" as="f" hint-placeholder-count="5">
+        <button onClick="{{f.select}}" style="border:1px solid {{f.border}};border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:700;cursor:pointer;background:{{f.bg}};color:{{f.text}}">{{f.label}}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:10px;padding:8px 12px;width:240px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <span style="font-size:12.5px;color:{{textSecondary}}">Rechercher un compte...</span>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:16px 32px 28px 32px">
+      <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:16px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1.1fr 1fr 1.3fr;padding:12px 18px;font-size:11.5px;font-weight:700;color:{{textTertiary}};border-bottom:1px solid {{cardBorder}}">
+          <div>NOM</div><div>TÉLÉPHONE</div><div>TYPE</div><div>ZONE</div><div>STATUT</div><div style="text-align:right">ACTIONS</div>
+        </div>
+        <sc-for list="{{accounts}}" as="a" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:2fr 1.4fr 1fr 1.1fr 1fr 1.3fr;padding:14px 18px;align-items:center;border-bottom:1px solid {{cardBorder}};opacity:{{a.rowOpacity}}">
+          <div style="font-size:13.5px;font-weight:700">{{a.name}}</div>
+          <div style="font-size:12.5px;color:{{textSecondary}}">{{a.phone}}</div>
+          <div style="font-size:12px;font-weight:700;color:{{a.typeColor}}">{{a.type}}</div>
+          <div style="font-size:12.5px;color:{{textSecondary}}">{{a.zone}}</div>
+          <div>
+            <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{a.statusBg}};color:{{a.statusColor}}">{{a.statusLabel}}</span>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <sc-if value="{{a.showUndo}}" hint-placeholder-val="{{false}}">
+            <button onClick="{{a.restore}}" style="border:1px solid {{cardBorder}};background:transparent;color:{{textSecondary}};font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer">Restaurer</button>
+            </sc-if>
+            <sc-if value="{{a.showBlockActions}}" hint-placeholder-val="{{true}}">
+            <button onClick="{{a.toggleBlock}}" style="border:1px solid {{cardBorder}};background:transparent;color:{{textSecondary}};font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer">{{a.blockLabel}}</button>
+            <button onClick="{{a.remove}}" aria-label="Supprimer" style="border:1px solid {{dangerBg}};background:transparent;color:{{danger}};width:30px;height:30px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{danger}}" stroke-width="2"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"></path><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"></path></svg>
+            </button>
+            </sc-if>
+          </div>
+        </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F2942E"},"theme":{"editor":"enum","default":"dark","options":["dark","light"]},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: (props && props.theme) || 'dark', filter: 'tous', overrides: {} };
+    this.toggleTheme = this.toggleTheme.bind(this);
+    this.setFilter = this.setFilter.bind(this);
+  }
+  toggleTheme() {
+    this.setState({ theme: this.state.theme === 'dark' ? 'light' : 'dark' });
+  }
+  setFilter(key) {
+    this.setState({ filter: key });
+  }
+  setOverride(id, status) {
+    const next = Object.assign({}, this.state.overrides);
+    next[id] = status;
+    this.setState({ overrides: next });
+  }
+  renderVals() {
+    const isDark = (this.state.theme || this.props.theme || 'dark') === 'dark';
+    const dark = { bg: '#0D0D0F', sidebarBg: '#141417', cardBg: '#1B1B1E', cardBorder: '#2A2A2E', textPrimary: '#FFFFFF', textSecondary: '#9A9A9E', textTertiary: '#7A7A7E', success: '#3DDC84', successBg: '#16301F', danger: '#E87A6A', dangerBg: '#3A1F1C', warn: '#F2C94C', warnBg: '#332B14' };
+    const light = { bg: '#F7F7F8', sidebarBg: '#FFFFFF', cardBg: '#FFFFFF', cardBorder: '#E3E3E7', textPrimary: '#18181B', textSecondary: '#63636A', textTertiary: '#8E8E93', success: '#1E9E5A', successBg: '#E3F7EC', danger: '#D1452F', dangerBg: '#FBEAE7', warn: '#9C6B00', warnBg: '#FBF1D9' };
+    const c = isDark ? dark : light;
+    const accent = this.props.accent ?? '#F2942E';
+    const currentFilter = this.state.filter || 'tous';
+
+    const source = [
+      { id: 'a1', name: 'Boutique Mama Aïcha', phone: '+237 6•• •• •• 12', type: 'Business', typeKey: 'business', zone: 'Dougoï', baseStatus: 'actif' },
+      { id: 'a2', name: 'Jeff N.', phone: '+237 6•• •• •• 99', type: 'Simple', typeKey: 'simple', zone: 'Hardé', baseStatus: 'actif' },
+      { id: 'a3', name: 'Moussa K.', phone: '+237 6•• •• •• 41', type: 'Équipe NetBuis', typeKey: 'equipe', zone: 'Maroua', baseStatus: 'actif' },
+      { id: 'a4', name: 'Électricien qualifié', phone: '+237 6•• •• •• 33', type: 'Business', typeKey: 'business', zone: 'Hardé', baseStatus: 'actif' },
+      { id: 'a5', name: 'Couturier Ibrahim', phone: '+237 6•• •• •• 57', type: 'Business', typeKey: 'business', zone: 'Domayo', baseStatus: 'bloqué' },
+      { id: 'a6', name: 'Aïssatou B.', phone: '+237 6•• •• •• 22', type: 'Simple', typeKey: 'simple', zone: 'Djarengol', baseStatus: 'actif' },
+      { id: 'a7', name: 'Fatimatou D.', phone: '+237 6•• •• •• 65', type: 'Équipe NetBuis', typeKey: 'equipe', zone: 'Maroua', baseStatus: 'actif' },
+      { id: 'a8', name: 'Garage Moderne Domayo', phone: '+237 6•• •• •• 08', type: 'Business', typeKey: 'business', zone: 'Domayo', baseStatus: 'actif' }
+    ];
+
+    const typeColorFor = (key) => (key === 'business' ? accent : (key === 'equipe' ? c.success : c.textSecondary));
+
+    const accounts = source
+      .map((a) => {
+        const status = this.state.overrides[a.id] || a.baseStatus;
+        const isDeleted = status === 'supprimé';
+        const isBlocked = status === 'bloqué';
+        const statusBg = isDeleted ? c.dangerBg : (isBlocked ? c.warnBg : c.successBg);
+        const statusColor = isDeleted ? c.danger : (isBlocked ? c.warn : c.success);
+        const statusLabel = isDeleted ? 'Supprimé' : (isBlocked ? 'Bloqué' : 'Actif');
+        return Object.assign({}, a, {
+          statusKey: status,
+          statusBg: statusBg,
+          statusColor: statusColor,
+          statusLabel: statusLabel,
+          typeColor: typeColorFor(a.typeKey),
+          rowOpacity: isDeleted ? '0.55' : '1',
+          showUndo: isDeleted,
+          showBlockActions: !isDeleted,
+          blockLabel: isBlocked ? 'Débloquer' : 'Bloquer',
+          toggleBlock: () => this.setOverride(a.id, isBlocked ? 'actif' : 'bloqué'),
+          remove: () => this.setOverride(a.id, 'supprimé'),
+          restore: () => this.setOverride(a.id, 'actif')
+        });
+      })
+      .filter((a) => {
+        if (currentFilter === 'tous') { return true; }
+        if (currentFilter === 'bloques') { return a.statusKey === 'bloqué'; }
+        return a.typeKey === currentFilter;
+      });
+
+    const filterDefs = [
+      { key: 'tous', label: 'Tous' },
+      { key: 'simple', label: 'Simple' },
+      { key: 'business', label: 'Business' },
+      { key: 'equipe', label: 'Équipe NetBuis' },
+      { key: 'bloques', label: 'Bloqués' }
+    ];
+    const filters = filterDefs.map((f) => {
+      const active = currentFilter === f.key;
+      return {
+        label: f.label,
+        select: () => this.setFilter(f.key),
+        bg: active ? accent : 'transparent',
+        text: active ? '#1A1200' : c.textSecondary,
+        border: active ? accent : c.cardBorder
+      };
+    });
+
+    return {
+      accent: accent,
+      isDark: isDark,
+      isLight: !isDark,
+      toggleTheme: this.toggleTheme,
+      bg: c.bg, sidebarBg: c.sidebarBg, cardBg: c.cardBg, cardBorder: c.cardBorder, textPrimary: c.textPrimary, textSecondary: c.textSecondary, textTertiary: c.textTertiary, success: c.success, successBg: c.successBg, danger: c.danger, dangerBg: c.dangerBg, warn: c.warn, warnBg: c.warnBg,
+      filters: filters,
+      accounts: accounts
+    };
+  }
+}
+</script>
+</body>
+</html>

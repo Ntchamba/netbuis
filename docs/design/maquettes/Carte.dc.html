@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>NetBuis — Explorer par quartier</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::-webkit-scrollbar{display:none}
+@keyframes pinPulse {
+  0% { box-shadow: 0 0 0 0 rgba(242,148,46,0.35); }
+  70% { box-shadow: 0 0 0 8px rgba(242,148,46,0); }
+  100% { box-shadow: 0 0 0 0 rgba(242,148,46,0); }
+}
+.pin-pulse { animation: pinPulse 2.4s infinite; }
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:{{bg}};color:{{textPrimary}};display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;position:relative">
+
+  <div style="padding:20px 20px 10px 20px;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:20px;font-weight:800">Explorer</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <sc-if value="{{isQuartiersScope}}" hint-placeholder-val="{{false}}">
+        <button onClick="{{goBackToVilles}}" aria-label="Retour aux villes" style="width:32px;height:32px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2.4"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:6px;background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:999px;padding:6px 12px">
+          <span style="font-size:12px;font-weight:700">{{locationLabel}}</span>
+        </div>
+        <button onClick="{{toggleTheme}}" aria-label="Changer de thème" style="width:32px;height:32px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0">
+          <sc-if value="{{isDark}}" hint-placeholder-val="{{true}}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          </sc-if>
+          <sc-if value="{{isLight}}" hint-placeholder-val="{{false}}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
+          </sc-if>
+        </button>
+      </div>
+    </div>
+
+    <sc-if value="{{isVillesScope}}" hint-placeholder-val="{{true}}">
+    <div style="margin-top:6px;font-size:12px;color:{{textSecondary}}">Choisissez une ville ou un village pour voir ses quartiers</div>
+    </sc-if>
+
+    <div style="margin-top:12px;display:flex;background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:3px">
+      <button onClick="{{showMap}}" style="flex:1;border:none;border-radius:9px;padding:8px 0;font-size:12.5px;font-weight:700;cursor:pointer;background:{{mapTabBg}};color:{{mapTabText}}">Carte</button>
+      <button onClick="{{showList}}" style="flex:1;border:none;border-radius:9px;padding:8px 0;font-size:12.5px;font-weight:700;cursor:pointer;background:{{listTabBg}};color:{{listTabText}}">Liste</button>
+    </div>
+  </div>
+
+  <sc-if value="{{isMapView}}" hint-placeholder-val="{{true}}">
+  <div style="flex:1;margin:0 20px 16px 20px;border-radius:18px;background:{{mapBg}};border:1px solid {{cardBorder}};position:relative;overflow:hidden">
+    <div style="position:absolute;inset:0;background-image:linear-gradient({{gridLine}} 1px, transparent 1px), linear-gradient(90deg, {{gridLine}} 1px, transparent 1px);background-size:28px 28px;opacity:0.5"></div>
+
+    <sc-if value="{{isVillesScope}}" hint-placeholder-val="{{true}}">
+    <sc-for list="{{villes}}" as="v" hint-placeholder-count="3">
+    <button onClick="{{v.select}}" style="position:absolute;left:{{v.left}};top:{{v.top}};transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;padding:0;cursor:pointer">
+      <div style="background:{{bg}};border:1px solid {{cardBorder}};border-radius:8px;padding:3px 8px;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,0.25)">{{v.name}} · {{v.count}}</div>
+      <div class="pin-pulse" style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:{{accent}};transform:rotate(-45deg);display:flex;align-items:center;justify-content:center">
+        <div style="width:8px;height:8px;border-radius:50%;background:#1A1200;transform:rotate(45deg)"></div>
+      </div>
+    </button>
+    </sc-for>
+    <div style="position:absolute;left:14px;bottom:14px;right:14px;background:{{bg}};opacity:0.9;border:1px solid {{cardBorder}};border-radius:8px;padding:5px 10px;font-size:10.5px;color:{{chipText}}">Seules les villes/villages avec au moins un commerce enregistré apparaissent ici</div>
+    </sc-if>
+
+    <sc-if value="{{isQuartiersScope}}" hint-placeholder-val="{{false}}">
+      <sc-if value="{{hasQuartiers}}" hint-placeholder-val="{{true}}">
+      <sc-for list="{{quartiers}}" as="z" hint-placeholder-count="4">
+      <a href="Quartier.dc.html" style="position:absolute;left:{{z.left}};top:{{z.top}};transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="background:{{bg}};border:1px solid {{cardBorder}};border-radius:8px;padding:3px 8px;font-size:10.5px;font-weight:700;white-space:nowrap;box-shadow:0 4px 10px rgba(0,0,0,0.25)">{{z.name}} · {{z.count}}</div>
+        <div class="pin-pulse" style="width:26px;height:26px;border-radius:50% 50% 50% 0;background:{{accent}};transform:rotate(-45deg);display:flex;align-items:center;justify-content:center">
+          <div style="width:8px;height:8px;border-radius:50%;background:#1A1200;transform:rotate(45deg)"></div>
+        </div>
+      </a>
+      </sc-for>
+      <div style="position:absolute;left:14px;bottom:14px;background:{{bg}};opacity:0.9;border:1px solid {{cardBorder}};border-radius:8px;padding:5px 10px;font-size:11px;color:{{chipText}}">Positions indicatives — pas encore géolocalisées</div>
+      </sc-if>
+      <sc-if value="{{noQuartiers}}" hint-placeholder-val="{{false}}">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px">
+        <div style="text-align:center;background:{{bg}};border:1px solid {{cardBorder}};border-radius:14px;padding:18px 16px;max-width:260px">
+          <div style="font-size:28px;margin-bottom:6px">🏙️</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px">Pas encore de détail par quartier</div>
+          <div style="font-size:12px;color:{{textSecondary}};margin-bottom:12px">{{activeVille.count}} commerces déjà enregistrés à {{activeVille.name}}</div>
+          <button onClick="{{goBackToVilles}}" style="background:{{accent}};color:#1A1200;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer">← Voir les villes</button>
+        </div>
+      </div>
+      </sc-if>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{isListView}}" hint-placeholder-val="{{false}}">
+  <div style="padding:0 20px 12px 20px;flex-shrink:0">
+    <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textSecondary}}" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+      <span style="color:{{textSecondary}};font-size:14px">{{searchPlaceholder}}</span>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:0 20px 20px 20px;display:flex;flex-direction:column;gap:12px">
+    <sc-if value="{{isVillesScope}}" hint-placeholder-val="{{true}}">
+    <sc-for list="{{villes}}" as="v" hint-placeholder-count="3">
+    <button onClick="{{v.select}}" style="width:100%;text-align:left;background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div>
+        <div style="font-size:15px;font-weight:700">{{v.name}}</div>
+        <div style="font-size:12px;color:{{textSecondary}};margin-top:2px">{{v.region}} · {{v.count}} commerces enregistrés</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+    </button>
+    </sc-for>
+    </sc-if>
+
+    <sc-if value="{{isQuartiersScope}}" hint-placeholder-val="{{false}}">
+      <sc-if value="{{hasQuartiers}}" hint-placeholder-val="{{true}}">
+      <sc-for list="{{quartiers}}" as="z" hint-placeholder-count="4">
+      <a href="Quartier.dc.html" style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:15px;font-weight:700">{{z.name}}</div>
+          <div style="font-size:12px;color:{{textSecondary}};margin-top:2px">{{z.count}} commerces · {{z.products}} produits référencés</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      </sc-for>
+      </sc-if>
+      <sc-if value="{{noQuartiers}}" hint-placeholder-val="{{false}}">
+      <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:14px;padding:16px;text-align:center">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Pas encore de détail par quartier</div>
+        <div style="font-size:12px;color:{{textSecondary}}">{{activeVille.count}} commerces déjà enregistrés à {{activeVille.name}} — utilisez la recherche pour les trouver.</div>
+      </div>
+      </sc-if>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <div style="flex-shrink:0;display:flex;justify-content:space-around;align-items:center;padding:12px 0 22px 0;background:{{navBg}};border-top:1px solid {{cardBorder}}">
+    <a href="Main.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M3 11l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>
+      <span style="font-size:10px;color:{{textTertiary}};font-weight:600">Accueil</span>
+    </a>
+    <a href="Carte.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2.2"><path d="M9 20l-6 2V6l6-2 6 2 6-2v16l-6 2-6-2z"></path><path d="M9 4v16M15 6v16"></path></svg>
+      <span style="font-size:10px;color:{{accent}};font-weight:700">Carte</span>
+    </a>
+    <a href="Forum.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path></svg>
+      <span style="font-size:10px;color:{{textTertiary}};font-weight:600">Forum</span>
+    </a>
+    <a href="Profil.dc.html" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path></svg>
+      <span style="font-size:10px;color:{{textTertiary}};font-weight:600">Profil</span>
+    </a>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F2942E"},"theme":{"editor":"enum","default":"dark","options":["dark","light"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: (props && props.theme) || 'dark', view: 'map', scope: 'villes', activeVilleId: null };
+    this.toggleTheme = this.toggleTheme.bind(this);
+    this.showMap = this.showMap.bind(this);
+    this.showList = this.showList.bind(this);
+    this.goBackToVilles = this.goBackToVilles.bind(this);
+    this.selectVille = this.selectVille.bind(this);
+  }
+  toggleTheme() {
+    this.setState({ theme: this.state.theme === 'dark' ? 'light' : 'dark' });
+  }
+  showMap() {
+    this.setState({ view: 'map' });
+  }
+  showList() {
+    this.setState({ view: 'list' });
+  }
+  selectVille(id) {
+    this.setState({ scope: 'quartiers', activeVilleId: id, view: 'map' });
+  }
+  goBackToVilles() {
+    this.setState({ scope: 'villes', activeVilleId: null, view: 'map' });
+  }
+  renderVals() {
+    const isDark = (this.state.theme || this.props.theme || 'dark') === 'dark';
+    const dark = { bg: '#0D0D0F', cardBg: '#1B1B1E', cardBorder: '#2A2A2E', textPrimary: '#FFFFFF', textSecondary: '#9A9A9E', textTertiary: '#7A7A7E', navBg: '#121214', mapBg: '#15151A', gridLine: '#22222A', chipText: '#C8C8CC' };
+    const light = { bg: '#F7F7F8', cardBg: '#FFFFFF', cardBorder: '#E3E3E7', textPrimary: '#18181B', textSecondary: '#63636A', textTertiary: '#8E8E93', navBg: '#FFFFFF', mapBg: '#EFEFF2', gridLine: '#E2E2E6', chipText: '#4A4A50' };
+    const c = isDark ? dark : light;
+    const accent = this.props.accent ?? '#F2942E';
+    const isMapView = (this.state.view || 'map') === 'map';
+    const isVillesScope = (this.state.scope || 'villes') === 'villes';
+
+    // Hiérarchie Région > Ville/Village > Quartier (voir modele-donnees-netbuis.md v16).
+    // Seules les villes/villages ayant au moins un BusinessProfile actif rattaché apparaissent ici
+    // — règle de visibilité demandée explicitement par le porteur de projet.
+    const villesRaw = [
+      { id: 'maroua', name: 'Maroua', region: 'Région Extrême-Nord', count: 91, left: '30%', top: '36%',
+        quartiers: [
+          { name: 'Hardé', count: 24, products: 61, left: '24%', top: '30%' },
+          { name: 'Dougoï', count: 38, products: 94, left: '64%', top: '24%' },
+          { name: 'Domayo', count: 17, products: 42, left: '46%', top: '58%' },
+          { name: 'Djarengol', count: 12, products: 29, left: '20%', top: '76%' }
+        ] },
+      { id: 'garoua', name: 'Garoua', region: 'Région Nord', count: 14, left: '68%', top: '18%', quartiers: [] },
+      { id: 'douala', name: 'Douala', region: 'Région Littoral', count: 8, left: '48%', top: '82%', quartiers: [] }
+    ];
+    const villes = villesRaw.map((v) => ({ id: v.id, name: v.name, region: v.region, count: v.count, left: v.left, top: v.top, select: () => this.selectVille(v.id) }));
+
+    const activeVilleId = this.state.activeVilleId || villesRaw[0].id;
+    const activeVilleRaw = villesRaw.find((v) => v.id === activeVilleId) || villesRaw[0];
+    const quartiers = activeVilleRaw.quartiers || [];
+    const hasQuartiers = quartiers.length > 0;
+    const locationLabel = isVillesScope ? 'Cameroun · 3 villes actives' : (activeVilleRaw.name + ', ' + activeVilleRaw.region);
+    const searchPlaceholder = isVillesScope ? 'Rechercher une ville...' : 'Rechercher un quartier...';
+
+    return {
+      accent: accent,
+      isDark: isDark,
+      isLight: !isDark,
+      toggleTheme: this.toggleTheme,
+      showMap: this.showMap,
+      showList: this.showList,
+      goBackToVilles: this.goBackToVilles,
+      isMapView: isMapView,
+      isListView: !isMapView,
+      isVillesScope: isVillesScope,
+      isQuartiersScope: !isVillesScope,
+      mapTabBg: isMapView ? accent : 'transparent',
+      mapTabText: isMapView ? '#1A1200' : c.textSecondary,
+      listTabBg: !isMapView ? accent : 'transparent',
+      listTabText: !isMapView ? '#1A1200' : c.textSecondary,
+      bg: c.bg, cardBg: c.cardBg, cardBorder: c.cardBorder, textPrimary: c.textPrimary, textSecondary: c.textSecondary, textTertiary: c.textTertiary, navBg: c.navBg, mapBg: c.mapBg, gridLine: c.gridLine, chipText: c.chipText,
+      locationLabel: locationLabel,
+      searchPlaceholder: searchPlaceholder,
+      villes: villes,
+      activeVille: { name: activeVilleRaw.name, region: activeVilleRaw.region, count: activeVilleRaw.count },
+      quartiers: quartiers,
+      hasQuartiers: hasQuartiers,
+      noQuartiers: !hasQuartiers
+    };
+  }
+}
+</script>
+</body>
+</html>

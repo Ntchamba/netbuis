@@ -1,0 +1,10 @@
+E501 Line too long (116 > 100)
+ --> apps/business/models/profile.py:1:101
+  |
+1 | """BusinessProfile : propriétaire, nom, ville, quartier, téléphone, whatsapp_declared, statut de validation, visible
+  |                                                                                                     ^^^^^^^^^^^^^^^^
+2 |
+3 | Agent A · Étape É3
+  |
+
+Found 1 error.

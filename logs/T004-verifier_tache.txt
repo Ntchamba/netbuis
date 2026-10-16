@@ -1,0 +1,7 @@
+[32m✔ Pas de TODO / FIXME / stub laissé[0m
+[32m✔ Pas de test désactivé ou ignoré[0m
+[32m✔ Pas de secret en clair[0m
+[32m✔ Pas de console.log / print de débogage oublié[0m
+[32m✔ Aucun .env, log ou clé suivi par git[0m
+[32m✔ Pas de vrai numéro camerounais en dur[0m
+[32mContrôles automatiques : OK[0m

@@ -1,0 +1,3 @@
+// Client HTTP unique + liste des routes /api/admin/…
+// Agent C · Étape É5
+export {};

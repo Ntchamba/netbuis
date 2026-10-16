@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>NetBuis — Lancement</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+@keyframes splashFade {
+  0% { opacity:0; transform: translateY(10px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+.splash-in { animation: splashFade 0.5s ease-out; }
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:#0D0D0F;color:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;position:relative">
+
+  <div class="splash-in" style="display:flex;flex-direction:column;align-items:center;gap:18px">
+    <div style="width:84px;height:84px;border-radius:24px;background:{{accent}};display:flex;align-items:center;justify-content:center">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2.2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+    </div>
+    <div style="font-size:28px;font-weight:800;letter-spacing:0.5px"><span style="color:#FFFFFF">NET</span><span style="color:{{accent}}">BUIS</span></div>
+    <div style="font-size:13.5px;color:#9A9A9E;text-align:center;line-height:1.5;max-width:260px">Trouvez un produit ou un service.<br/>Appelez directement. Près de chez vous.</div>
+  </div>
+
+  <div style="position:absolute;left:24px;right:24px;bottom:56px;display:flex;flex-direction:column;align-items:center;gap:14px">
+    <a href="Connexion.dc.html" style="width:100%;box-sizing:border-box;background:{{accent}};color:#1A1200;font-size:15px;font-weight:700;padding:15px;border-radius:14px;text-align:center">Commencer</a>
+    <div style="font-size:11px;color:#5A5A5E">v1.0 — Maroua, Cameroun</div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F2942E"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#F2942E'
+    };
+  }
+}
+</script>
+</body>
+</html>

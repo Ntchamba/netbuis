@@ -1,0 +1,20 @@
+# Base PostgreSQL locale pour le développement (pg_trgm + unaccent créés au premier démarrage).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: netbuis
+      POSTGRES_PASSWORD: netbuis
+      POSTGRES_DB: netbuis
+    ports:
+      - "5432:5432"
+    volumes:
+      - netbuis_pg:/var/lib/postgresql/data
+      - ./backend/scripts/create_extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbuis"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  netbuis_pg:

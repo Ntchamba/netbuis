@@ -1,0 +1,14 @@
+# Seul Django est borné : 5.2 LTS (décision du projet).
+# Les autres versions sont figées au premier `pip freeze` (T001, logs/T001-pip.txt).
+django>=5.2,<5.3
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+drf-spectacular==0.30.0
+django-environ==0.14.0
+django-cors-headers==4.9.0
+whitenoise==6.12.0
+psycopg[binary]==3.3.6
+requests==2.34.2
+# printing (optionnel)
+qrcode[pil]==8.2
+reportlab==5.0.1

@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Date: Sun, 11 Oct 2026 10:27:42 GMT
+Server: WSGIServer/0.2 CPython/3.12.3
+Content-Type: application/json
+X-Frame-Options: DENY
+Content-Length: 28
+Vary: origin
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+{"status": "ok", "db": "ok"}

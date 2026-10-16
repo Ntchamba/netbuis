@@ -1,0 +1,11 @@
+{
+  "folders": [
+    { "name": "racine", "path": "." },
+    { "name": "backend (Django)", "path": "backend" },
+    { "name": "mobile (Flutter)", "path": "mobile" },
+    { "name": "dashboard (React)", "path": "dashboard" },
+    { "name": "docs", "path": "docs" },
+    { "name": "agents", "path": "agents" }
+  ],
+  "settings": {}
+}

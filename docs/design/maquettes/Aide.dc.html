@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>NetBuis — Aide & support</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::-webkit-scrollbar{display:none}
+</style>
+</helmet>
+<div style="width:390px;height:844px;background:{{bg}};color:{{textPrimary}};display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;position:relative">
+
+  <div style="padding:20px 20px 14px 20px;flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <a href="Profil.dc.html" aria-label="Retour" style="width:34px;height:34px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2.4"><path d="M15 6l-6 6 6 6"></path></svg>
+      </a>
+      <div style="font-size:15px;font-weight:800">Aide & support</div>
+      <button onClick="{{toggleTheme}}" aria-label="Changer de thème" style="width:34px;height:34px;border-radius:50%;background:{{cardBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0">
+        <sc-if value="{{isDark}}" hint-placeholder-val="{{true}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </sc-if>
+        <sc-if value="{{isLight}}" hint-placeholder-val="{{false}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{textPrimary}}" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"></path></svg>
+        </sc-if>
+      </button>
+    </div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:4px 20px 20px 20px;display:flex;flex-direction:column;gap:18px">
+
+    <div style="background:{{inputBg}};border:1px solid {{inputBorder}};border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+      <span style="font-size:13.5px;color:{{textTertiary}}">Rechercher dans l'aide...</span>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:800;color:{{accent}};margin-bottom:10px">📞 APPELS & CRÉDITS</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{faqAppels}}" as="q" hint-placeholder-count="3">
+        <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center">
+            <button onClick="{{q.toggle}}" style="flex:1;min-width:0;border:none;background:transparent;padding:13px 10px 13px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left">
+              <span style="font-size:13.5px;font-weight:600;color:{{textPrimary}}">{{q.question}}</span>
+              <span style="font-size:14px;color:{{textTertiary}};flex-shrink:0;margin-left:10px">{{q.chevron}}</span>
+            </button>
+            <button onClick="{{q.listenToggle}}" aria-label="Écouter cette question" style="width:28px;height:28px;flex-shrink:0;margin-right:12px;border-radius:50%;background:{{accent}};border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19 9a4 4 0 010 6"></path></svg>
+            </button>
+          </div>
+          <sc-if value="{{q.isListening}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 10px 14px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px">🔊</span>
+            <span style="font-size:11px;font-weight:700;color:{{accent}}">Lecture audio en cours...</span>
+          </div>
+          </sc-if>
+          <sc-if value="{{q.open}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 14px 14px">
+            <span style="font-size:12.5px;color:{{textSecondary}};line-height:1.5">{{q.answer}}</span>
+          </div>
+          </sc-if>
+        </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:800;color:{{accent}};margin-bottom:10px">🏪 COMPTE BUSINESS & ABONNEMENT</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{faqBusiness}}" as="q" hint-placeholder-count="3">
+        <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center">
+            <button onClick="{{q.toggle}}" style="flex:1;min-width:0;border:none;background:transparent;padding:13px 10px 13px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left">
+              <span style="font-size:13.5px;font-weight:600;color:{{textPrimary}}">{{q.question}}</span>
+              <span style="font-size:14px;color:{{textTertiary}};flex-shrink:0;margin-left:10px">{{q.chevron}}</span>
+            </button>
+            <button onClick="{{q.listenToggle}}" aria-label="Écouter cette question" style="width:28px;height:28px;flex-shrink:0;margin-right:12px;border-radius:50%;background:{{accent}};border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19 9a4 4 0 010 6"></path></svg>
+            </button>
+          </div>
+          <sc-if value="{{q.isListening}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 10px 14px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px">🔊</span>
+            <span style="font-size:11px;font-weight:700;color:{{accent}}">Lecture audio en cours...</span>
+          </div>
+          </sc-if>
+          <sc-if value="{{q.open}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 14px 14px">
+            <span style="font-size:12.5px;color:{{textSecondary}};line-height:1.5">{{q.answer}}</span>
+          </div>
+          </sc-if>
+        </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:13px;font-weight:800;color:{{accent}};margin-bottom:10px">🤝 PARRAINAGE & SÉCURITÉ</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{faqAutres}}" as="q" hint-placeholder-count="3">
+        <div style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;overflow:hidden">
+          <div style="display:flex;align-items:center">
+            <button onClick="{{q.toggle}}" style="flex:1;min-width:0;border:none;background:transparent;padding:13px 10px 13px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left">
+              <span style="font-size:13.5px;font-weight:600;color:{{textPrimary}}">{{q.question}}</span>
+              <span style="font-size:14px;color:{{textTertiary}};flex-shrink:0;margin-left:10px">{{q.chevron}}</span>
+            </button>
+            <button onClick="{{q.listenToggle}}" aria-label="Écouter cette question" style="width:28px;height:28px;flex-shrink:0;margin-right:12px;border-radius:50%;background:{{accent}};border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1A1200" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19 9a4 4 0 010 6"></path></svg>
+            </button>
+          </div>
+          <sc-if value="{{q.isListening}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 10px 14px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px">🔊</span>
+            <span style="font-size:11px;font-weight:700;color:{{accent}}">Lecture audio en cours...</span>
+          </div>
+          </sc-if>
+          <sc-if value="{{q.open}}" hint-placeholder-val="{{false}}">
+          <div style="padding:0 14px 14px 14px">
+            <span style="font-size:12.5px;color:{{textSecondary}};line-height:1.5">{{q.answer}}</span>
+          </div>
+          </sc-if>
+        </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="height:1px;background:{{cardBorder}}"></div>
+
+    <div>
+      <div style="font-size:13px;font-weight:800;margin-bottom:10px">NOUS CONTACTER</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a href="#" style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px">
+          <span style="width:30px;height:30px;border-radius:50%;background:#25D36622;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">💬</span>
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Discuter sur WhatsApp</div>
+            <div style="font-size:11.5px;color:{{textSecondary}}">Réponse sous quelques heures</div>
+          </div>
+        </a>
+        <a href="#" style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px">
+          <span style="width:30px;height:30px;border-radius:50%;background:{{accentSoft}};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">📞</span>
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Appeler le support NetBuis</div>
+            <div style="font-size:11.5px;color:{{textSecondary}}">Lun–Sam, 8h–18h</div>
+          </div>
+        </a>
+        <a href="#" style="background:{{cardBg}};border:1px solid {{cardBorder}};border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px">
+          <span style="width:30px;height:30px;border-radius:50%;background:{{inputBg}};border:1px solid {{cardBorder}};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✉️</span>
+          <div>
+            <div style="font-size:13.5px;font-weight:600">Envoyer un e-mail</div>
+            <div style="font-size:11.5px;color:{{textSecondary}}">support@netbuis.cm</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <a href="#" style="background:{{noteBg}};border:1px solid {{noteBorder}};border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px">🚩</span>
+        <span style="font-size:13.5px;font-weight:600">Signaler un problème ou un compte suspect</span>
+      </div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{textTertiary}}" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+
+    <div style="text-align:center;padding:4px 0">
+      <div style="font-size:11px;color:{{textTertiary}}">NetBuis · Conditions d'utilisation · Confidentialité</div>
+      <div style="font-size:10.5px;color:{{textTertiary}};margin-top:4px">Version 1.0</div>
+    </div>
+
+    <div style="height:10px"></div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#F2942E"},"theme":{"editor":"enum","default":"dark","options":["dark","light"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { theme: (props && props.theme) || 'dark', openFaq: 'appel_gratuit', listeningId: null };
+    this.toggleTheme = this.toggleTheme.bind(this);
+    this.toggleFaq = this.toggleFaq.bind(this);
+    this.toggleListen = this.toggleListen.bind(this);
+    this._listenTimer = null;
+  }
+  toggleTheme() {
+    this.setState({ theme: this.state.theme === 'dark' ? 'light' : 'dark' });
+  }
+  toggleFaq(id) {
+    this.setState({ openFaq: this.state.openFaq === id ? null : id });
+  }
+  toggleListen(id) {
+    if (this._listenTimer) { clearTimeout(this._listenTimer); }
+    if (this.state.listeningId === id) {
+      this.setState({ listeningId: null });
+      return;
+    }
+    this.setState({ listeningId: id });
+    this._listenTimer = setTimeout(() => { this.setState({ listeningId: null }); }, 2600);
+  }
+  renderVals() {
+    const isDark = (this.state.theme || this.props.theme || 'dark') === 'dark';
+    const dark = { bg: '#0D0D0F', cardBg: '#1B1B1E', cardBorder: '#2A2A2E', textPrimary: '#FFFFFF', textSecondary: '#9A9A9E', textTertiary: '#7A7A7E', inputBg: '#1B1B1E', inputBorder: '#2A2A2E', noteBg: '#1B1B1E', noteBorder: '#3A2A1E', accentSoft: '#3A2A14' };
+    const light = { bg: '#F7F7F8', cardBg: '#FFFFFF', cardBorder: '#E3E3E7', textPrimary: '#18181B', textSecondary: '#63636A', textTertiary: '#8E8E93', inputBg: '#FFFFFF', inputBorder: '#E3E3E7', noteBg: '#FFF4E8', noteBorder: '#F2D9B8', accentSoft: '#FDEBD3' };
+    const c = isDark ? dark : light;
+    const accent = this.props.accent ?? '#F2942E';
+    const open = this.state.openFaq;
+    const listeningId = this.state.listeningId;
+    const makeList = (defs) => defs.map((d) => {
+      const isOpen = d.id === open;
+      return {
+        id: d.id,
+        question: d.question,
+        answer: d.answer,
+        open: isOpen,
+        chevron: isOpen ? '▲' : '▼',
+        toggle: () => this.toggleFaq(d.id),
+        isListening: d.id === listeningId,
+        listenToggle: () => this.toggleListen(d.id)
+      };
+    });
+    const faqAppels = makeList([
+      { id: 'appel_gratuit', question: "Comment fonctionne l'appel gratuit du jour ?", answer: "Chaque compte dispose d'un appel gratuit par jour vers un compte business. Au-delà, l'appel est décompté de votre solde de crédits." },
+      { id: 'pack_credits', question: 'Comment acheter un pack de crédits ?', answer: "Depuis votre Profil, section « Solde de crédits », appuyez sur « Acheter un pack » et payez par Orange Money, MTN Mobile Money ou carte." },
+      { id: 'numero_cache', question: 'Pourquoi je ne vois pas le numéro du commerçant ?', answer: "Pour protéger la vie privée des commerçants, NetBuis lance l'appel directement — vous n'avez jamais besoin de voir ou de composer le numéro vous-même." }
+    ]);
+    const faqBusiness = makeList([
+      { id: 'creer_business', question: 'Comment créer mon compte business ?', answer: "Depuis votre Profil, appuyez sur « Activer mon compte Business », puis choisissez Commerce, Entreprise, Particulier vendeur ou Prestataire de service selon votre situation." },
+      { id: 'en_attente', question: 'Pourquoi mon compte est « en attente de validation » ?', answer: "L'équipe NetBuis vérifie chaque dossier (photos, informations) avant activation, pour protéger les utilisateurs des faux comptes. Cela prend en général quelques heures à un jour." },
+      { id: 'plafond_produits', question: 'Combien de produits puis-je ajouter sans abonnement ?', answer: "Jusqu'à 3 sous-catégories/produits par secteur sans abonnement. Un abonnement débloque une sélection illimitée, la priorité d'affichage et des publications illimitées." }
+    ]);
+    const faqAutres = makeList([
+      { id: 'devenir_agent', question: "Comment devenir membre de l'équipe NetBuis ?", answer: "Déposez votre candidature depuis l'app : informations personnelles + vidéo de votre CNI. Une fois validée, vous recevez un QR code personnel pour parrainer des comptes business." },
+      { id: 'parrainage', question: 'Comment fonctionne le parrainage ?', answer: "Un commerçant que vous parrainez scanne votre QR code et s'inscrit lui-même. Une fois son compte validé, une prime est créditée à votre solde de parrainage." },
+      { id: 'signaler_suspect', question: 'Comment signaler un compte suspect ?', answer: 'Utilisez le bouton « Signaler un problème ou un compte suspect » ci-dessous, ou contactez le support directement.' }
+    ]);
+    return {
+      accent: accent,
+      isDark: isDark,
+      isLight: !isDark,
+      toggleTheme: this.toggleTheme,
+      bg: c.bg, cardBg: c.cardBg, cardBorder: c.cardBorder, textPrimary: c.textPrimary, textSecondary: c.textSecondary, textTertiary: c.textTertiary, inputBg: c.inputBg, inputBorder: c.inputBorder, noteBg: c.noteBg, noteBorder: c.noteBorder, accentSoft: c.accentSoft,
+      faqAppels: faqAppels,
+      faqBusiness: faqBusiness,
+      faqAutres: faqAutres
+    };
+  }
+}
+</script>
+</body>
+</html>
