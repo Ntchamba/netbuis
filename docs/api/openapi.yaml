@@ -4,6 +4,89 @@ info:
   version: 0.1.0
   description: 'Contrat d''API NetBuis (source de vérité : docs/api/openapi.yaml)'
 paths:
+  /api/auth/admin/login/:
+    post:
+      operationId: auth_admin_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLogin'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminLogin'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminLogin'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessResponse'
+          description: 'Connecté. En-tête Set-Cookie : netbuis_refresh (HttpOnly,
+            SameSite=Lax, Secure hors développement, Path=/api/auth/, 30 jours).'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : champ manquant'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid_credentials : « Numéro ou mot de passe incorrect.
+            » — même réponse si le compte n''existe pas, n''est pas administrateur,
+            est bloqué ou supprimé'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'too_many_requests : 5 essais ratés en 15 min depuis cette
+            IP (en-tête Retry-After en secondes)'
+  /api/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      parameters:
+      - in: cookie
+        name: netbuis_refresh
+        schema:
+          type: string
+        description: 'Dashboard : jeton de rafraîchissement (cookie HttpOnly posé
+          par admin/login)'
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      security:
+      - {}
+      responses:
+        '204':
+          description: 'Déconnecté : le jeton de rafraîchissement ne peut plus servir
+            ; le cookie du dashboard est effacé.'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'token_invalid : jeton absent, faux, expiré ou déjà invalidé'
   /api/auth/otp/request/:
     post:
       operationId: auth_otp_request_create
@@ -93,6 +176,53 @@ paths:
           description: 'too_many_requests : 5 essais ratés (demander un nouveau code),
             30 vérifications / heure par IP, ou numéro bloqué 1 heure après 5 codes
             faux (en-tête Retry-After en secondes)'
+  /api/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      parameters:
+      - in: cookie
+        name: netbuis_refresh
+        schema:
+          type: string
+        description: 'Dashboard : jeton de rafraîchissement (cookie HttpOnly posé
+          par admin/login)'
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+          description: 'Nouveau couple ; l''ancien jeton de rafraîchissement n''est
+            plus valable. Dashboard : seul access est dans le corps, le cookie est
+            reposé.'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'token_invalid : jeton absent, faux, expiré ou déjà utilisé'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -240,6 +370,29 @@ paths:
           description: ''
 components:
   schemas:
+    AccessResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          description: Jeton d'accès, valable 15 min. Le jeton de rafraîchissement
+            est posé dans le cookie HttpOnly netbuis_refresh.
+      required:
+      - access
+    AdminLogin:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: 6XXXXXXXX, avec ou sans +237
+          maxLength: 20
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+      required:
+      - password
+      - phone
     Error:
       type: object
       properties:
@@ -295,6 +448,25 @@ components:
       - access
       - is_new
       - refresh
+    RefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          description: 'Application mobile : jeton de rafraîchissement. Dashboard
+            : laisser vide, le jeton est lu dans le cookie HttpOnly netbuis_refresh.'
+    RefreshResponse:
+      type: object
+      properties:
+        access:
+          type: string
+          description: Jeton d'accès, valable 15 min
+        refresh:
+          type: string
+          description: 'Nouveau jeton de rafraîchissement (30 jours) ; l''ancien n''est
+            plus valable. Absent pour le dashboard : il est reposé dans le cookie.'
+      required:
+      - access
   securitySchemes:
     jwtAuth:
       type: http

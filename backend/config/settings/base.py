@@ -24,6 +24,8 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     "rest_framework",
+    # Liste des jetons de rafraîchissement émis / invalidés (déconnexion, rotation) : T007.
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "corsheaders",
 ]
@@ -80,6 +82,9 @@ TEMPLATES = [
 DATABASES = {"default": env.db("DATABASE_URL")}
 
 AUTH_USER_MODEL = "accounts.User"
+# Connexion par mot de passe (admin-login, admin Django) : seuls les comptes is_admin
+# qui passent user.can_login() (ni bloqués, ni supprimés, ni inactifs).
+AUTHENTICATION_BACKENDS = ["apps.accounts.backends.AdminOnlyBackend"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -115,10 +120,16 @@ REST_FRAMEWORK = {
     "NUM_PROXIES": 0,
 }
 
+# Durées : BACKLOG T007 (accès 15 min, rafraîchissement 30 jours).
+# Rotation et invalidation du jeton de rafraîchissement : apps.accounts.services.token_service.
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
+# Jeton de rafraîchissement du dashboard (D-01) : cookie HttpOnly, SameSite=Lax,
+# Secure dès que DEBUG=False, envoyé seulement aux routes /api/auth/.
+REFRESH_COOKIE_NAME = "netbuis_refresh"
+REFRESH_COOKIE_PATH = "/api/auth/"
 
 LOGGING = {
     "version": 1,
@@ -137,6 +148,8 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"])
+# Le dashboard envoie le cookie de rafraîchissement (D-01) : requêtes avec identifiants.
+CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173"])
 
 # --- Fonctions activables ---
