@@ -92,6 +92,16 @@ def revoke_refresh(raw: str) -> None:
         _consume(raw)
 
 
+def revoke_all_refresh(user) -> None:
+    """Invalide tous les jetons de rafraîchissement encore valables de `user`
+    (suppression du compte). Les jetons d'accès restants (≤ 15 min) sont refusés
+    par la permission IsAuthenticatedNotBlocked, qui revérifie user.can_login()."""
+    pending = OutstandingToken.objects.filter(user=user, blacklistedtoken__isnull=True)
+    BlacklistedToken.objects.bulk_create(
+        [BlacklistedToken(token=token) for token in pending], ignore_conflicts=True
+    )
+
+
 def set_refresh_cookie(response, refresh: str) -> None:
     response.set_cookie(
         settings.REFRESH_COOKIE_NAME,

@@ -13,8 +13,10 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "is_admin", "is_blocked", "is_deleted", "is_staff", "created_at")
-    list_filter = ("is_admin", "is_blocked", "is_deleted", "is_staff", "is_active")
+    list_display = (
+        "id", "name", "language", "is_admin", "is_blocked", "is_deleted", "is_staff", "created_at"
+    )
+    list_filter = ("is_admin", "is_blocked", "is_deleted", "is_staff", "is_active", "language")
     search_fields = ("name", "phone")
     ordering = ("-created_at",)
     exclude = ("password",)

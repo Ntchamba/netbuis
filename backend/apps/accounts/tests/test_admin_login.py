@@ -218,3 +218,33 @@ def test_admin_django_n_affiche_jamais_la_valeur_d_un_jeton(client, password):
     page = browser.get(f"/django-admin/token_blacklist/outstandingtoken/{pk}/change/")
     assert page.status_code == 200
     assert raw not in page.content.decode()
+
+
+def test_admin_django_fiche_compte_avec_langue_sans_mot_de_passe(password):
+    admin = AdminFactory(password=password, is_staff=True, is_superuser=True)
+    user = UserFactory(language="en")
+    browser, _ = django_admin_login(admin.phone, password)
+    page = browser.get(f"/django-admin/accounts/user/{user.pk}/change/")
+    assert page.status_code == 200
+    content = page.content.decode()
+    assert 'name="language"' in content
+    assert 'name="password"' not in content  # le mot de passe ne s'édite pas ici
+    assert admin.password not in content
+
+
+def test_admin_django_liste_filtrable_par_langue(password):
+    admin = AdminFactory(password=password, is_staff=True, is_superuser=True)
+    UserFactory(language="en", name="Compte anglais")
+    UserFactory(language="fr", name="Compte francais")
+    browser, _ = django_admin_login(admin.phone, password)
+    page = browser.get("/django-admin/accounts/user/?language__exact=en")
+    assert page.status_code == 200
+    assert "Compte anglais" in page.content.decode()
+    assert "Compte francais" not in page.content.decode()
+
+
+def test_admin_django_refuse_un_compte_simple(password):
+    user = UserFactory(password=password)
+    browser, status = django_admin_login(user.phone, password)
+    assert status == 302
+    assert browser.get("/django-admin/accounts/user/").status_code == 302

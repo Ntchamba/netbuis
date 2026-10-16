@@ -103,8 +103,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    # Sécurisé par défaut : les routes publiques doivent le déclarer explicitement.
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # Sécurisé par défaut : les routes publiques doivent le déclarer explicitement
+    # (AllowAny). Un compte bloqué ou supprimé est refusé même avec un jeton d'accès
+    # encore valable (T008).
+    "DEFAULT_PERMISSION_CLASSES": ("apps.accounts.permissions.IsAuthenticatedNotBlocked",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
     "PAGE_SIZE": 20,

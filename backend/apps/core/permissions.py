@@ -1,11 +1,9 @@
-"""Permissions communes. « Administrateur » = User.is_admin (provisoire, groupes en T070)."""
+"""Permissions communes.
+
+Les permissions liées au compte (IsAuthenticatedNotBlocked, IsActiveBusinessOwner,
+IsAdminRole) sont dans apps/accounts/permissions.py (T008).
+"""
 from rest_framework.permissions import BasePermission
-
-
-class IsAdminRole(BasePermission):
-    def has_permission(self, request, view):
-        user = request.user
-        return bool(user and user.is_authenticated and getattr(user, "is_admin", False))
 
 
 class IsOwner(BasePermission):

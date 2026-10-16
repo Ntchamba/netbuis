@@ -223,6 +223,103 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: 'account_blocked / account_deleted : « Contactez le support
             »'
+  /api/me/:
+    get:
+      operationId: me_retrieve
+      tags:
+      - account
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
+    patch:
+      operationId: me_partial_update
+      tags:
+      - account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMe'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMe'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMe'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : nom trop long ou langue inconnue (fr, en)'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
+    delete:
+      operationId: me_destroy
+      tags:
+      - account
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: Compte supprimé (suppression douce) ; tous les jetons sont
+            invalidés. Une reconnexion avec ce numéro reçoit « Contactez le support
+            ».
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -403,6 +500,54 @@ components:
       required:
       - code
       - message
+    LanguageEnum:
+      enum:
+      - fr
+      - en
+      type: string
+      description: |-
+        * `fr` - Français
+        * `en` - English
+    Me:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          description: Facultatif ; 120 caractères au plus
+          maxLength: 120
+        phone_masked:
+          type: string
+          readOnly: true
+          description: 'Numéro masqué : seuls le premier et les deux derniers chiffres
+            restent'
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageEnum'
+          title: Langue
+        has_business:
+          type: boolean
+          readOnly: true
+          description: Vrai si le compte a un compte business (quel que soit son statut)
+        free_call_available:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: Appels gratuits restants aujourd'hui ; null tant que CREDITS_ENABLED=False
+        credits_balance:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: Solde de crédits en FCFA ; null tant que CREDITS_ENABLED=False
+      required:
+      - credits_balance
+      - free_call_available
+      - has_business
+      - id
+      - phone_masked
     OtpRequest:
       type: object
       properties:
@@ -448,6 +593,40 @@ components:
       - access
       - is_new
       - refresh
+    PatchedMe:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          description: Facultatif ; 120 caractères au plus
+          maxLength: 120
+        phone_masked:
+          type: string
+          readOnly: true
+          description: 'Numéro masqué : seuls le premier et les deux derniers chiffres
+            restent'
+        language:
+          allOf:
+          - $ref: '#/components/schemas/LanguageEnum'
+          title: Langue
+        has_business:
+          type: boolean
+          readOnly: true
+          description: Vrai si le compte a un compte business (quel que soit son statut)
+        free_call_available:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: Appels gratuits restants aujourd'hui ; null tant que CREDITS_ENABLED=False
+        credits_balance:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: Solde de crédits en FCFA ; null tant que CREDITS_ENABLED=False
     RefreshRequest:
       type: object
       properties:
