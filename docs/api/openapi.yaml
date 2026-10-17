@@ -223,6 +223,37 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: 'account_blocked / account_deleted : « Contactez le support
             »'
+  /api/catalog/products/:
+    get:
+      operationId: catalog_products_list
+      summary: Complétion des produits du catalogue
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Début ou morceau du nom (ou d'un synonyme), 100 caractères au
+          plus. Sans accents ni majuscules.
+        required: true
+      tags:
+      - catalog
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CatalogProduct'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `q` absent, vide ou trop long'
   /api/me/:
     get:
       operationId: me_retrieve
@@ -320,6 +351,57 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: 'account_blocked / account_deleted : « Contactez le support
             »'
+  /api/referentials/sectors/:
+    get:
+      operationId: referentials_sectors_list
+      summary: Secteurs d'activité avec leurs sous-catégories
+      tags:
+      - referentials
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sector'
+          description: ''
+  /api/referentials/service-categories/:
+    get:
+      operationId: referentials_service_categories_list
+      summary: Catégories de service (prestataires)
+      tags:
+      - referentials
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceCategory'
+          description: ''
+  /api/referentials/structure-types/:
+    get:
+      operationId: referentials_structure_types_list
+      summary: Types de structure
+      tags:
+      - referentials
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StructureType'
+          description: ''
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -567,6 +649,31 @@ components:
       required:
       - password
       - phone
+    CatalogProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        sector:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Code du secteur, ou null.
+        subcategory:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Code de la sous-catégorie, ou null.
+      required:
+      - id
+      - name
+      - sector
+      - subcategory
     Error:
       type: object
       properties:
@@ -764,6 +871,130 @@ components:
             plus valable. Absent pour le dashboard : il est reposé dans le cookie.'
       required:
       - access
+    Sector:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          title: Code stable
+          description: Minuscules sans accents (ex. alimentation). Ne pas le changer
+            une fois publié.
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        icon:
+          type: string
+          readOnly: true
+          title: Icône
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+        subcategories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subcategory'
+          readOnly: true
+          description: Sous-catégories actives du secteur, triées par ordre puis nom.
+      required:
+      - code
+      - icon
+      - id
+      - name
+      - order
+      - subcategories
+    ServiceCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          title: Code stable
+          description: Minuscules sans accents (ex. evenementiel).
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        icon:
+          type: string
+          readOnly: true
+          title: Icône
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+      required:
+      - code
+      - icon
+      - id
+      - name
+      - order
+    StructureType:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          title: Code stable
+          description: Minuscules sans accents (ex. centre_sante).
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        icon:
+          type: string
+          readOnly: true
+          title: Icône
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+      required:
+      - code
+      - icon
+      - id
+      - name
+      - order
+    Subcategory:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        code:
+          type: string
+          readOnly: true
+          title: Code stable
+          description: Unique dans le secteur (ex. fruits).
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        icon:
+          type: string
+          readOnly: true
+          title: Icône
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+      required:
+      - code
+      - icon
+      - id
+      - name
+      - order
     Zone:
       type: object
       properties:
