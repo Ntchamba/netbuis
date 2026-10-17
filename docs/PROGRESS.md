@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T009
-- **Prochaine tâche** : T010
+- **Tâche en cours** : T010 🔄
+- **Prochaine tâche** : T011
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -28,8 +28,8 @@
 | ✅ | T007 | 🔒 Backend : jetons et connexion administrateur | a1 | 2026-10-16 | logs/T007-verification.md ; vérificateur CONFORME après 1 correction (limite admin-login en simultané) ; refresh à usage unique (rotation), mobile reçoit {access, refresh}, dashboard {access} + cookie netbuis_refresh ; compteur admin-login en base (AdminLoginAttempt, migration 0005) ; nouveaux fichiers accounts/backends.py et models/login_attempt.py (accordés par l'orchestrateur) ; CORS_ALLOW_CREDENTIALS=True ; à faire : jeton d'accès ≤ 15 min après blocage (T008), NUM_PROXIES au déploiement, nettoyage des jetons expirés ; validé par Jeff le 2026-10-16 |
 | ✅ | T008 | Backend : compte, droits et admin Django | a1 | 2026-10-16 | logs/T008-verification.md ; 176 tests, couverture accounts 99 % ; IsAuthenticatedNotBlocked = permission par défaut (jeton d'accès refusé dès le blocage) ; IsAdminRole déplacé de core vers accounts ; champ `language` (fr/en, migration 0006) ; compteurs crédits = null (critère 6 retenu contre le « 0 » du critère 1) ; `free_call_available` entier nullable (« 0 / 1 restant » de la maquette) — à confirmer ; contrat pour T025 : OneToOne `related_name="business_profile"`, `status="actif"` ; masquage du profil d'un propriétaire supprimé à faire dans recherche/carte/fiche (T026) ; backend/README.md créé |
 | ✅ | T008b | Backend : réglages de plateforme (`PlatformSetting`) | a1 | 2026-10-16 | logs/T008b-verification.md ; 210 tests ; minimum 1 pour les 5 clés (0 refusé — à confirmer par Jeff pour `plafond_publications_non_abonne`) ; pas de borne haute (T074) ; cache LocMem 60 s : autres workers à jour en ≤ 60 s ; T074 devra écrire via save() (pas .update()) ; droit « Administrateur complet » appliqué en T074 |
-| ☐ | T009 | Mobile : données et état de la connexion | b1 | | |
-| ☐ | T010 | Mobile : Lancement et Découverte | b1 | | |
+| ✅ | T009 | Mobile : données et état de la connexion | b1 | 2026-10-17 | logs/T009-verification.md ; 60 tests ; API_URL (défaut http://10.0.2.2:8000/api) ; AuthAuthenticated porte isNew, pas de rôle ; refresh_interceptor (401 → renouvellement unique) reste une coquille, à faire avant T012 ; délai de renvoi 30 s à confirmer en T011 |
+| 🔄 | T010 | Mobile : Lancement et Découverte | b1 | | |
 | ☐ | T011 | Mobile : écran Connexion (numéro puis code) | b1 | | |
 | ☐ | T011b | Mobile : coquille de l'écran Profil et saisie du nom | b1 | | |
 | ☐ | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | | |
