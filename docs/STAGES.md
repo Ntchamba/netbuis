@@ -13,4 +13,4 @@
 | É8 | Durcissement | Tests, sécurité, performances, production |
 
 Passage d'une étape à la suivante : l'orchestrateur intègre, lance les tests, Jeff valide.
-Plan détaillé des 97 tâches : document « Plan de la semaine » du Projet Claude.
+Plan détaillé : `docs/BACKLOG.md` (tâches T000 → T125, fait foi). L'ancien « Plan de la semaine » (97 tâches) est archivé dans `docs/plans/plan-semaine-netbuis.md`.

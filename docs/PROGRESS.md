@@ -15,7 +15,7 @@
 | Statut | Id | Titre | Agent | Date | Preuve / notes |
 |---|---|---|---|---|---|
 | | | **PHASE 0 — Vérifier le socle et caler le projet** | | | |
-| ✅ | T000 | Préparer le dépôt Git | orchestrateur | 2026-10-11 | dépôt dans netbuis/, commit f07f697, branche etape-1/socle, 10 agents, aucun .env versionné |
+| ✅ | T000 | Préparer le dépôt Git | orchestrateur | 2026-10-11 | dépôt dans netbuis/, commit f07f697, branche etape-1/socle, 10 agents, aucun .env versionné ; **2026-10-17** : cet historique local n'est pas sur GitHub (le dépôt `Ntchamba/netbuis` part du commit unique « premier lancement » sur `main`) ; `.gitignore` racine, `.claude/` et `docs/verifications/` ajoutés (voir `docs/AUDIT-2026-10-17.md`) |
 | ✅ | T001 | Faire tourner le socle backend (étape 1) | a1 | 2026-10-11 | logs/T001-verification.md ; User avec `role` (converti en T005b) ; .env.example à compléter (OTP_TEST_MODE, CSRF_TRUSTED_ORIGINS) |
 | ✅ | T002 | Faire tourner le socle dashboard (étape 1) | c3 | 2026-10-11 | logs/T002-verification.md ; versions figées (React 19.3, Vite 8.3, TS 7.0) ; Node 24.15+ conseillé |
 | ✅ | T003 | Faire tourner le socle mobile (étape 1) | b1 | 2026-10-11 | logs/T003-verification.md ; pas d'émulateur → `flutter build apk --debug` OK ; SDK Android 36, NDK 28.2 |
