@@ -1,12 +1,11 @@
-"""Routes de l'app geo (à remplir pendant l'implémentation).
+"""Routes publiques des zones (T020). Le composant « proches de moi » viendra avec sa tâche."""
+from django.urls import path
 
-Routes prévues (voir docs/api/openapi.yaml) :
-#   villes/
-#   quartiers/
-#   geo/nearby/
-"""
-from django.urls import path  # noqa: F401
+from .views.zone import ZoneDetailView, ZoneListView
 
 app_name = "geo"
 
-urlpatterns = []
+urlpatterns = [
+    path("zones/", ZoneListView.as_view(), name="zone-list"),
+    path("zones/<int:pk>/", ZoneDetailView.as_view(), name="zone-detail"),
+]

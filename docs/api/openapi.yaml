@@ -465,6 +465,83 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/zones/:
+    get:
+      operationId: zones_list
+      parameters:
+      - in: query
+        name: level
+        schema:
+          type: string
+          enum:
+          - arrondissement
+          - departement
+          - pays
+          - quartier
+          - region
+          - repere
+          - ville_village
+        description: Niveau des zones voulues.
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: parent
+        schema:
+          type: integer
+        description: Identifiant de la zone parente.
+      tags:
+      - zones
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedZoneList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `level` ou `parent` incorrect'
+  /api/zones/{id}/:
+    get:
+      operationId: zones_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - zones
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZoneDetail'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : zone inconnue ou désactivée'
 components:
   schemas:
     AccessResponse:
@@ -508,6 +585,24 @@ components:
       description: |-
         * `fr` - Français
         * `en` - English
+    LevelEnum:
+      enum:
+      - pays
+      - region
+      - departement
+      - arrondissement
+      - ville_village
+      - quartier
+      - repere
+      type: string
+      description: |-
+        * `pays` - Pays
+        * `region` - Région
+        * `departement` - Département
+        * `arrondissement` - Arrondissement
+        * `ville_village` - Ville / village
+        * `quartier` - Quartier
+        * `repere` - Repère
     Me:
       type: object
       properties:
@@ -593,6 +688,29 @@ components:
       - access
       - is_new
       - refresh
+    PaginatedZoneList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Zone'
     PatchedMe:
       type: object
       properties:
@@ -646,6 +764,106 @@ components:
             plus valable. Absent pour le dashboard : il est reposé dans le cookie.'
       required:
       - access
+    Zone:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          readOnly: true
+          title: Niveau
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+        official_code:
+          type: string
+          readOnly: true
+          title: Code officiel
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+        latitude:
+          type: number
+          format: double
+          readOnly: true
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          readOnly: true
+          nullable: true
+      required:
+      - id
+      - latitude
+      - level
+      - longitude
+      - name
+      - official_code
+      - order
+      - parent
+    ZoneDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+          title: Nom
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          readOnly: true
+          title: Niveau
+        parent:
+          type: integer
+          readOnly: true
+          nullable: true
+        official_code:
+          type: string
+          readOnly: true
+          title: Code officiel
+        order:
+          type: integer
+          readOnly: true
+          title: Ordre
+        latitude:
+          type: number
+          format: double
+          readOnly: true
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          readOnly: true
+          nullable: true
+        path:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
+          description: Les parents du pays jusqu'à la zone incluse (id, nom, niveau).
+      required:
+      - id
+      - latitude
+      - level
+      - longitude
+      - name
+      - official_code
+      - order
+      - parent
+      - path
   securitySchemes:
     jwtAuth:
       type: http

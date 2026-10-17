@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T020 🔄
-- **Prochaine tâche** : T021
+- **Tâche en cours** : T021 🔄
+- **Prochaine tâche** : T022
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -35,8 +35,8 @@
 | ✅ | T011c | Mobile : renouvellement automatique du jeton (ajoutée par l'orchestrateur : exigée par T012) | b1 | 2026-10-17 | logs/T011c-verification.md ; 179 tests ; SessionRefresher partagé avec AuthController ; rejeu sans FormData (à revoir pour l'envoi de photos, T027/T030) |
 | ✅ | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | 2026-10-17 | logs/T012-tranche.md ; serveur local + code mobile réel contre ce serveur (expiration forcée, rotation, déconnexion) : OK ; reste à Jeff : essai sur téléphone Android, lecture auto du SMS, relecture de la zone OTP/jetons mobile ; validé par Jeff le 2026-10-17 (l'essai sur téléphone reste à faire) |
 | | | **PHASE 2 — Référentiels : lieux et catalogues (Étape 3)** | | | |
-| 🔄 | T020 | Backend : zones (Pays → Quartier) | a2 | | |
-| ☐ | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | |
+| ✅ | T020 | Backend : zones (Pays → Quartier) | a2 | 2026-10-17 | logs/T020-verification.md ; 238 tests ; modèle Zone unique (Ville/Quartier supprimés) ; /api/zones/ paginé (20, max 50) ; Maroua rattachée au département Diamaré, pas à ses 3 arrondissements ; zones.csv = 20 lignes, coordonnées et codes vides |
+| 🔄 | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | |
 | ☐ | T022 | Mobile : référentiels et choix de la ville | b1 | | |
 | ☐ | T023 | Vérification de tranche : référentiels | orchestrateur | | |
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
@@ -155,7 +155,8 @@
 
 | Où | Quoi | Tâche |
 |---|---|---|
-| | | |
+| backend/apps/geo/data/zones.csv | Les 57 autres départements, ~357 autres arrondissements, villes et villages (avec leur rattachement), quartiers des autres villes et les autres quartiers de Maroua, repères | T020 |
+| backend/apps/geo/data/zones.csv | Codes officiels et coordonnées (latitude, longitude) pour l'écran Carte | T020 |
 
 ## Écrans créés sans maquette
 
