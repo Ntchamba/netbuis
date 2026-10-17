@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/l10n/l10n.dart';
 import 'core/router/app_router.dart';
 import 'core/router/routes.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/application/auth_controller.dart';
 
 /// Racine de l'application. Le thème suit le réglage du téléphone.
-class NetBuisApp extends StatefulWidget {
+class NetBuisApp extends ConsumerStatefulWidget {
   const NetBuisApp({
     super.key,
     this.themeMode = ThemeMode.system,
@@ -21,21 +23,29 @@ class NetBuisApp extends StatefulWidget {
   final String initialLocation;
 
   @override
-  State<NetBuisApp> createState() => _NetBuisAppState();
+  ConsumerState<NetBuisApp> createState() => _NetBuisAppState();
 }
 
-class _NetBuisAppState extends State<NetBuisApp> {
+class _NetBuisAppState extends ConsumerState<NetBuisApp> {
   late final GoRouter _router;
+  final ValueNotifier<int> _authChanges = ValueNotifier<int>(0);
 
   @override
   void initState() {
     super.initState();
-    _router = buildRouter(initialLocation: widget.initialLocation);
+    _router = buildRouter(
+      initialLocation: widget.initialLocation,
+      readAuth: () => ref.read(authControllerProvider),
+      refreshListenable: _authChanges,
+    );
+    // Chaque changement d'état de connexion relance les redirections (connecté → Accueil…).
+    ref.listenManual(authControllerProvider, (previous, next) => _authChanges.value++);
   }
 
   @override
   void dispose() {
     _router.dispose();
+    _authChanges.dispose();
     super.dispose();
   }
 

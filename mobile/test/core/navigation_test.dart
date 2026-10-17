@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/app.dart';
+import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/router/routes.dart';
 import 'package:netbuis/core/widgets/netbuis_logo.dart';
+
+import '../features/auth/auth_test_helpers.dart';
 
 Future<void> _pumpApp(WidgetTester tester, {ThemeMode mode = ThemeMode.dark}) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(ProviderScope(child: NetBuisApp(themeMode: mode, initialLocation: Routes.home)));
+  await tester.pumpWidget(
+    ProviderScope(
+      // Les onglets exigent une session ouverte.
+      overrides: [tokenStorageProvider.overrideWithValue(MemoryTokenStorage(refresh: 'ref-1'))],
+      child: NetBuisApp(themeMode: mode, initialLocation: Routes.home),
+    ),
+  );
   await tester.pumpAndSettle();
 }
 

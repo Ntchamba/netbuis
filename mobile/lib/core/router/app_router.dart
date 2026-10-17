@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/application/auth_state.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../l10n/l10n.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/netbuis_logo.dart';
+import 'guards.dart';
 import 'routes.dart';
 
-/// Routeur de l'application : lancement, Découverte, puis 4 onglets, chacun garde sa propre pile.
-GoRouter buildRouter({String initialLocation = Routes.splash}) {
+/// Routeur de l'application : lancement, Découverte, connexion (numéro puis code),
+/// puis 4 onglets, chacun garde sa propre pile. [readAuth] donne l'état de connexion
+/// et [refreshListenable] relance les redirections quand il change.
+GoRouter buildRouter({
+  String initialLocation = Routes.splash,
+  required AuthState Function() readAuth,
+  Listenable? refreshListenable,
+}) {
   GoRoute tab(String path, Widget screen) =>
       GoRoute(path: path, builder: (context, state) => screen);
 
   return GoRouter(
     initialLocation: initialLocation,
+    refreshListenable: refreshListenable,
+    redirect: (context, state) => authRedirect(readAuth(), state.uri.toString()),
     routes: [
       GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
+      GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
+      GoRoute(path: Routes.otp, builder: (context, state) => const OtpScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),

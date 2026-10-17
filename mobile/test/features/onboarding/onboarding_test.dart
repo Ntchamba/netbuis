@@ -6,10 +6,13 @@ import 'package:netbuis/app.dart';
 import 'package:netbuis/core/config/feature_flags.dart';
 import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/storage/prefs.dart';
+import 'package:netbuis/features/auth/presentation/screens/login_screen.dart';
 import 'package:netbuis/features/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:netbuis/core/l10n/l10n.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
 import 'package:netbuis/core/widgets/netbuis_logo.dart';
+
+import '../auth/auth_test_helpers.dart';
 
 class MemoryPrefs implements AppPrefs {
   MemoryPrefs({this.seen = false, this.throwOnRead = false});
@@ -31,6 +34,7 @@ Future<void> _pumpApp(
   WidgetTester tester,
   MemoryPrefs prefs, {
   double textScale = 1.0,
+  bool signedIn = true,
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -39,7 +43,13 @@ Future<void> _pumpApp(
   addTearDown(tester.platformDispatcher.clearAllTestValues);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [appPrefsProvider.overrideWithValue(prefs)],
+      overrides: [
+        appPrefsProvider.overrideWithValue(prefs),
+        // Session ouverte par défaut : ces tests vérifient le parcours vers l'Accueil.
+        tokenStorageProvider.overrideWithValue(
+          MemoryTokenStorage(refresh: signedIn ? 'ref-1' : null),
+        ),
+      ],
       child: const NetBuisApp(themeMode: ThemeMode.dark),
     ),
   );
@@ -103,6 +113,15 @@ void main() {
       expect(find.byType(NavigationDestination), findsNWidgets(4));
     });
 
+    testWidgets('déjà vue mais non connecté : Commencer mène à la connexion', (tester) async {
+      await _pumpApp(tester, MemoryPrefs(seen: true), signedIn: false);
+      await tester.tap(find.text('Commencer'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.byType(NavigationDestination), findsNothing);
+    });
+
     testWidgets('préférence illisible : la Découverte est montrée', (tester) async {
       await _pumpApp(tester, MemoryPrefs(throwOnRead: true));
       await tester.tap(find.text('Commencer'));
@@ -146,6 +165,19 @@ void main() {
       expect(find.byType(OnboardingScreen), findsNothing);
       expect(find.byType(NavigationDestination), findsNWidgets(4));
       semantics.dispose();
+    });
+
+    testWidgets('non connecté : Passer mène à la connexion', (tester) async {
+      final prefs = MemoryPrefs();
+      await _pumpApp(tester, prefs, signedIn: false);
+      await tester.tap(find.text('Commencer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Passer'));
+      await tester.pumpAndSettle();
+
+      expect(prefs.seen, isTrue);
+      expect(find.byType(LoginScreen), findsOneWidget);
+      expect(find.byType(NavigationDestination), findsNothing);
     });
 
     testWidgets('Passer saute la Découverte et la mémorise', (tester) async {
