@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T023 🔄
-- **Prochaine tâche** : T025
+- **Tâche en cours** : T025 🔄
+- **Prochaine tâche** : T025b
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -38,9 +38,9 @@
 | ✅ | T020 | Backend : zones (Pays → Quartier) | a2 | 2026-10-17 | logs/T020-verification.md ; 238 tests ; modèle Zone unique (Ville/Quartier supprimés) ; /api/zones/ paginé (20, max 50) ; Maroua rattachée au département Diamaré, pas à ses 3 arrondissements ; zones.csv = 20 lignes, coordonnées et codes vides |
 | ✅ | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | 2026-10-17 | logs/T021-verification.md ; 307 tests ; noms de code anglais (Sector…) ; 43 sous-catégories dont 6 « Autre » à compléter ; catalogue et synonymes VIDES (aucun produit inventé) : DECISIONS_JEFF prévoit un « petit jeu de départ » → à trancher avant T040 (jeu tiré des seuls produits visibles dans les maquettes, ou liste de Jeff) |
 | ✅ | T022 | Mobile : référentiels et choix de la ville | b1 | | 2026-10-17 | logs/T022-verification.md ; 218 tests ; dépôts partagés dans lib/core/data/ (zones, référentiels) ; ville dans les préférences simples (city_id, city_name) ; flux Découverte → Choisir ma ville (si aucune ville) → Accueil/connexion ; entrée « Ma ville » dans Profil |
-| 🔄 | T023 | Vérification de tranche : référentiels | orchestrateur | | |
+| ✅ | T023 | Vérification de tranche : référentiels | orchestrateur | 2026-10-17 | logs/T023-tranche.md ; le mobile réel lit les vraies villes, quartiers, secteurs, catégories de service et types de structure du backend local ; reste à Jeff : données manquantes, essai de l'écran sur téléphone |
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
-| ☐ | T025 | Backend : modèles du compte business | a2 | | |
+| 🔄 | T025 | Backend : modèles du compte business | a2 | | |
 | ☐ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | |
 | ☐ | T026 | Backend : API de création et de modification du compte business | a2 | | |
 | ☐ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
@@ -179,3 +179,4 @@
 | 2026-10-16 | T007 validée par Jeff. Jeff : le backend et sa base PostgreSQL sont hébergés sur Railway (pas en local) ; le mot de passe reste dans `backend/.env` (dépôt privé), à ne jamais lire. |
 | 2026-10-17 | T012 : la connexion de bout en bout fonctionne entre le mobile (code réel) et le backend local ; pas d'émulateur dans la session cloud, l'essai sur téléphone reste à faire par Jeff. |
 | 2026-10-17 | Jeff valide T012 et demande de pousser la branche etape-2/acces. |
+| 2026-10-17 | T023 : le mobile (dépôts réels) affiche les vraies villes et secteurs du backend local. |
