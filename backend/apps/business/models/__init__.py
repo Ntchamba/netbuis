@@ -11,8 +11,10 @@ from .profile import (
     Standing,
     validate_subcategories,
 )
+from .subscription import Subscription, SubscriptionSource, SubscriptionStatus
 
 __all__ = [
     "AccountType", "Aisle", "Amenity", "BusinessProfile", "BusinessStatus", "Cuisine",
-    "LegalForm", "Speciality", "Standing", "validate_subcategories",
+    "LegalForm", "Speciality", "Standing", "Subscription", "SubscriptionSource",
+    "SubscriptionStatus", "validate_subcategories",
 ]

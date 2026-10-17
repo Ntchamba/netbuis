@@ -1,8 +1,11 @@
 """Fabrique de comptes business valides, un jeu de valeurs par type de compte."""
+from datetime import timedelta
 from itertools import count
 
+from django.utils import timezone
+
 from apps.accounts.models import User
-from apps.business.models import AccountType, BusinessProfile
+from apps.business.models import AccountType, BusinessProfile, Subscription
 from apps.catalog.models import Sector, ServiceCategory, StructureType
 from apps.geo.models import Zone, ZoneLevel
 from tests.factories.zone_factory import make_maroua_chain
@@ -61,3 +64,13 @@ def profile_values(type_compte=AccountType.BOUTIQUE, **extra) -> dict:
 def make_profile(type_compte=AccountType.BOUTIQUE, owner=None, **extra) -> BusinessProfile:
     values = profile_values(type_compte, **extra)
     return BusinessProfile.objects.create(owner=owner or make_owner(), **values)
+
+
+def make_subscription(profile=None, start=None, end=None, **extra) -> Subscription:
+    """Abonnement actif d'un an commencé hier, sauf valeurs contraires."""
+    now = timezone.now()
+    start = start or now - timedelta(days=1)
+    return Subscription.objects.create(
+        profile=profile or make_profile(), start=start,
+        end=end or start + timedelta(days=365), **extra,
+    )

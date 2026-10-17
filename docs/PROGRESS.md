@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T025b 🔄
-- **Prochaine tâche** : T026
+- **Tâche en cours** : T026 🔄
+- **Prochaine tâche** : T027
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -41,8 +41,8 @@
 | ✅ | T023 | Vérification de tranche : référentiels | orchestrateur | 2026-10-17 | logs/T023-tranche.md ; le mobile réel lit les vraies villes, quartiers, secteurs, catégories de service et types de structure du backend local ; reste à Jeff : données manquantes, essai de l'écran sur téléphone |
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
 | ✅ | T025 | Backend : modèles du compte business | a2 | | 2026-10-17 | logs/T025-verification.md ; 416 tests ; BusinessProfile (owner OneToOne, related_name business_profile ; phone_anchor et cni_photo protégés par un test sur tous les sérialiseurs) ; photos = clés de stockage (CharField, T027) ; plafonds de 3 laissés à T026 ; codes des listes de détails de structure choisis par a2 depuis les libellés de la spec |
-| 🔄 | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | |
-| ☐ | T026 | Backend : API de création et de modification du compte business | a2 | | |
+| ✅ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | 2026-10-17 | logs/T025b-verification.md ; 443 tests ; règle unique dans services/subscription.py (is_subscribed, subscribed_profiles, annotate_subscribed) ; statuts actif/expire seulement (pas d'« impayé ») ; passage à « expiré » par commande en T110 |
+| 🔄 | T026 | Backend : API de création et de modification du compte business | a2 | | |
 | ☐ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
 | ☐ | T028 | Backend : données de démonstration | a2 | | |
 | ☐ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | |

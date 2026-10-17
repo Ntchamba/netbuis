@@ -10,7 +10,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 
 from apps.core.utils.phone import mask_phone
 
-from .models import BusinessProfile
+from .models import BusinessProfile, Subscription
 
 SECRET_FIELDS = ("phone_anchor", "cni_photo")
 FORM_FIELDS = [
@@ -56,3 +56,21 @@ class BusinessProfileAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    """Accord manuel d'un abonnement (v1) : « accordé par » = l'administrateur connecté."""
+
+    list_display = ("profile", "status", "start", "end", "source")
+    list_filter = ("status", "source")
+    search_fields = ("profile__name",)
+    list_select_related = ("profile",)
+    autocomplete_fields = ("profile",)
+    fields = ("profile", "start", "end", "status", "source", "granted_by", "created_at",
+              "updated_at")
+    readonly_fields = ("granted_by", "created_at", "updated_at")
+
+    def save_model(self, request, obj, form, change):
+        obj.granted_by = request.user
+        super().save_model(request, obj, form, change)
