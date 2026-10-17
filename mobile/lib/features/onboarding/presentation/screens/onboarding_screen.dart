@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/di/providers.dart';
 import '../../../../core/l10n/l10n.dart';
-import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../application/city_controller.dart';
 import '../../application/onboarding_controller.dart';
 
 const _slideIcons = [
@@ -28,8 +29,9 @@ class OnboardingScreen extends ConsumerWidget {
     } on Object {
       // Mémorisation impossible : on continue, la Découverte sera simplement revue.
     }
+    final next = await routeAfterDiscovery(ref.read(appPrefsProvider));
     if (!context.mounted) return;
-    context.go(Routes.home);
+    context.go(next);
   }
 
   @override

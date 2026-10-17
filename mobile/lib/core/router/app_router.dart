@@ -6,6 +6,7 @@ import '../../features/account/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
+import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../l10n/l10n.dart';
@@ -32,6 +33,7 @@ GoRouter buildRouter({
     routes: [
       GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
+      GoRoute(path: Routes.chooseCity, builder: (context, state) => const ChooseCityScreen()),
       GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
       GoRoute(path: Routes.otp, builder: (context, state) => const OtpScreen()),
       GoRoute(

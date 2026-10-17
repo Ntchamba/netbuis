@@ -67,15 +67,23 @@ class FakeSmsSource implements SmsCodeSource {
 }
 
 class MemoryPrefs implements AppPrefs {
-  MemoryPrefs({this.seen = false});
+  /// Une ville est déjà choisie par défaut : ces tests ne portent pas sur ce choix.
+  MemoryPrefs({this.seen = false, this.city = const SelectedCity(id: 16, name: 'Maroua')});
 
   bool seen;
+  SelectedCity? city;
 
   @override
   Future<bool> isOnboardingSeen() async => seen;
 
   @override
   Future<void> markOnboardingSeen() async => seen = true;
+
+  @override
+  Future<SelectedCity?> getCity() async => city;
+
+  @override
+  Future<void> saveCity(SelectedCity value) async => city = value;
 }
 
 /// Lance l'application complète à 360 px de large, sans réseau ni disque.

@@ -72,5 +72,16 @@
   "name.retry": "Try again",
   "name.error.network": "No connection. Try again or skip this step.",
   "name.error.unknown": "Something went wrong. Try again or skip this step.",
-  "name.error.support": "Contact support"
+  "name.error.support": "Contact support",
+  "city.title": "Choose my city",
+  "city.subtitle": "We will show you the shops in your city.",
+  "city.selected": "{name}, selected",
+  "city.loading": "Loading cities",
+  "city.empty": "No city available for now",
+  "city.error.network": "No connection. Check your network and try again.",
+  "city.error.unknown": "Something went wrong. Please try again.",
+  "city.retry": "Try again",
+  "city.back": "Back",
+  "city.profile.label": "My city",
+  "city.profile.none": "Not chosen"
 }

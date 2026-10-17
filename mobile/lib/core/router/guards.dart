@@ -2,8 +2,8 @@
 import '../../features/auth/application/auth_state.dart';
 import 'routes.dart';
 
-/// Chemins ouverts sans session : lancement et Découverte.
-const Set<String> _openRoutes = {Routes.splash, Routes.onboarding};
+/// Chemins ouverts sans session : lancement, Découverte et choix de la ville.
+const Set<String> _openRoutes = {Routes.splash, Routes.onboarding, Routes.chooseCity};
 
 /// Chemins de la connexion.
 const Set<String> _loginRoutes = {Routes.login, Routes.otp};

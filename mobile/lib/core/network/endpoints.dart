@@ -9,4 +9,11 @@ class Endpoints {
   static const String refresh = '/auth/refresh/';
   static const String logout = '/auth/logout/';
   static const String me = '/me/';
+
+  static const String zones = '/zones/';
+  static String zoneDetail(int id) => '/zones/$id/';
+  static const String sectors = '/referentials/sectors/';
+  static const String serviceCategories = '/referentials/service-categories/';
+  static const String structureTypes = '/referentials/structure-types/';
+  static const String catalogProducts = '/catalog/products/';
 }

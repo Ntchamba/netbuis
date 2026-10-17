@@ -10,6 +10,12 @@ import '../../features/auth/data/repositories/auth_repository_api.dart';
 import '../../features/auth/data/repositories/auth_repository_fake.dart';
 import '../../features/auth/application/session_refresher.dart';
 import '../config/env.dart';
+import '../data/referentials/referential_repository.dart';
+import '../data/referentials/referential_repository_api.dart';
+import '../data/referentials/referential_repository_fake.dart';
+import '../data/zones/zone_repository.dart';
+import '../data/zones/zone_repository_api.dart';
+import '../data/zones/zone_repository_fake.dart';
 import '../network/dio_client.dart';
 import '../storage/prefs.dart';
 import '../storage/secure_storage.dart';
@@ -51,6 +57,18 @@ final Provider<AuthRepository> authRepositoryProvider =
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
   if (Env.useFakeApi) return AccountRepositoryFake();
   return AccountRepositoryApi(ref.read(dioProvider));
+});
+
+/// Zones géographiques (partagé) : factice si `USE_FAKE_API=true`, sinon relié à l'API.
+final zoneRepositoryProvider = Provider<ZoneRepository>((ref) {
+  if (Env.useFakeApi) return ZoneRepositoryFake();
+  return ZoneRepositoryApi(ref.read(dioProvider));
+});
+
+/// Référentiels et catalogue (partagé) : factice si `USE_FAKE_API=true`, sinon relié à l'API.
+final referentialRepositoryProvider = Provider<ReferentialRepository>((ref) {
+  if (Env.useFakeApi) return const ReferentialRepositoryFake();
+  return ReferentialRepositoryApi(ref.read(dioProvider));
 });
 
 /// Préférences simples (Découverte déjà vue…), remplaçable dans les tests.

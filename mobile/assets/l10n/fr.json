@@ -72,5 +72,16 @@
   "name.retry": "Réessayer",
   "name.error.network": "Pas de connexion. Réessayez ou passez cette étape.",
   "name.error.unknown": "Une erreur est survenue. Réessayez ou passez cette étape.",
-  "name.error.support": "Contactez le support"
+  "name.error.support": "Contactez le support",
+  "city.title": "Choisir ma ville",
+  "city.subtitle": "Nous vous montrerons les commerces de votre ville.",
+  "city.selected": "{name}, sélectionnée",
+  "city.loading": "Chargement des villes",
+  "city.empty": "Aucune ville disponible pour l'instant",
+  "city.error.network": "Pas de connexion. Vérifiez votre réseau et réessayez.",
+  "city.error.unknown": "Une erreur est survenue. Réessayez.",
+  "city.retry": "Réessayer",
+  "city.back": "Retour",
+  "city.profile.label": "Ma ville",
+  "city.profile.none": "Non choisie"
 }

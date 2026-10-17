@@ -4,6 +4,8 @@ class Routes {
 
   static const splash = '/splash';
   static const onboarding = '/onboarding';
+  /// Choix de la ville (après la Découverte, ou depuis Profil).
+  static const chooseCity = '/choose-city';
   static const login = '/login';
   static const otp = '/otp';
   /// Saisie du nom, une fois, après la première connexion.

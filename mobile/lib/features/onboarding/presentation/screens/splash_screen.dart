@@ -7,6 +7,7 @@ import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/netbuis_logo.dart';
+import '../../application/city_controller.dart';
 
 /// Écran de lancement (maquette Splash) : logo, slogan, « Commencer », version.
 class SplashScreen extends ConsumerWidget {
@@ -19,8 +20,9 @@ class SplashScreen extends ConsumerWidget {
     } on Object {
       // Préférence illisible : on montre la Découverte, c'est le choix le plus sûr.
     }
+    final next = seen ? await routeAfterDiscovery(ref.read(appPrefsProvider)) : Routes.onboarding;
     if (!context.mounted) return;
-    context.go(seen ? Routes.home : Routes.onboarding);
+    context.go(next);
   }
 
   @override

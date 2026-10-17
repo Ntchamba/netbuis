@@ -15,10 +15,19 @@ import 'package:netbuis/core/widgets/netbuis_logo.dart';
 import '../auth/auth_test_helpers.dart';
 
 class MemoryPrefs implements AppPrefs {
-  MemoryPrefs({this.seen = false, this.throwOnRead = false});
+  MemoryPrefs({
+    this.seen = false,
+    this.throwOnRead = false,
+    this.city,
+    this.throwOnSaveCity = false,
+  });
 
   bool seen;
   bool throwOnRead;
+
+  /// Ville mémorisée (null : aucune).
+  SelectedCity? city;
+  bool throwOnSaveCity;
 
   @override
   Future<bool> isOnboardingSeen() async {
@@ -28,6 +37,18 @@ class MemoryPrefs implements AppPrefs {
 
   @override
   Future<void> markOnboardingSeen() async => seen = true;
+
+  @override
+  Future<SelectedCity?> getCity() async {
+    if (throwOnRead) throw StateError('préférences illisibles');
+    return city;
+  }
+
+  @override
+  Future<void> saveCity(SelectedCity value) async {
+    if (throwOnSaveCity) throw StateError('écriture impossible');
+    city = value;
+  }
 }
 
 Future<void> _pumpApp(
@@ -55,6 +76,11 @@ Future<void> _pumpApp(
   );
   await tester.pumpAndSettle();
 }
+
+/// Ville déjà mémorisée : les tests de la Découverte qui vérifient l'arrivée à
+/// l'Accueil ou à la connexion ne passent alors pas par « Choisir ma ville »
+/// (ce passage est testé dans choose_city_test.dart).
+const _maroua = SelectedCity(id: 16, name: 'Maroua');
 
 const _titles = [
   'Trouvez ce que vous cherchez',
@@ -105,7 +131,7 @@ void main() {
     });
 
     testWidgets('déjà vue : Commencer saute la Découverte et va à l\'accueil', (tester) async {
-      await _pumpApp(tester, MemoryPrefs(seen: true));
+      await _pumpApp(tester, MemoryPrefs(seen: true, city: _maroua));
       await tester.tap(find.text('Commencer'));
       await tester.pumpAndSettle();
 
@@ -114,7 +140,7 @@ void main() {
     });
 
     testWidgets('déjà vue mais non connecté : Commencer mène à la connexion', (tester) async {
-      await _pumpApp(tester, MemoryPrefs(seen: true), signedIn: false);
+      await _pumpApp(tester, MemoryPrefs(seen: true, city: _maroua), signedIn: false);
       await tester.tap(find.text('Commencer'));
       await tester.pumpAndSettle();
 
@@ -141,7 +167,7 @@ void main() {
 
     testWidgets('5 diapositives avec les textes exacts, Suivant puis Commencer', (tester) async {
       final semantics = tester.ensureSemantics();
-      final prefs = MemoryPrefs();
+      final prefs = MemoryPrefs(city: _maroua);
       await openOnboarding(tester, prefs);
 
       for (var i = 0; i < 5; i++) {
@@ -168,7 +194,7 @@ void main() {
     });
 
     testWidgets('non connecté : Passer mène à la connexion', (tester) async {
-      final prefs = MemoryPrefs();
+      final prefs = MemoryPrefs(city: _maroua);
       await _pumpApp(tester, prefs, signedIn: false);
       await tester.tap(find.text('Commencer'));
       await tester.pumpAndSettle();
@@ -181,7 +207,7 @@ void main() {
     });
 
     testWidgets('Passer saute la Découverte et la mémorise', (tester) async {
-      final prefs = MemoryPrefs();
+      final prefs = MemoryPrefs(city: _maroua);
       await openOnboarding(tester, prefs);
       await tester.tap(find.text('Passer'));
       await tester.pumpAndSettle();
@@ -192,7 +218,7 @@ void main() {
     });
 
     testWidgets('1re ouverture seulement : après Passer, plus de Découverte', (tester) async {
-      final prefs = MemoryPrefs();
+      final prefs = MemoryPrefs(city: _maroua);
       await openOnboarding(tester, prefs);
       await tester.tap(find.text('Passer'));
       await tester.pumpAndSettle();

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T022 🔄
-- **Prochaine tâche** : T023
+- **Tâche en cours** : T023 🔄
+- **Prochaine tâche** : T025
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -37,8 +37,8 @@
 | | | **PHASE 2 — Référentiels : lieux et catalogues (Étape 3)** | | | |
 | ✅ | T020 | Backend : zones (Pays → Quartier) | a2 | 2026-10-17 | logs/T020-verification.md ; 238 tests ; modèle Zone unique (Ville/Quartier supprimés) ; /api/zones/ paginé (20, max 50) ; Maroua rattachée au département Diamaré, pas à ses 3 arrondissements ; zones.csv = 20 lignes, coordonnées et codes vides |
 | ✅ | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | 2026-10-17 | logs/T021-verification.md ; 307 tests ; noms de code anglais (Sector…) ; 43 sous-catégories dont 6 « Autre » à compléter ; catalogue et synonymes VIDES (aucun produit inventé) : DECISIONS_JEFF prévoit un « petit jeu de départ » → à trancher avant T040 (jeu tiré des seuls produits visibles dans les maquettes, ou liste de Jeff) |
-| 🔄 | T022 | Mobile : référentiels et choix de la ville | b1 | | |
-| ☐ | T023 | Vérification de tranche : référentiels | orchestrateur | | |
+| ✅ | T022 | Mobile : référentiels et choix de la ville | b1 | | 2026-10-17 | logs/T022-verification.md ; 218 tests ; dépôts partagés dans lib/core/data/ (zones, référentiels) ; ville dans les préférences simples (city_id, city_name) ; flux Découverte → Choisir ma ville (si aucune ville) → Accueil/connexion ; entrée « Ma ville » dans Profil |
+| 🔄 | T023 | Vérification de tranche : référentiels | orchestrateur | | |
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
 | ☐ | T025 | Backend : modèles du compte business | a2 | | |
 | ☐ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | |
@@ -164,6 +164,7 @@
 
 | Écran | Tâche | Choix fait |
 |---|---|---|
+| Choisir ma ville (écran entier) + textes city.* + « Ma ville » / « Non choisie » dans Profil | T022 | cartes du Profil (fond, bordure, rayon 16), titre 21 px gras, accent #F2942E, icône générique de ville ; une carte par ville de niveau ville_village |
 | Saisie du nom après la première connexion (titre, aide, champ, boutons) | T011b | « Comment vous appelez-vous ? » / « Votre prénom ou votre nom, comme vous voulez qu'on vous appelle. C'est facultatif. » / « Prénom ou nom » / « Continuer » / « Passer » |
 | Connexion : textes d'erreur, compte à rebours « Renvoyer le code dans N s », libellés d'accessibilité | T011 | textes courts écrits sans maquette (ex. « Code incorrect », « Code expiré », « Trop d'essais, réessayez plus tard », « Contactez le support », « Pas de connexion. Vérifiez votre réseau et réessayez. ») |
 | Découverte, diapositive 5 (sous-texte) | T010 | « Publiez vos produits ou services pour être trouvé près de chez vous. » (la maquette n'a que la version équipe/parrainage, reportée) |

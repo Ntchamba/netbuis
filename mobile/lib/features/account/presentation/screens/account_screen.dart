@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../onboarding/application/city_controller.dart';
 import '../../application/account_controller.dart';
 import '../widgets/profile_identity.dart';
 
@@ -54,6 +57,23 @@ class AccountScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               identity,
+              const SizedBox(height: 16),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: c.card,
+                  border: Border.all(color: c.border),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: _CityRow(
+                    label: l10n.t('city.profile.label'),
+                    value: ref.watch(selectedCityProvider).value?.name ??
+                        l10n.t('city.profile.none'),
+                    onTap: () => context.push(Routes.chooseCity),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -163,6 +183,56 @@ class _LogoutRow extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(label, style: TextStyle(fontSize: 14, color: color)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Entrée « Ma ville » : rouvre le choix de la ville.
+class _CityRow extends StatelessWidget {
+  const _CityRow({required this.label, required this.value, required this.onTap});
+
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Semantics(
+      button: true,
+      label: '$label : $value',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: InkWell(
+        key: const ValueKey('profile-city'),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(Icons.location_city_outlined, size: 20, color: c.accentText),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(label, style: const TextStyle(fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text(
+                        value,
+                        style: TextStyle(fontSize: 12.5, color: c.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
+              ],
             ),
           ),
         ),
