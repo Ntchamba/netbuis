@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : aucune (arrêt de fin de tranche T023, en attente de Jeff)
-- **Prochaine tâche** : T025
+- **Tâche en cours** : T025b 🔄
+- **Prochaine tâche** : T026
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -40,8 +40,8 @@
 | ✅ | T022 | Mobile : référentiels et choix de la ville | b1 | | 2026-10-17 | logs/T022-verification.md ; 218 tests ; dépôts partagés dans lib/core/data/ (zones, référentiels) ; ville dans les préférences simples (city_id, city_name) ; flux Découverte → Choisir ma ville (si aucune ville) → Accueil/connexion ; entrée « Ma ville » dans Profil |
 | ✅ | T023 | Vérification de tranche : référentiels | orchestrateur | 2026-10-17 | logs/T023-tranche.md ; le mobile réel lit les vraies villes, quartiers, secteurs, catégories de service et types de structure du backend local ; reste à Jeff : données manquantes, essai de l'écran sur téléphone |
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
-| ☐ | T025 | Backend : modèles du compte business | a2 | | |
-| ☐ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | |
+| ✅ | T025 | Backend : modèles du compte business | a2 | | 2026-10-17 | logs/T025-verification.md ; 416 tests ; BusinessProfile (owner OneToOne, related_name business_profile ; phone_anchor et cni_photo protégés par un test sur tous les sérialiseurs) ; photos = clés de stockage (CharField, T027) ; plafonds de 3 laissés à T026 ; codes des listes de détails de structure choisis par a2 depuis les libellés de la spec |
+| 🔄 | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | |
 | ☐ | T026 | Backend : API de création et de modification du compte business | a2 | | |
 | ☐ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
 | ☐ | T028 | Backend : données de démonstration | a2 | | |
