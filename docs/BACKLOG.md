@@ -167,6 +167,15 @@ Chaque exécution écrit sa sortie dans `logs/<tâche>-<commande>.txt` (voir `OR
 - **Agent** b1 · **Réf.** B1.14 · **Maquette** `Profil` (partie haute) · **Dépend de** T011
 - **Terminé quand** : après la première connexion, un écran court demande le **prénom/nom** (facultatif mais proposé, clavier de texte, bouton « Passer ») et l'envoie par `PATCH /api/me/` ; l'écran Profil existe avec l'identité (initiales ou photo, nom, numéro **masqué** « numéro vérifié ») et le bouton **Se déconnecter** ; quand le nom manque, l'affichage retombe sur « Utilisateur NetBuis » (jamais sur le numéro) ; chaque tâche suivante qui apporte une fonction (Mes produits, Mes publications, Historique, Modifier ma boutique, Aide, Langue) **ajoute sa propre entrée** dans Profil (autorisation permanente de b3 pour T038, T102b, T111) ; la finition de l'écran est faite en T102 ; tests.
 
+### T011c — Mobile : renouvellement automatique du jeton (ajoutée par l'orchestrateur le 2026-10-17)
+- **Agent** b1 · **Réf.** B1.5 (partie « sur 401 renouvelle le jeton une seule fois ») · **Dépend de** T011b · Ajoutée parce que T012 l'exige (« le rafraîchissement automatique fonctionne après expiration forcée du jeton d'accès ») et qu'aucune tâche ne la couvrait ; la rotation du jeton de rafraîchissement décidée en T007 la rend indispensable (jeton d'accès valable 15 min).
+- **Terminé quand** (un test par point) :
+  1. Sur une réponse 401 d'une route protégée, le client renouvelle le jeton **une seule fois**, enregistre le **nouveau** couple (accès et rafraîchissement, car l'ancien rafraîchissement est invalidé), puis rejoue la requête d'origine une seule fois avec le nouvel accès.
+  2. Plusieurs requêtes qui échouent en 401 en même temps ne provoquent **qu'un seul** appel de renouvellement (les autres attendent son résultat), puis sont toutes rejouées.
+  3. Aucune boucle : une requête déjà rejouée qui reçoit encore 401 n'est pas renouvelée à nouveau ; les routes `/auth/otp/request/`, `/auth/otp/verify/`, `/auth/refresh/`, `/auth/logout/` ne déclenchent jamais de renouvellement.
+  4. Renouvellement refusé (`token_invalid`, `account_blocked`, `account_deleted`) : les jetons sont effacés, l'état de connexion devient « non connecté » (ou erreur compte bloqué/supprimé) et la garde renvoie vers `/login`. Réseau coupé pendant le renouvellement : la session est **conservée**, l'erreur réseau remonte, aucune déconnexion.
+  5. Aucun jeton dans les journaux ni dans les messages d'erreur ; tests unitaires avec un faux adaptateur Dio (cas qui réussit **et** cas qui échoue pour chaque point).
+
 ### T012 — Vérification de tranche : connexion de bout en bout
 - **Agent** orchestrateur (aucun nouvel agent) · **Dépend de** T011
 - **Terminé quand** : le backend tourne en local, le mobile tourne avec `USE_FAKE_API=false` et `API_URL` pointant sur lui ; un numéro de test reçoit un code (lu dans la console du serveur en dev), la connexion réussit, `/api/me/` répond, la déconnexion fonctionne, le rafraîchissement automatique fonctionne après expiration forcée du jeton d'accès. Le résultat est écrit dans `logs/T012-tranche.md`. **Jeff relit** la zone 🔒 OTP/jetons avant T020.

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/network/interceptors/refresh_interceptor.dart';
 import 'auth_state.dart';
 
 /// Délai avant de proposer « Renvoyer le code » (choix de l'application, le serveur n'en impose pas).
@@ -25,6 +26,13 @@ class AuthController extends Notifier<AuthState> {
   @override
   AuthState build() {
     _phone = null;
+    final refresher = ref.read(sessionRefresherProvider);
+    refresher.onRejected = _onSessionRejected;
+    ref.onDispose(() {
+      if (refresher.onRejected == _onSessionRejected) {
+        refresher.onRejected = null;
+      }
+    });
     // Restauration au lancement ; l'état reste « en cours » jusqu'au résultat.
     unawaited(Future<void>.microtask(restoreSession));
     return const AuthLoading();
@@ -96,28 +104,18 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
-  /// Renouvelle les jetons et enregistre le nouveau refresh (l'ancien est invalidé par le serveur).
+  /// Renouvelle les jetons (code partagé avec l'intercepteur : voir SessionRefresher).
   /// Renvoie vrai si la session reste ouverte. Réseau coupé : la session est conservée.
-  Future<bool> refreshSession() async {
-    final storage = ref.read(tokenStorageProvider);
-    final stored = await storage.read();
-    final refresh = stored.refresh;
-    if (refresh == null || refresh.isEmpty) {
-      state = const AuthLoggedOut();
-      return false;
-    }
-    try {
-      final tokens = await ref.read(authRepositoryProvider).refresh(refresh);
-      await storage.save(access: tokens.access, refresh: tokens.refresh);
-      return true;
-    } on ApiException catch (e) {
-      if (e.code == ApiErrorCode.network) return true;
-      await storage.clear();
-      state = e.code == ApiErrorCode.tokenInvalid
-          ? const AuthLoggedOut()
-          : _failure(e, hasPendingCode: false);
-      return false;
-    }
+  Future<bool> refreshSession() async =>
+      await ref.read(sessionRefresherProvider).refresh() !=
+      RefreshOutcome.rejected;
+
+  /// Session fermée par le renouvellement : l'état change et la garde renvoie vers /login.
+  void _onSessionRejected(ApiException? reason) {
+    if (!ref.mounted) return;
+    state = reason == null || reason.code == ApiErrorCode.tokenInvalid
+        ? const AuthLoggedOut()
+        : _failure(reason, hasPendingCode: false);
   }
 
   /// Déconnexion : prévient le serveur si possible, puis efface les jetons dans tous les cas.
