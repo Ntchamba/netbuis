@@ -7,6 +7,7 @@ import '../../features/auth/data/repositories/auth_repository_api.dart';
 import '../../features/auth/data/repositories/auth_repository_fake.dart';
 import '../config/env.dart';
 import '../network/dio_client.dart';
+import '../storage/prefs.dart';
 import '../storage/secure_storage.dart';
 
 /// Stockage sécurisé des jetons.
@@ -26,3 +27,6 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (Env.useFakeApi) return AuthRepositoryFake();
   return AuthRepositoryApi(ref.watch(dioProvider));
 });
+
+/// Préférences simples (Découverte déjà vue…), remplaçable dans les tests.
+final appPrefsProvider = Provider<AppPrefs>((ref) => SharedAppPrefs());

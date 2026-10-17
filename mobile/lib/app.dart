@@ -4,20 +4,34 @@ import 'package:go_router/go_router.dart';
 
 import 'core/l10n/l10n.dart';
 import 'core/router/app_router.dart';
+import 'core/router/routes.dart';
 import 'core/theme/app_theme.dart';
 
 /// Racine de l'application. Le thème suit le réglage du téléphone.
 class NetBuisApp extends StatefulWidget {
-  const NetBuisApp({super.key, this.themeMode = ThemeMode.system});
+  const NetBuisApp({
+    super.key,
+    this.themeMode = ThemeMode.system,
+    this.initialLocation = Routes.splash,
+  });
 
   final ThemeMode themeMode;
+
+  /// Écran de départ (le lancement ; les tests peuvent partir d'ailleurs).
+  final String initialLocation;
 
   @override
   State<NetBuisApp> createState() => _NetBuisAppState();
 }
 
 class _NetBuisAppState extends State<NetBuisApp> {
-  final GoRouter _router = buildRouter();
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = buildRouter(initialLocation: widget.initialLocation);
+  }
 
   @override
   void dispose() {

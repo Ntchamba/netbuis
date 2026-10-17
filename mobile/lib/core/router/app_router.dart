@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
+import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../l10n/l10n.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/netbuis_logo.dart';
 import 'routes.dart';
 
-/// Routeur de l'application : 4 onglets, chacun garde sa propre pile.
-GoRouter buildRouter() {
+/// Routeur de l'application : lancement, Découverte, puis 4 onglets, chacun garde sa propre pile.
+GoRouter buildRouter({String initialLocation = Routes.splash}) {
   GoRoute tab(String path, Widget screen) =>
       GoRoute(path: path, builder: (context, state) => screen);
 
   return GoRouter(
-    initialLocation: Routes.home,
+    initialLocation: initialLocation,
     routes: [
+      GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
+      GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),

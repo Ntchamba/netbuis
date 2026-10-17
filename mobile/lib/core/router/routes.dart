@@ -2,6 +2,8 @@
 class Routes {
   const Routes._();
 
+  static const splash = '/splash';
+  static const onboarding = '/onboarding';
   static const home = '/home';
   static const map = '/map';
   static const forum = '/forum';
