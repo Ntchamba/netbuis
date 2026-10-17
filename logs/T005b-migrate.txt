@@ -1,4 +1,0 @@
-Operations to perform:
-  Apply all migrations: accounts, admin, auth, contenttypes, core, sessions
-Running migrations:
-  Applying accounts.0002_user_admin_blocage_suppression... OK

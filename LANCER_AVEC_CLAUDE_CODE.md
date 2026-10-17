@@ -2,16 +2,12 @@
 
 ## Préparation (une seule fois, ~10 minutes)
 
-1. Ouvre le dossier qui contient `AGENTS.md` (le dossier `netbuis/`) dans VS Code, puis un terminal.
-2. Si ce n'est pas déjà fait, extrais `netbuis-etape1.zip` par-dessus ce dossier.
-3. Git : si le dossier n'est pas déjà un dépôt Git, l'orchestrateur le prépare en T000 (`git init` + premier commit). Rien n'est poussé sur Internet.
+1. Clone le dépôt (`git clone https://github.com/Ntchamba/netbuis`) et ouvre-le dans VS Code, puis un terminal.
+2. (Ancienne méthode par zip : n'est plus nécessaire.)
+3. Git : le dépôt existe sur GitHub. En local, rien n'est poussé sans ta demande ; dans le cloud, voir « Mode cloud » dans `CLAUDE.md`.
 4. Base de données : crée la base (`createdb netbuis`, ou `CREATE DATABASE netbuis;` dans psql).
 5. Crée le fichier `backend/.env` à partir de `backend/.env.example` et mets-y ton `DATABASE_URL` (ton mot de passe PostgreSQL reste **dans ce fichier seulement**, jamais ailleurs ; ce fichier n'est pas versionné).
-6. Installe les agents et les réglages de sécurité dans le dossier que Claude Code lit :
-   ```
-   mkdir -p .claude && cp -r agents/claude-code/. .claude/ && mkdir -p logs
-   ```
-   (Le dossier `.claude/` contient alors `agents/` et `settings.json`.)
+6. Les agents et les réglages de sécurité sont déjà dans `.claude/` (versionné : `.claude/agents/` et `.claude/settings.json`). Crée seulement le dossier des journaux : `mkdir -p logs`.
 7. Vérifie que ces fichiers existent : `CLAUDE.md`, `docs/ORCHESTRATION.md`, `docs/BACKLOG.md`, `docs/PROGRESS.md`, `docs/DECISIONS_JEFF.md`, `docs/design/maquettes/` (24 écrans), `docs/spec/`, `scripts/verifier_tache.sh`.
 8. Lance `claude` dans ce dossier, tape `/agents` pour vérifier que les 9 agents sont listés (a1, a2, a3, b1, b2, b3, c1, c2, c3) plus `verificateur`.
 
@@ -41,3 +37,9 @@
 ## À avoir sous la main plus tard (pas maintenant)
 
 La clé du fournisseur de SMS (T006 réel), la liste de tes quartiers/villes, les sous-catégories des secteurs non détaillés, les coordonnées du support, les textes légaux. Voir la fin de `docs/DECISIONS_JEFF.md`.
+
+## Avec un agent Claude Code dans le cloud
+
+1. Crée une session Claude Code sur claude.ai/code avec le dépôt `Ntchamba/netbuis`.
+2. Colle le même message que ci-dessus, en ajoutant : « Tu es en mode cloud : applique la section Mode cloud de `CLAUDE.md`. »
+3. Le travail arrive sur GitHub dans la branche de la phase, avec une pull request en brouillon que tu relis et fusionnes.

@@ -30,3 +30,12 @@ Tu es **l'orchestrateur** (la session principale). Les sous-agents `a1 a2 a3 b1 
 - Les maquettes (`docs/design/maquettes/`) l'emportent sur tout texte qui les contredit. Ne rien inventer : ni version de paquet, ni API, ni donnée.
 - Pas de `git push`, de `rm -rf`, de `git reset --hard`, de `git clean`. Réseau ou dépôt de paquets inaccessible : s'arrêter et le dire, ne pas contourner.
 - Rapports à Jeff : courts, en français, sans jargon inutile.
+
+## Mode cloud (session Claude Code dans un conteneur jetable, dépôt GitHub `Ntchamba/netbuis`)
+Le conteneur est effacé à la fin de la session : ce qui n'est pas poussé est perdu. Dans ce mode seulement, et sans rien changer d'autre à la méthode :
+- Base de données : PostgreSQL du conteneur (ou `docker compose up -d db`) ; `backend/.env` est créé à partir de `backend/.env.example` avec un mot de passe jetable, jamais celui de Jeff, et n'est jamais commité.
+- Branche : celle de la phase (`etape-<N>/<nom>`, voir `PROGRESS.md`), créée depuis `main` si elle n'existe pas encore sur GitHub. Jamais de push sur `main`, jamais de `--force`.
+- Après chaque tâche validée et commitée : copier `logs/Txxx-verification.md` dans `docs/verifications/Txxx.md`, le commiter avec la tâche, puis `git push -u origin <branche>`. C'est la seule exception à l'interdiction de `git push` ci-dessus. Si `.claude/settings.json` bloque encore `git push`, le dire à Jeff au lieu de contourner.
+- Une pull request en brouillon vers `main` par phase ; Jeff la relit (zones 🔒) et la fusionne lui-même.
+- Les arrêts du §8 de `ORCHESTRATION.md` restent valables : tu les signales dans la conversation et tu t'arrêtes.
+- Pas de téléphone ni d'émulateur dans le cloud : les tests sur téléphone réel (T052, T057, fins de tranche) sont listés pour Jeff, pas simulés.

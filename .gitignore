@@ -1,0 +1,37 @@
+# Secrets : jamais versionnés (seuls les *.env.example le sont)
+.env
+.env.*
+!.env.example
+*.pem
+*.keystore
+*.jks
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / dashboard
+node_modules/
+dist/
+coverage/
+
+# Flutter / mobile
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Sorties brutes des commandes (voir docs/ORCHESTRATION.md) ; les tableaux de vérification sont copiés dans docs/verifications/
+logs/
+
+# Éditeurs et système
+.idea/
+.DS_Store
+*.swp
+.claude/settings.local.json

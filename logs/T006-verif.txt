@@ -1,5 +1,0 @@
-All checks passed!
-No changes detected
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-74 passed, 9 warnings in 1.72s
-SPEC_OK
