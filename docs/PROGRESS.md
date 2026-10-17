@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T012 🔒 (en attente de l'essai sur téléphone et de la relecture de Jeff)
-- **Prochaine tâche** : T020
+- **Tâche en cours** : T020 🔄
+- **Prochaine tâche** : T021
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -33,9 +33,9 @@
 | ✅ | T011 | Mobile : écran Connexion (numéro puis code) | b1 | 2026-10-17 | logs/T011-verification.md ; 134 tests ; délai de renvoi 30 s (à confirmer) ; lien « conditions d'utilisation » non cliquable (écran légal É8, textes légaux À REMPLACER) ; lecture auto du SMS non testée sur téléphone ; Splash/Découverte ouverts sans session, le reste exige une session ; à relire par Jeff à T012 : otp_screen, otp_input, guards, loginPhoneProvider |
 | ✅ | T011b | Mobile : coquille de l'écran Profil et saisie du nom | b1 | 2026-10-17 | logs/T011b-verification.md ; 166 tests ; route /your-name après une première connexion ; Profil branché sur /profile ; sans maquette : écran de saisie du nom ; non reproduit : bouton de thème (T100) ; le jeton n'est pas encore renouvelé sur 401 |
 | ✅ | T011c | Mobile : renouvellement automatique du jeton (ajoutée par l'orchestrateur : exigée par T012) | b1 | 2026-10-17 | logs/T011c-verification.md ; 179 tests ; SessionRefresher partagé avec AuthController ; rejeu sans FormData (à revoir pour l'envoi de photos, T027/T030) |
-| 🔒 | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | 2026-10-17 | logs/T012-tranche.md ; serveur local + code mobile réel contre ce serveur (expiration forcée, rotation, déconnexion) : OK ; reste à Jeff : essai sur téléphone Android, lecture auto du SMS, relecture de la zone OTP/jetons mobile |
+| ✅ | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | 2026-10-17 | logs/T012-tranche.md ; serveur local + code mobile réel contre ce serveur (expiration forcée, rotation, déconnexion) : OK ; reste à Jeff : essai sur téléphone Android, lecture auto du SMS, relecture de la zone OTP/jetons mobile ; validé par Jeff le 2026-10-17 (l'essai sur téléphone reste à faire) |
 | | | **PHASE 2 — Référentiels : lieux et catalogues (Étape 3)** | | | |
-| ☐ | T020 | Backend : zones (Pays → Quartier) | a2 | | |
+| 🔄 | T020 | Backend : zones (Pays → Quartier) | a2 | | |
 | ☐ | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | |
 | ☐ | T022 | Mobile : référentiels et choix de la ville | b1 | | |
 | ☐ | T023 | Vérification de tranche : référentiels | orchestrateur | | |
@@ -174,3 +174,4 @@
 | 2026-10-16 | Reprise en session cloud sur le dépôt GitHub Ntchamba/netbuis (branche etape-2/acces). T006b validée par Jeff. Dépôt assaini : `.gitignore` ajouté ; `backend/.env`, `backend/.venv`, `logs/` et caches Python retirés du suivi (fichiers conservés sur le disque) ; agents copiés de `netbuis-pilotage/.claude/` vers `.claude/`. ⚠️ `backend/.env` avait été poussé sur GitHub : Jeff doit changer son mot de passe PostgreSQL. |
 | 2026-10-16 | T007 validée par Jeff. Jeff : le backend et sa base PostgreSQL sont hébergés sur Railway (pas en local) ; le mot de passe reste dans `backend/.env` (dépôt privé), à ne jamais lire. |
 | 2026-10-17 | T012 : la connexion de bout en bout fonctionne entre le mobile (code réel) et le backend local ; pas d'émulateur dans la session cloud, l'essai sur téléphone reste à faire par Jeff. |
+| 2026-10-17 | Jeff valide T012 et demande de pousser la branche etape-2/acces. |
