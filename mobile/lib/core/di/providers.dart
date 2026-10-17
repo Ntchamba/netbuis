@@ -2,6 +2,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/account/data/repositories/account_repository.dart';
+import '../../features/account/data/repositories/account_repository_api.dart';
+import '../../features/account/data/repositories/account_repository_fake.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
 import '../../features/auth/data/repositories/auth_repository_api.dart';
 import '../../features/auth/data/repositories/auth_repository_fake.dart';
@@ -26,6 +29,12 @@ final dioProvider = Provider<Dio>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (Env.useFakeApi) return AuthRepositoryFake();
   return AuthRepositoryApi(ref.watch(dioProvider));
+});
+
+/// Dépôt du profil : factice si `USE_FAKE_API=true`, sinon relié à l'API.
+final accountRepositoryProvider = Provider<AccountRepository>((ref) {
+  if (Env.useFakeApi) return AccountRepositoryFake();
+  return AccountRepositoryApi(ref.watch(dioProvider));
 });
 
 /// Préférences simples (Découverte déjà vue…), remplaçable dans les tests.

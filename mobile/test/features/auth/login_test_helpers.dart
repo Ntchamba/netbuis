@@ -36,7 +36,8 @@ class FlowRepository implements AuthRepository {
   Future<AuthTokens> verifyOtp({required String phone, required String code}) async {
     verifiedCodes.add(code);
     if (verifyErrors.isNotEmpty) throw verifyErrors.removeFirst();
-    return const AuthTokens(access: 'acc-1', refresh: 'ref-1', isNew: true);
+    // Compte existant : le parcours de première connexion (saisie du nom) a ses propres tests.
+    return const AuthTokens(access: 'acc-1', refresh: 'ref-1');
   }
 
   @override

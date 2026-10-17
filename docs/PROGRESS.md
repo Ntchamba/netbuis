@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T011b 🔄
-- **Prochaine tâche** : T012
+- **Tâche en cours** : T012 🔄 (préalable : renouvellement automatique du jeton)
+- **Prochaine tâche** : T020
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -31,8 +31,8 @@
 | ✅ | T009 | Mobile : données et état de la connexion | b1 | 2026-10-17 | logs/T009-verification.md ; 60 tests ; API_URL (défaut http://10.0.2.2:8000/api) ; AuthAuthenticated porte isNew, pas de rôle ; refresh_interceptor (401 → renouvellement unique) reste une coquille, à faire avant T012 ; délai de renvoi 30 s à confirmer en T011 |
 | ✅ | T010 | Mobile : Lancement et Découverte | b1 | 2026-10-17 | logs/T010-verification.md ; 69 tests ; sous-texte de la diapositive 5 écrit sans maquette ; bouton de thème de la maquette Splash non reproduit (T100) ; redirection provisoire vers /home (T011 y insère la connexion) |
 | ✅ | T011 | Mobile : écran Connexion (numéro puis code) | b1 | 2026-10-17 | logs/T011-verification.md ; 134 tests ; délai de renvoi 30 s (à confirmer) ; lien « conditions d'utilisation » non cliquable (écran légal É8, textes légaux À REMPLACER) ; lecture auto du SMS non testée sur téléphone ; Splash/Découverte ouverts sans session, le reste exige une session ; à relire par Jeff à T012 : otp_screen, otp_input, guards, loginPhoneProvider |
-| 🔄 | T011b | Mobile : coquille de l'écran Profil et saisie du nom | b1 | | |
-| ☐ | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | | |
+| ✅ | T011b | Mobile : coquille de l'écran Profil et saisie du nom | b1 | 2026-10-17 | logs/T011b-verification.md ; 166 tests ; route /your-name après une première connexion ; Profil branché sur /profile ; sans maquette : écran de saisie du nom ; non reproduit : bouton de thème (T100) ; le jeton n'est pas encore renouvelé sur 401 |
+| 🔄 | T012 | Vérification de tranche : connexion de bout en bout | orchestrateur (aucun nouvel agent) | | |
 | | | **PHASE 2 — Référentiels : lieux et catalogues (Étape 3)** | | | |
 | ☐ | T020 | Backend : zones (Pays → Quartier) | a2 | | |
 | ☐ | T021 | Backend : secteurs, sous-catégories, catégories de service, types de structure, catalogue de produits | a2 | | |
@@ -160,6 +160,7 @@
 
 | Écran | Tâche | Choix fait |
 |---|---|---|
+| Saisie du nom après la première connexion (titre, aide, champ, boutons) | T011b | « Comment vous appelez-vous ? » / « Votre prénom ou votre nom, comme vous voulez qu'on vous appelle. C'est facultatif. » / « Prénom ou nom » / « Continuer » / « Passer » |
 | Connexion : textes d'erreur, compte à rebours « Renvoyer le code dans N s », libellés d'accessibilité | T011 | textes courts écrits sans maquette (ex. « Code incorrect », « Code expiré », « Trop d'essais, réessayez plus tard », « Contactez le support », « Pas de connexion. Vérifiez votre réseau et réessayez. ») |
 | Découverte, diapositive 5 (sous-texte) | T010 | « Publiez vos produits ou services pour être trouvé près de chez vous. » (la maquette n'a que la version équipe/parrainage, reportée) |
 

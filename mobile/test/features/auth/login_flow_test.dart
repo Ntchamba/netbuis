@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/core/l10n/l10n.dart';
+import 'package:netbuis/features/account/presentation/screens/edit_profile_screen.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/router/routes.dart';
 import 'package:netbuis/features/auth/application/auth_state.dart';
@@ -40,6 +41,11 @@ void main() {
     await tester.enterText(otpField, AuthRepositoryFake.acceptedCode);
     await tester.pumpAndSettle();
 
+    // Première connexion : l'écran du nom est proposé avant l'Accueil.
+    expect(find.byType(EditProfileScreen), findsOneWidget);
+    await tester.tap(find.text('Passer'));
+    await tester.pumpAndSettle();
+
     expect(_onHome(), isTrue);
     expect(find.byType(OtpScreen), findsNothing);
     expect(find.byType(LoginScreen), findsNothing);
@@ -57,6 +63,8 @@ void main() {
     expect(_onHome(), isFalse);
 
     await tester.enterText(otpField, AuthRepositoryFake.acceptedCode);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Passer'));
     await tester.pumpAndSettle();
     expect(_onHome(), isTrue);
   });

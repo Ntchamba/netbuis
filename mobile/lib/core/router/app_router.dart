@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/account/presentation/screens/account_screen.dart';
+import '../../features/account/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
@@ -32,6 +34,10 @@ GoRouter buildRouter({
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: Routes.login, builder: (context, state) => const LoginScreen()),
       GoRoute(path: Routes.otp, builder: (context, state) => const OtpScreen()),
+      GoRoute(
+        path: Routes.yourName,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),
@@ -42,7 +48,7 @@ GoRouter buildRouter({
             routes: [tab(Routes.forum, const _TabScreen(titleKey: 'forum.title'))],
           ),
           StatefulShellBranch(
-            routes: [tab(Routes.profile, const _TabScreen(titleKey: 'profile.title'))],
+            routes: [tab(Routes.profile, const AccountScreen())],
           ),
         ],
       ),
