@@ -467,11 +467,14 @@ def all_serializer_classes():
 
 
 def _field_names(serializer):
-    """Noms et sources de tous les champs, sous-sérialiseurs inclus."""
+    """Noms et sources des champs LISIBLES, sous-sérialiseurs inclus. Un champ en écriture
+    seule (`write_only=True`) n'est jamais renvoyé : ce n'est pas une exposition."""
     names = set()
     if isinstance(serializer, serializers.ListSerializer):
         serializer = serializer.child
     for name, field in serializer.fields.items():
+        if field.write_only:
+            continue
         names.update({name, getattr(field, "source", None) or name})
         if isinstance(field, (serializers.Serializer, serializers.ListSerializer)):
             names |= _field_names(field)
@@ -550,6 +553,38 @@ def test_la_liste_blanche_admin_ne_couvre_que_la_cni():
 
     problems = exposed_secrets({"t.AdminCni": AdminCni}, cni_allowed={"t.AdminCni"})
     assert problems == {"t.AdminCni": ["phone_anchor"]}
+
+
+def test_un_champ_en_ecriture_seule_n_est_pas_une_exposition():
+    class Ecriture(serializers.ModelSerializer):
+        phone_anchor = serializers.CharField(write_only=True)
+        cni_photo = serializers.CharField(write_only=True)
+
+        class Meta:
+            model = BusinessProfile
+            fields = ["name", "phone_anchor", "cni_photo"]
+
+    class Lisible(serializers.ModelSerializer):
+        phone_anchor = serializers.CharField()  # lisible : signalé
+
+        class Meta:
+            model = BusinessProfile
+            fields = ["name", "phone_anchor"]
+
+    class ExtraKwargs(serializers.ModelSerializer):
+        class Meta:
+            model = BusinessProfile
+            fields = ["name", "phone_anchor", "cni_photo"]
+            extra_kwargs = {"phone_anchor": {"write_only": True}}  # cni_photo reste lisible
+
+    class Imbrique(serializers.Serializer):
+        profil = Ecriture()
+
+    problems = exposed_secrets({
+        "t.Ecriture": Ecriture, "t.Lisible": Lisible, "t.ExtraKwargs": ExtraKwargs,
+        "t.Imbrique": Imbrique,
+    })
+    assert problems == {"t.Lisible": ["phone_anchor"], "t.ExtraKwargs": ["cni_photo"]}
 
 
 # --- Admin --------------------------------------------------------------------------------

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T026 🔄
-- **Prochaine tâche** : T027
+- **Tâche en cours** : T027 🔒 🔄
+- **Prochaine tâche** : T028
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -42,8 +42,8 @@
 | | | **PHASE 3 — Compte business : création et fiche (Étape 3)** | | | |
 | ✅ | T025 | Backend : modèles du compte business | a2 | | 2026-10-17 | logs/T025-verification.md ; 416 tests ; BusinessProfile (owner OneToOne, related_name business_profile ; phone_anchor et cni_photo protégés par un test sur tous les sérialiseurs) ; photos = clés de stockage (CharField, T027) ; plafonds de 3 laissés à T026 ; codes des listes de détails de structure choisis par a2 depuis les libellés de la spec |
 | ✅ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | 2026-10-17 | logs/T025b-verification.md ; 443 tests ; règle unique dans services/subscription.py (is_subscribed, subscribed_profiles, annotate_subscribed) ; statuts actif/expire seulement (pas d'« impayé ») ; passage à « expiré » par commande en T110 |
-| 🔄 | T026 | Backend : API de création et de modification du compte business | a2 | | |
-| ☐ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
+| ✅ | T026 | Backend : API de création et de modification du compte business | a2 | | 2026-10-18 | logs/T026-verification.md ; 532 tests ; corps de requête : référentiels par id entier, listes d'établissement par codes ; photos = clés de stockage (format contrôlé seulement, propriété de la clé à contrôler en T027) ; détails de structure obligatoires choisis par a2 : supermarché ≥ 1 rayon, restaurant cuisine + livraison, hôtel standing, santé ≥ 1 spécialité ; changement de type : champs de l'ancien type à vider dans la même requête ; BusinessProfile.objects.visible() = règle unique de visibilité publique |
+| 🔄 | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
 | ☐ | T028 | Backend : données de démonstration | a2 | | |
 | ☐ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | |
 | ☐ | T031 | Mobile : secteur et détails d'activité | b3 | | |

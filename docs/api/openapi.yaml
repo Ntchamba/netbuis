@@ -223,6 +223,150 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: 'account_blocked / account_deleted : « Contactez le support
             »'
+  /api/business/:
+    post:
+      operationId: business_create
+      tags:
+      - business
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BusinessProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BusinessProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BusinessProfile'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessProfile'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ (champ
+            obligatoire selon le type, lieu trop haut, valeur inconnue…) ; SUBSCRIPTION_REQUIRED
+            : plus de 3 sous-catégories, rayons ou spécialités sans abonnement actif'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'business_exists : ce compte a déjà un compte business'
+  /api/business/me/:
+    get:
+      operationId: business_me_retrieve
+      tags:
+      - business
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessProfile'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : ce compte n''a pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
+    patch:
+      operationId: business_me_partial_update
+      description: 'Règle D-08 sur un compte `actif` : changer réellement le nom,
+        le type, le lieu ou le numéro le remet en `en_attente_validation` ; description,
+        photos et le reste ne demandent pas de nouvelle validation. Un compte `rejete`
+        corrigé repasse en `en_attente_validation` et son motif est effacé.'
+      tags:
+      - business
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfile'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessProfile'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ (champ
+            obligatoire selon le type, lieu trop haut, valeur inconnue…) ; SUBSCRIPTION_REQUIRED
+            : plus de 3 sous-catégories, rayons ou spécialités sans abonnement actif'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : ce compte n''a pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
   /api/catalog/products/:
     get:
       operationId: catalog_products_list
@@ -649,6 +793,194 @@ components:
       required:
       - password
       - phone
+    BlankEnum:
+      enum:
+      - ''
+    BusinessProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type_compte:
+          allOf:
+          - $ref: '#/components/schemas/TypeCompteEnum'
+          title: Type de compte
+        name:
+          type: string
+          title: Nom affiché
+          maxLength: 150
+        zone:
+          type: integer
+          description: Identifiant d'une ville/village ou d'un quartier (pas une région).
+        repere:
+          type: string
+          title: Repère
+          description: Ex. « À côté du Grand Manguier ».
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        photo:
+          type: string
+          description: Clé de stockage de la photo du compte.
+          maxLength: 255
+        representant_nom:
+          type: string
+          title: Nom du représentant
+          maxLength: 150
+        representant_photo:
+          type: string
+          description: Clé de stockage de la photo du représentant.
+          maxLength: 255
+        phone_anchor:
+          type: string
+          writeOnly: true
+          description: Numéro du compte (6XXXXXXXX ou +2376XXXXXXXX). Jamais renvoyé.
+          maxLength: 20
+        phone_masked:
+          type: string
+          readOnly: true
+          description: 'Numéro masqué : seuls le premier et les deux derniers chiffres
+            restent'
+        whatsapp_available:
+          type: boolean
+          title: WhatsApp disponible
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+          title: Statut
+        motif_rejet:
+          type: string
+          readOnly: true
+          title: Motif du rejet
+        forme_juridique:
+          oneOf:
+          - $ref: '#/components/schemas/FormeJuridiqueEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        rccm:
+          type: string
+          maxLength: 50
+        categorie_service:
+          type: integer
+          nullable: true
+          description: Identifiant de la catégorie de service (prestataire).
+        categorie_service_libre:
+          type: string
+          title: Catégorie de service (libre)
+          maxLength: 100
+        cni_photo:
+          type: string
+          writeOnly: true
+          description: Clé de stockage PRIVÉE de la CNI. Jamais renvoyée.
+          maxLength: 255
+        has_cni:
+          type: boolean
+          readOnly: true
+          description: Vrai si une CNI a été envoyée
+        cni_verifiee:
+          type: boolean
+          readOnly: true
+          title: CNI vérifiée
+        diplome_photo:
+          type: string
+          description: Clé de stockage du diplôme (facultatif).
+          maxLength: 255
+        structure_type:
+          type: integer
+          nullable: true
+          description: Identifiant du type de structure.
+        structure_type_libre:
+          type: string
+          title: Type de structure (libre)
+          maxLength: 100
+        rayons:
+          type: array
+          items:
+            $ref: '#/components/schemas/RayonsEnum'
+          description: 'Supermarché : 3 au plus sans abonnement.'
+        cuisine:
+          oneOf:
+          - $ref: '#/components/schemas/CuisineEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        livraison:
+          type: boolean
+          nullable: true
+        horaires:
+          type: string
+          maxLength: 200
+        standing:
+          oneOf:
+          - $ref: '#/components/schemas/StandingEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        nombre_chambres:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          title: Nombre de chambres
+        equipements:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipementsEnum'
+        numero_agrement:
+          type: string
+          title: Numéro d'agrément sanitaire
+          maxLength: 50
+        specialites:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecialitesEnum'
+          description: 'Centre de santé : 3 au plus sans abonnement.'
+        secteur:
+          type: integer
+          nullable: true
+          description: Identifiant du secteur (commerce, entreprise, particulier vendeur).
+        secteur_libre:
+          type: string
+          title: Secteur (libre)
+          maxLength: 100
+        sous_categories:
+          type: array
+          items:
+            type: integer
+          description: Identifiants de sous-catégories du secteur ; 3 au plus sans
+            abonnement.
+        description_activite:
+          type: string
+          title: Description de l'activité
+          maxLength: 500
+        calls_count:
+          type: integer
+          readOnly: true
+          title: Appels lancés
+        views_count:
+          type: integer
+          readOnly: true
+          title: Vues de la fiche
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - calls_count
+      - cni_verifiee
+      - created_at
+      - has_cni
+      - id
+      - motif_rejet
+      - name
+      - phone_masked
+      - status
+      - type_compte
+      - updated_at
+      - views_count
+      - zone
     CatalogProduct:
       type: object
       properties:
@@ -674,6 +1006,32 @@ components:
       - name
       - sector
       - subcategory
+    CuisineEnum:
+      enum:
+      - camerounaise
+      - africaine_autre_pays
+      - fast_food
+      - pizzeria_occidentale
+      - autre
+      type: string
+      description: |-
+        * `camerounaise` - Camerounaise
+        * `africaine_autre_pays` - Africaine — autre pays
+        * `fast_food` - Fast-food
+        * `pizzeria_occidentale` - Pizzeria/Occidentale
+        * `autre` - Autre
+    EquipementsEnum:
+      enum:
+      - petit_dejeuner
+      - wifi
+      - parking
+      - climatisation
+      type: string
+      description: |-
+        * `petit_dejeuner` - Petit-déjeuner
+        * `wifi` - Wifi
+        * `parking` - Parking
+        * `climatisation` - Climatisation
     Error:
       type: object
       properties:
@@ -684,6 +1042,26 @@ components:
       required:
       - code
       - message
+    FormeJuridiqueEnum:
+      enum:
+      - individuelle
+      - sarl
+      - sarlu
+      - sa
+      - gic_cooperative
+      - association
+      - etablissement_public
+      - autre
+      type: string
+      description: |-
+        * `individuelle` - Entreprise individuelle
+        * `sarl` - SARL
+        * `sarlu` - SARLU
+        * `sa` - SA
+        * `gic_cooperative` - GIC / Coopérative
+        * `association` - Association
+        * `etablissement_public` - Établissement public
+        * `autre` - Autre
     LanguageEnum:
       enum:
       - fr
@@ -818,6 +1196,177 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Zone'
+    PatchedBusinessProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type_compte:
+          allOf:
+          - $ref: '#/components/schemas/TypeCompteEnum'
+          title: Type de compte
+        name:
+          type: string
+          title: Nom affiché
+          maxLength: 150
+        zone:
+          type: integer
+          description: Identifiant d'une ville/village ou d'un quartier (pas une région).
+        repere:
+          type: string
+          title: Repère
+          description: Ex. « À côté du Grand Manguier ».
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        photo:
+          type: string
+          description: Clé de stockage de la photo du compte.
+          maxLength: 255
+        representant_nom:
+          type: string
+          title: Nom du représentant
+          maxLength: 150
+        representant_photo:
+          type: string
+          description: Clé de stockage de la photo du représentant.
+          maxLength: 255
+        phone_anchor:
+          type: string
+          writeOnly: true
+          description: Numéro du compte (6XXXXXXXX ou +2376XXXXXXXX). Jamais renvoyé.
+          maxLength: 20
+        phone_masked:
+          type: string
+          readOnly: true
+          description: 'Numéro masqué : seuls le premier et les deux derniers chiffres
+            restent'
+        whatsapp_available:
+          type: boolean
+          title: WhatsApp disponible
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+          title: Statut
+        motif_rejet:
+          type: string
+          readOnly: true
+          title: Motif du rejet
+        forme_juridique:
+          oneOf:
+          - $ref: '#/components/schemas/FormeJuridiqueEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        rccm:
+          type: string
+          maxLength: 50
+        categorie_service:
+          type: integer
+          nullable: true
+          description: Identifiant de la catégorie de service (prestataire).
+        categorie_service_libre:
+          type: string
+          title: Catégorie de service (libre)
+          maxLength: 100
+        cni_photo:
+          type: string
+          writeOnly: true
+          description: Clé de stockage PRIVÉE de la CNI. Jamais renvoyée.
+          maxLength: 255
+        has_cni:
+          type: boolean
+          readOnly: true
+          description: Vrai si une CNI a été envoyée
+        cni_verifiee:
+          type: boolean
+          readOnly: true
+          title: CNI vérifiée
+        diplome_photo:
+          type: string
+          description: Clé de stockage du diplôme (facultatif).
+          maxLength: 255
+        structure_type:
+          type: integer
+          nullable: true
+          description: Identifiant du type de structure.
+        structure_type_libre:
+          type: string
+          title: Type de structure (libre)
+          maxLength: 100
+        rayons:
+          type: array
+          items:
+            $ref: '#/components/schemas/RayonsEnum'
+          description: 'Supermarché : 3 au plus sans abonnement.'
+        cuisine:
+          oneOf:
+          - $ref: '#/components/schemas/CuisineEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        livraison:
+          type: boolean
+          nullable: true
+        horaires:
+          type: string
+          maxLength: 200
+        standing:
+          oneOf:
+          - $ref: '#/components/schemas/StandingEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        nombre_chambres:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          title: Nombre de chambres
+        equipements:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipementsEnum'
+        numero_agrement:
+          type: string
+          title: Numéro d'agrément sanitaire
+          maxLength: 50
+        specialites:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecialitesEnum'
+          description: 'Centre de santé : 3 au plus sans abonnement.'
+        secteur:
+          type: integer
+          nullable: true
+          description: Identifiant du secteur (commerce, entreprise, particulier vendeur).
+        secteur_libre:
+          type: string
+          title: Secteur (libre)
+          maxLength: 100
+        sous_categories:
+          type: array
+          items:
+            type: integer
+          description: Identifiants de sous-catégories du secteur ; 3 au plus sans
+            abonnement.
+        description_activite:
+          type: string
+          title: Description de l'activité
+          maxLength: 500
+        calls_count:
+          type: integer
+          readOnly: true
+          title: Appels lancés
+        views_count:
+          type: integer
+          readOnly: true
+          title: Vues de la fiche
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
     PatchedMe:
       type: object
       properties:
@@ -852,6 +1401,26 @@ components:
           nullable: true
           readOnly: true
           description: Solde de crédits en FCFA ; null tant que CREDITS_ENABLED=False
+    RayonsEnum:
+      enum:
+      - alimentation_generale
+      - produits_frais
+      - boissons
+      - hygiene_beaute
+      - entretien_maison
+      - bazar_electromenager
+      - produits_bebes
+      - autre
+      type: string
+      description: |-
+        * `alimentation_generale` - Alimentation générale
+        * `produits_frais` - Produits frais
+        * `boissons` - Boissons
+        * `hygiene_beaute` - Hygiène & Beauté
+        * `entretien_maison` - Entretien & Maison
+        * `bazar_electromenager` - Bazar & Électroménager
+        * `produits_bebes` - Produits pour bébés
+        * `autre` - Autre
     RefreshRequest:
       type: object
       properties:
@@ -937,6 +1506,46 @@ components:
       - id
       - name
       - order
+    SpecialitesEnum:
+      enum:
+      - medecine_generale
+      - pediatrie
+      - gynecologie
+      - dentisterie
+      - laboratoire
+      - pharmacie_interne
+      - autre
+      type: string
+      description: |-
+        * `medecine_generale` - Médecine générale
+        * `pediatrie` - Pédiatrie
+        * `gynecologie` - Gynécologie
+        * `dentisterie` - Dentisterie
+        * `laboratoire` - Laboratoire d'analyses
+        * `pharmacie_interne` - Pharmacie interne
+        * `autre` - Autre
+    StandingEnum:
+      enum:
+      - economique
+      - standard
+      - confort
+      - haut_standing
+      type: string
+      description: |-
+        * `economique` - Économique
+        * `standard` - Standard
+        * `confort` - Confort
+        * `haut_standing` - Haut standing
+    StatusEnum:
+      enum:
+      - en_attente_validation
+      - actif
+      - rejete
+      type: string
+      description: |-
+        * `en_attente_validation` - En attente de validation
+        * `actif` - Actif
+        * `rejete` - Rejeté
     StructureType:
       type: object
       properties:
@@ -995,6 +1604,20 @@ components:
       - id
       - name
       - order
+    TypeCompteEnum:
+      enum:
+      - boutique
+      - entreprise
+      - particulier_vendeur
+      - prestataire_service
+      - structure
+      type: string
+      description: |-
+        * `boutique` - Commerce
+        * `entreprise` - Entreprise
+        * `particulier_vendeur` - Particulier vendeur
+        * `prestataire_service` - Prestataire de service
+        * `structure` - Structure
     Zone:
       type: object
       properties:

@@ -10,7 +10,7 @@ Règles tenues ici (clean() ET save(), comme Zone) :
 
 Ce qui n'est PAS ici (volontairement) :
 - les plafonds de 3 (sous-catégories, rayons, spécialités) : ils dépendent de l'abonnement
-  (`is_subscribed`, T025b) et sont appliqués par le service de création/modification (T026) ;
+  (`is_subscribed`, T025b) et sont appliqués par `services/profile_service` (T026) ;
 - l'envoi des fichiers : `photo`, `representant_photo`, `cni_photo`, `diplome_photo` sont des
   clés de stockage (chemin relatif) remplies par `StorageService` (T027).
 
@@ -134,6 +134,21 @@ def validate_anchor_phone(value: str) -> None:
         raise ValidationError("Le numéro doit être au format +2376XXXXXXXX.")
 
 
+class BusinessProfileQuerySet(models.QuerySet):
+    def visible(self):
+        """Les comptes business que le public peut voir : l'UNIQUE définition de la visibilité.
+
+        `actif` ET propriétaire utilisable (ni supprimé, ni bloqué, ni inactif). Recherche,
+        carte, liste, fiche publique, tendances et appels doivent partir de ce queryset ;
+        un profil en attente, rejeté ou dont le compte est supprimé/bloqué n'y est jamais.
+        (Le propriétaire lit son propre profil par `/api/business/me/`, pas par ici.)
+        """
+        return self.filter(
+            status=BusinessStatus.ACTIVE,
+            owner__is_active=True, owner__is_blocked=False, owner__is_deleted=False,
+        )
+
+
 def _empty(value) -> bool:
     return value is None or value is False or value in ("", [], {})
 
@@ -235,6 +250,8 @@ class BusinessProfile(TimeStampedModel):
     # Compteurs : modifiés par le code seulement (appels : T047b, vues : T050).
     calls_count = models.PositiveIntegerField("appels lancés", default=0, editable=False)
     views_count = models.PositiveIntegerField("vues de la fiche", default=0, editable=False)
+
+    objects = BusinessProfileQuerySet.as_manager()
 
     class Meta:
         verbose_name = "compte business"
@@ -419,7 +436,7 @@ class BusinessProfile(TimeStampedModel):
 def validate_subcategories(profile: "BusinessProfile", subcategories) -> None:
     """Un M2M ne peut pas être validé dans clean() (le profil n'existe pas encore) : le service
     de création l'appelle avant d'enregistrer, et le signal ci-dessous le rejoue à l'ajout.
-    Le plafond de 3 n'est PAS vérifié ici (abonnement : T026)."""
+    Le plafond de 3 n'est PAS vérifié ici : il dépend de l'abonnement (`profile_service`)."""
     subcategories = list(subcategories)
     if not subcategories:
         return
