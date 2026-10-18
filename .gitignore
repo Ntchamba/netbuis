@@ -29,3 +29,6 @@ mobile/build/
 *.pem
 *.keystore
 *.jks
+
+# Pièces privées (CNI, diplômes) : jamais versionnées, jamais servies publiquement
+backend/private_media/
