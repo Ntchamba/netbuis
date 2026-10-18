@@ -27,13 +27,14 @@ from tests.factories.business_factory import (
     make_subscription,
 )
 from tests.factories.catalog_factory import make_sector, make_subcategory
+from tests.factories.storage_factory import make_stored_file
 
 pytestmark = pytest.mark.django_db
 
 URL = "/api/business/"
 ME = "/api/business/me/"
 PHONE = "+237677123456"
-CNI = "prive/cni-secrete.jpg"
+CNI = "@cni_photo"  # remplacé par une vraie clé de stockage du compte connecté (voir `with_files`)
 
 
 @pytest.fixture(autouse=True)
@@ -46,7 +47,21 @@ def _clear_cache():
 def connected(user):
     client = APIClient()
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {issue_tokens(user)['access']}")
+    client.user = user
     return client
+
+
+def with_files(client, body):
+    """Remplace chaque valeur « @kind » par la clé d'un petit fichier réel déposé (stockage de
+    test) pour le compte connecté : T027 n'accepte que des clés existantes et à soi."""
+    user = getattr(client, "user", None)
+    if user is None:  # client anonyme : rien à déposer
+        return body
+    return {
+        name: make_stored_file(user, value[1:])
+        if isinstance(value, str) and value.startswith("@") else value
+        for name, value in body.items()
+    }
 
 
 @pytest.fixture
@@ -65,9 +80,9 @@ def payload(type_compte="boutique", **extra) -> dict:
         "type_compte": type_compte,
         "name": "Boutique de démonstration",
         "zone": get_or_make_zone().pk,
-        "photo": "profils/photo.jpg",
+        "photo": "@photo",
         "representant_nom": "Personne de démonstration",
-        "representant_photo": "profils/representant.jpg",
+        "representant_photo": "@representant_photo",
         "phone_anchor": PHONE,
     }
     if type_compte in ("boutique", "entreprise", "particulier_vendeur"):
@@ -85,11 +100,11 @@ def payload(type_compte="boutique", **extra) -> dict:
 
 
 def post(client, body):
-    return client.post(URL, body, format="json")
+    return client.post(URL, with_files(client, body), format="json")
 
 
 def patch(client, body):
-    return client.patch(ME, body, format="json")
+    return client.patch(ME, with_files(client, body), format="json")
 
 
 def fields_of(response):
@@ -313,13 +328,16 @@ def test_le_client_ne_peut_pas_imposer_les_champs_serveur(client, owner):
 def test_le_numero_et_la_cni_ne_sortent_jamais(client, owner):
     created = post(client, payload("prestataire_service", phone_anchor="677 12 34 56"))
     assert created.status_code == 201
-    assert BusinessProfile.objects.get(owner=owner).phone_anchor == PHONE  # normalisé
+    profile = BusinessProfile.objects.get(owner=owner)
+    assert profile.phone_anchor == PHONE  # normalisé
+    stored_cni = profile.cni_photo
+    assert stored_cni.startswith(f"u{owner.pk}/cni_photo/")
     for response in (created, client.get(ME), patch(client, {"description": "Bonjour"})):
         text = response.content.decode()
         assert "phone_anchor" not in response.json()
         assert "cni_photo" not in response.json()
         assert "677123456" not in text.replace(" ", "")
-        assert CNI not in text
+        assert stored_cni not in text
         assert response.json()["has_cni"] is True
         assert response.json()["phone_masked"] == "+237 6•• •• •• 56"
 
@@ -333,10 +351,11 @@ def test_numero_invalide_refuse_sans_le_repeter(client):
 
 def test_aucun_journal_ne_contient_le_numero(client, caplog):
     caplog.set_level(logging.DEBUG)
-    post(client, payload("prestataire_service"))
+    body = with_files(client, payload("prestataire_service"))
+    post(client, body)
     post(client, payload("prestataire_service", cni_photo="../x"))
     assert "677123456" not in caplog.text
-    assert CNI not in caplog.text
+    assert body["cni_photo"] not in caplog.text
 
 
 @pytest.mark.parametrize("key", ["../x.jpg", "a/../b.jpg", "/etc/passwd", "a//b.jpg", "./a",
@@ -471,8 +490,8 @@ def test_plafond_des_specialites(client):
 def test_d08_description_et_photos_sans_nouvelle_validation(client, owner):
     profile = active_profile(owner)
     response = patch(client, {
-        "description": "Nouvelle description", "photo": "profils/nouvelle.jpg",
-        "representant_photo": "profils/autre.jpg", "repere": "Près du marché",
+        "description": "Nouvelle description", "photo": "@photo",
+        "representant_photo": "@representant_photo", "repere": "Près du marché",
         "whatsapp_available": False, "description_activite": "Fruits frais",
     })
     assert response.status_code == 200, response.content
@@ -543,7 +562,7 @@ def rejected(owner):
 def test_profil_rejete_corrige_repasse_en_attente(client, owner):
     profile = rejected(owner)
     assert client.get(ME).json()["motif_rejet"] == "Photo floue"
-    response = patch(client, {"name": "Nom corrigé", "photo": "profils/nette.jpg"})
+    response = patch(client, {"name": "Nom corrigé", "photo": "@photo"})
     assert response.status_code == 200
     assert response.json()["status"] == "en_attente_validation"
     assert response.json()["motif_rejet"] == ""

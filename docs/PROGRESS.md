@@ -5,7 +5,7 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T027 🔒 🔄
+- **Tâche en cours** : T027 🔒 (en attente de la relecture de Jeff)
 - **Prochaine tâche** : T028
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
@@ -43,7 +43,7 @@
 | ✅ | T025 | Backend : modèles du compte business | a2 | | 2026-10-17 | logs/T025-verification.md ; 416 tests ; BusinessProfile (owner OneToOne, related_name business_profile ; phone_anchor et cni_photo protégés par un test sur tous les sérialiseurs) ; photos = clés de stockage (CharField, T027) ; plafonds de 3 laissés à T026 ; codes des listes de détails de structure choisis par a2 depuis les libellés de la spec |
 | ✅ | T025b | Backend : abonnement (modèle et service `is_subscribed`) | a2 | | 2026-10-17 | logs/T025b-verification.md ; 443 tests ; règle unique dans services/subscription.py (is_subscribed, subscribed_profiles, annotate_subscribed) ; statuts actif/expire seulement (pas d'« impayé ») ; passage à « expiré » par commande en T110 |
 | ✅ | T026 | Backend : API de création et de modification du compte business | a2 | | 2026-10-18 | logs/T026-verification.md ; 532 tests ; corps de requête : référentiels par id entier, listes d'établissement par codes ; photos = clés de stockage (format contrôlé seulement, propriété de la clé à contrôler en T027) ; détails de structure obligatoires choisis par a2 : supermarché ≥ 1 rayon, restaurant cuisine + livraison, hôtel standing, santé ≥ 1 spécialité ; changement de type : champs de l'ancien type à vider dans la même requête ; BusinessProfile.objects.visible() = règle unique de visibilité publique |
-| 🔄 | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | |
+| 🔒 | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | 2026-10-18 | logs/T027-verification.md ; 707 tests ; vérificateur CONFORME (1 incohérence mineure corrigée) ; clés u<id>/<kind>/<uuid>.<ext> générées par le serveur ; espace privé backend/private_media (hors dépôt) ; lien de lecture admin 5 min (route à faire en T071) ; MP4 seulement pour la vidéo ; réglages config/ touchés avec autorisation exceptionnelle (STORAGE_BACKEND, PRIVATE_MEDIA_ROOT, UPLOAD_SIGNING_KEY, UPLOAD_TOKEN_TTL, PRIVATE_DOWNLOAD_TTL, taux uploads 60/h, static() en DEBUG) ; en attente relecture Jeff |
 | ☐ | T028 | Backend : données de démonstration | a2 | | |
 | ☐ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | |
 | ☐ | T031 | Mobile : secteur et détails d'activité | b3 | | |

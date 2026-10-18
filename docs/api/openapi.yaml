@@ -691,6 +691,107 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/uploads/local/{token}/:
+    put:
+      operationId: uploads_local_put
+      description: Corps binaire du fichier, avec le `Content-Type` donné par `uploads/sign/`.
+        Réservé au stockage local de développement. Une adresse ne sert qu'une fois.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - uploads
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      security:
+      - {}
+      responses:
+        '204':
+          description: Fichier enregistré.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid_type : Content-Type différent de celui annoncé · invalid_content
+            : les octets ne sont pas ceux du type annoncé, ou taille différente'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid_token : adresse falsifiée ou expirée · already_used
+            : déjà servie'
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'too_large : plus gros que la taille annoncée'
+  /api/uploads/sign/:
+    post:
+      operationId: uploads_sign
+      description: Donne l'adresse où envoyer UN fichier (PUT, corps binaire, en-têtes
+        `headers`), puis `key` à mettre dans le profil. `cni_photo` et `diplome_photo`
+        vont dans un espace privé, sans adresse publique.
+      tags:
+      - uploads
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadSignRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UploadSignRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadSignRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadSignResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid_kind : type d''envoi inconnu · invalid_type : type
+            de fichier refusé (SVG, GIF, HTML…) · too_large : plus de 5 Mo (images)
+            ou 30 Mo (vidéo) · invalid : taille absente, nulle ou pas un nombre entier'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted : « Contactez le support
+            »'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'throttled : 60 demandes par heure et par compte'
   /api/zones/:
     get:
       operationId: zones_list
@@ -885,7 +986,7 @@ components:
           title: CNI vérifiée
         diplome_photo:
           type: string
-          description: Clé de stockage du diplôme (facultatif).
+          description: Clé de stockage PRIVÉE du diplôme (facultatif).
           maxLength: 255
         structure_type:
           type: integer
@@ -1285,7 +1386,7 @@ components:
           title: CNI vérifiée
         diplome_photo:
           type: string
-          description: Clé de stockage du diplôme (facultatif).
+          description: Clé de stockage PRIVÉE du diplôme (facultatif).
           maxLength: 255
         structure_type:
           type: integer
@@ -1618,6 +1719,54 @@ components:
         * `particulier_vendeur` - Particulier vendeur
         * `prestataire_service` - Prestataire de service
         * `structure` - Structure
+    UploadSignRequest:
+      type: object
+      properties:
+        kind:
+          type: string
+          description: 'Nature du fichier : photo, representant_photo, cni_photo,
+            diplome_photo, post_image, post_video. cni_photo et diplome_photo sont
+            PRIVÉS.'
+          maxLength: 40
+        content_type:
+          type: string
+          description: image/jpeg, image/png ou image/webp ; video/mp4 pour post_video
+            seulement.
+          maxLength: 100
+        size:
+          type: integer
+          description: 'Taille exacte du fichier en octets : 1 à 5 242 880 (images),
+            1 à 31 457 280 (vidéo de publication).'
+      required:
+      - content_type
+      - kind
+      - size
+    UploadSignResponse:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Clé à mettre ensuite dans le profil (photo, cni_photo…).
+        upload_url:
+          type: string
+          description: Adresse où envoyer le fichier (PUT, corps binaire).
+        method:
+          type: string
+          description: Toujours PUT.
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: En-têtes à envoyer tels quels (Content-Type).
+        expires_in:
+          type: integer
+          description: Secondes de validité de l'adresse d'envoi.
+      required:
+      - expires_in
+      - headers
+      - key
+      - method
+      - upload_url
     Zone:
       type: object
       properties:

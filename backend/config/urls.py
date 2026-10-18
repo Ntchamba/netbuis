@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
@@ -20,3 +22,8 @@ urlpatterns = [
     path("api/payments/", include("apps.payments.urls")),
     path("api/admin/", include("apps.admin_panel.urls")),
 ]
+
+# Photos PUBLIQUES envoyées (MEDIA_ROOT) : servies par Django seulement si DEBUG (renvoie [] sinon).
+# L'espace privé (PRIVATE_MEDIA_ROOT : CNI, diplôme) n'a aucune route ici. En production, ce sera
+# le futur stockage compatible S3.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

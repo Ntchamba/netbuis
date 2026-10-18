@@ -5,8 +5,10 @@ Contrat du corps de requête (mêmes noms que le modèle) :
 - référentiels et lieu par IDENTIFIANT entier, comme les routes zones et catalogue :
   `zone`, `secteur`, `categorie_service`, `structure_type`, `sous_categories` (liste d'ids) ;
 - listes d'établissement par code stable : `rayons`, `equipements`, `specialites` ;
-- photos et pièces : clés de stockage (chaînes) produites par T027 ; seul le format est
-  contrôlé ici (chemin relatif).
+- photos et pièces : clés de stockage (chaînes) produites par `POST /api/uploads/sign/` (T027).
+  Une clé n'est acceptée que si elle appartient au compte connecté, correspond au champ
+  (`photo` ↔ kind photo…) et que le fichier existe dans le bon espace (privé pour la CNI et le
+  diplôme).
 
 Secrets : `phone_anchor` et `cni_photo` sont en ÉCRITURE SEULE. En lecture, le propriétaire reçoit
 `phone_masked` (numéro masqué) et `has_cni` ; jamais le numéro entier ni le chemin de la CNI. Les
@@ -16,6 +18,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.business.models import Aisle, Amenity, BusinessProfile, Speciality
+from apps.business.services.storage_service import StorageError, get_storage, parse_key
 from apps.catalog.models import Sector, ServiceCategory, StructureType, Subcategory
 from apps.core.utils.phone import mask_phone, normalize_phone
 from apps.geo.models import Zone
@@ -23,7 +26,7 @@ from apps.geo.models import Zone
 
 def validate_storage_key(value: str) -> str:
     """Chemin relatif : pas de `/` initial, pas de `\\`, pas de segment vide, `.` ou `..`,
-    pas d'adresse (`://`). La propriété de la clé est contrôlée en T027."""
+    pas d'adresse (`://`). La propriété et l'existence sont contrôlées par `StorageKeyField`."""
     if value == "":
         return value
     segments = value.split("/")
@@ -38,13 +41,37 @@ def validate_storage_key(value: str) -> str:
 
 
 class StorageKeyField(serializers.CharField):
+    """Clé de stockage : format, puis PROPRIÉTÉ (la clé commence par `u<id du compte connecté>/`),
+    nature (`kind` = `kind` du champ) et EXISTENCE du fichier dans le bon espace. Les messages ne
+    répètent jamais la clé. Sans requête authentifiée dans le contexte : refus."""
+
     default_validators = [validate_storage_key]
 
-    def __init__(self, **kwargs):
+    def __init__(self, *, kind: str, **kwargs):
+        self.kind = kind
         kwargs.setdefault("required", False)
         kwargs.setdefault("allow_blank", True)
         kwargs.setdefault("max_length", 255)
         super().__init__(**kwargs)
+
+    def run_validation(self, data=serializers.empty):
+        value = super().run_validation(data)
+        if value in ("", None, serializers.empty):
+            return value
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        try:
+            parsed = parse_key(value)
+        except StorageError:
+            raise serializers.ValidationError("Fichier inconnu : envoyez-le d'abord.") from None
+        if (
+            user is None or not user.is_authenticated
+            or parsed.owner_id != user.pk
+            or parsed.kind != self.kind
+            or not get_storage().exists(value)
+        ):
+            raise serializers.ValidationError("Fichier inconnu : envoyez-le d'abord.")
+        return value
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
@@ -79,11 +106,15 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         child=serializers.ChoiceField(choices=Speciality.choices), required=False,
         help_text="Centre de santé : 3 au plus sans abonnement.",
     )
-    photo = StorageKeyField(help_text="Clé de stockage de la photo du compte.")
-    representant_photo = StorageKeyField(help_text="Clé de stockage de la photo du représentant.")
-    diplome_photo = StorageKeyField(help_text="Clé de stockage du diplôme (facultatif).")
+    photo = StorageKeyField(kind="photo", help_text="Clé de stockage de la photo du compte.")
+    representant_photo = StorageKeyField(
+        kind="representant_photo", help_text="Clé de stockage de la photo du représentant.")
+    diplome_photo = StorageKeyField(
+        kind="diplome_photo", help_text="Clé de stockage PRIVÉE du diplôme (facultatif)."
+    )
     cni_photo = StorageKeyField(
-        write_only=True, help_text="Clé de stockage PRIVÉE de la CNI. Jamais renvoyée."
+        kind="cni_photo", write_only=True,
+        help_text="Clé de stockage PRIVÉE de la CNI. Jamais renvoyée.",
     )
     phone_anchor = serializers.CharField(
         write_only=True, required=False, allow_blank=True, max_length=20,

@@ -97,7 +97,22 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = BASE_DIR / "media"  # espace PUBLIC (photos de commerce, publications)
+
+# Stockage des fichiers envoyés (T027, D-17). "local" = dossiers du serveur, pour le
+# développement ; un stockage compatible S3 viendra plus tard derrière la même interface
+# (apps.business.services.storage_service.StorageService).
+STORAGE_BACKEND = env("STORAGE_BACKEND", default="local")
+# Espace PRIVÉ (CNI, diplôme) : HORS de MEDIA_ROOT, jamais servi par Django.
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
+# Clé qui signe les jetons d'envoi et de téléchargement temporaire (sels dédiés dans le code).
+# Par défaut SECRET_KEY ; une clé distincte peut être donnée par l'environnement.
+UPLOAD_SIGNING_KEY = env("UPLOAD_SIGNING_KEY", default=SECRET_KEY)
+UPLOAD_TOKEN_TTL = 15 * 60  # secondes : validité d'une URL d'envoi
+PRIVATE_DOWNLOAD_TTL = 5 * 60  # secondes : validité d'une URL de lecture admin (CNI, diplôme)
+# Début des URL temporaires de lecture. La route qui les sert est réservée à l'administration
+# (T071) ; rien ne les sert avant.
+PRIVATE_DOWNLOAD_URL_PREFIX = "/api/admin/private-files/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -116,6 +131,7 @@ REST_FRAMEWORK = {
         "otp": "10/hour",  # demandes de code, par IP
         "otp_verify": "30/hour",  # vérifications de code, par IP (T006b)
         "call": "5/min",  # par compte
+        "uploads": "60/hour",  # demandes d'URL d'envoi de fichier (T027), par compte
     },
     # IP du client = REMOTE_ADDR : l'en-tête X-Forwarded-For (falsifiable) est ignoré.
     # À régler au déploiement derrière un proxy (nombre de proxys de confiance).
