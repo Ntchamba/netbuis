@@ -314,8 +314,9 @@ paths:
     patch:
       operationId: business_me_partial_update
       description: 'Règle D-08 sur un compte `actif` : changer réellement le nom,
-        le type, le lieu ou le numéro le remet en `en_attente_validation` ; description,
-        photos et le reste ne demandent pas de nouvelle validation. Un compte `rejete`
+        le type ou le lieu le remet en `en_attente_validation` ; description, photos
+        et le reste ne demandent pas de nouvelle validation. Le numéro ancré est celui
+        du compte, imposé par le serveur : il n''est pas modifiable. Un compte `rejete`
         corrigé repasse en `en_attente_validation` et son motif est effacé.'
       tags:
       - business
@@ -924,7 +925,7 @@ components:
           maxLength: 1000
         photo:
           type: string
-          description: Clé de stockage de la photo du compte.
+          description: Clé de stockage de la photo du commerce (facultative).
           maxLength: 255
         representant_nom:
           type: string
@@ -934,11 +935,6 @@ components:
           type: string
           description: Clé de stockage de la photo du représentant.
           maxLength: 255
-        phone_anchor:
-          type: string
-          writeOnly: true
-          description: Numéro du compte (6XXXXXXXX ou +2376XXXXXXXX). Jamais renvoyé.
-          maxLength: 20
         phone_masked:
           type: string
           readOnly: true
@@ -1324,7 +1320,7 @@ components:
           maxLength: 1000
         photo:
           type: string
-          description: Clé de stockage de la photo du compte.
+          description: Clé de stockage de la photo du commerce (facultative).
           maxLength: 255
         representant_nom:
           type: string
@@ -1334,11 +1330,6 @@ components:
           type: string
           description: Clé de stockage de la photo du représentant.
           maxLength: 255
-        phone_anchor:
-          type: string
-          writeOnly: true
-          description: Numéro du compte (6XXXXXXXX ou +2376XXXXXXXX). Jamais renvoyé.
-          maxLength: 20
         phone_masked:
           type: string
           readOnly: true

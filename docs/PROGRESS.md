@@ -182,3 +182,4 @@
 | 2026-10-17 | T012 : la connexion de bout en bout fonctionne entre le mobile (code réel) et le backend local ; pas d'émulateur dans la session cloud, l'essai sur téléphone reste à faire par Jeff. |
 | 2026-10-17 | Jeff valide T012 et demande de pousser la branche etape-2/acces. |
 | 2026-10-17 | T023 : le mobile (dépôts réels) affiche les vraies villes et secteurs du backend local. |
+| 2026-10-19 | T026c (correction de contrat trouvée par T035) : le numéro ancré est toujours owner.phone, imposé par le serveur ; la photo du commerce est facultative (maquette). Docs mises à jour (MODELE_DONNEES, D-08). Reste à corriger côté mobile : retrait du refus d'envoi sans photo du commerce et ordre du lieu « Maroua, Hardé ». |

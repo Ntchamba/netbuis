@@ -88,10 +88,10 @@ def test_create_profile_refuse_un_second_profil():
 def test_create_profile_invalide_ne_cree_rien():
     owner = make_owner()
     values = service_values()
-    values["photo"] = ""
+    values["representant_photo"] = ""
     with pytest.raises(ValidationError) as caught:
         profile_service.create_profile(owner, values)
-    assert "photo" in caught.value.detail
+    assert "representant_photo" in caught.value.detail
     assert not BusinessProfile.objects.filter(owner=owner).exists()
 
 
@@ -146,3 +146,22 @@ def test_update_sans_donnees_ne_change_rien():
     profile_service.update_profile(profile, {})
     profile.refresh_from_db()
     assert profile.status == BusinessStatus.REJECTED
+
+
+def test_create_profile_ancre_le_numero_du_compte_et_ignore_celui_du_client():
+    owner, autre = make_owner(), make_owner()
+    profile = profile_service.create_profile(owner, service_values(phone_anchor=autre.phone))
+    assert profile.phone_anchor == owner.phone != autre.phone
+
+
+def test_create_profile_sans_photo_du_commerce():
+    profile = profile_service.create_profile(make_owner(), service_values(photo=""))
+    assert profile.photo == ""
+
+
+def test_update_profile_ignore_phone_anchor_et_garde_le_statut():
+    profile = make_profile(status=BusinessStatus.ACTIVE)
+    ancre = profile.phone_anchor
+    updated = profile_service.update_profile(profile, {"phone_anchor": "+237677000001"})
+    assert updated.phone_anchor == ancre and updated.status == BusinessStatus.ACTIVE
+    assert "phone_anchor" not in profile_service.SENSITIVE_FIELDS

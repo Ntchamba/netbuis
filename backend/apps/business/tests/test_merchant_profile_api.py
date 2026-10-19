@@ -66,7 +66,11 @@ def with_files(client, body):
 
 @pytest.fixture
 def owner():
-    return make_owner()
+    """Compte au numéro PHONE : c'est le numéro vérifié que le serveur ancre."""
+    user = make_owner()
+    user.phone = PHONE
+    user.save()
+    return user
 
 
 @pytest.fixture
@@ -83,7 +87,6 @@ def payload(type_compte="boutique", **extra) -> dict:
         "photo": "@photo",
         "representant_nom": "Personne de démonstration",
         "representant_photo": "@representant_photo",
-        "phone_anchor": PHONE,
     }
     if type_compte in ("boutique", "entreprise", "particulier_vendeur"):
         body["secteur"] = get_sector().pk
@@ -189,12 +192,27 @@ def test_creation_invalide_par_type(client, owner, type_compte, retire, champ):
     assert not BusinessProfile.objects.filter(owner=owner).exists()
 
 
-@pytest.mark.parametrize("retire", ["photo", "representant_nom", "representant_photo",
-                                    "phone_anchor", "name", "zone", "type_compte"])
+@pytest.mark.parametrize("retire", ["representant_nom", "representant_photo",
+                                    "name", "zone", "type_compte"])
 def test_champs_communs_obligatoires(client, retire):
     body = payload()
     body.pop(retire)
     assert retire in fields_of(post(client, body))
+
+
+def test_photo_du_commerce_facultative(client, owner):
+    body = payload()
+    body.pop("photo")
+    response = post(client, body)
+    assert response.status_code == 201, response.content
+    assert BusinessProfile.objects.get(owner=owner).photo == ""
+    # avec photo : propriété et nature toujours contrôlées
+    other = make_owner()
+    foreign = make_stored_file(other, "photo")
+    user = make_owner()
+    assert "photo" in fields_of(post(connected(user), payload(photo=foreign)))
+    wrong_kind = make_stored_file(user, "representant_photo")
+    assert "photo" in fields_of(post(connected(user), payload(photo=wrong_kind)))
 
 
 def test_champ_d_un_autre_type_refuse(client):
@@ -326,10 +344,10 @@ def test_le_client_ne_peut_pas_imposer_les_champs_serveur(client, owner):
 
 
 def test_le_numero_et_la_cni_ne_sortent_jamais(client, owner):
-    created = post(client, payload("prestataire_service", phone_anchor="677 12 34 56"))
+    created = post(client, payload("prestataire_service"))
     assert created.status_code == 201
     profile = BusinessProfile.objects.get(owner=owner)
-    assert profile.phone_anchor == PHONE  # normalisé
+    assert profile.phone_anchor == PHONE
     stored_cni = profile.cni_photo
     assert stored_cni.startswith(f"u{owner.pk}/cni_photo/")
     for response in (created, client.get(ME), patch(client, {"description": "Bonjour"})):
@@ -342,11 +360,36 @@ def test_le_numero_et_la_cni_ne_sortent_jamais(client, owner):
         assert response.json()["phone_masked"] == "+237 6•• •• •• 56"
 
 
-def test_numero_invalide_refuse_sans_le_repeter(client):
-    errors = fields_of(post(client, payload(phone_anchor="12345XYZ")))
-    assert "phone_anchor" in errors
-    assert "12345XYZ" not in json.dumps(errors)
-    assert "phone_anchor" in fields_of(post(client, payload(phone_anchor="")))
+def test_numero_ancre_est_celui_du_compte_sans_phone_anchor(client, owner):
+    response = post(client, payload())
+    assert response.status_code == 201, response.content
+    assert BusinessProfile.objects.get(owner=owner).phone_anchor == owner.phone
+
+
+def test_numero_d_autrui_jamais_ancre(client, owner):
+    autre = make_owner()
+    response = post(client, payload(phone_anchor=autre.phone))
+    assert response.status_code == 201, response.content
+    profile = BusinessProfile.objects.get(owner=owner)
+    assert profile.phone_anchor == owner.phone != autre.phone
+    assert autre.phone not in response.content.decode()
+    # une valeur absurde est ignorée elle aussi (pas d'erreur sur un champ que le client n'a pas)
+    user = make_owner()
+    response = post(connected(user), payload(phone_anchor="12345XYZ"))
+    assert response.status_code == 201
+    assert BusinessProfile.objects.get(owner=user).phone_anchor == user.phone
+
+
+def test_numero_du_compte_invalide_refuse_proprement(client, owner):
+    from django.contrib.auth import get_user_model
+
+    get_user_model().objects.filter(pk=owner.pk).update(phone="+33612345678")  # contourne le modèle
+    response = post(client, payload())
+    assert response.status_code == 400, response.content
+    body = response.json()
+    assert body["code"] == "invalid"
+    assert "33612345678" not in json.dumps(body)
+    assert not BusinessProfile.objects.filter(owner=owner).exists()
 
 
 def test_aucun_journal_ne_contient_le_numero(client, caplog):
@@ -506,7 +549,6 @@ def test_d08_valeur_identique_ne_change_rien(client, owner):
     profile = active_profile(owner)
     response = patch(client, {
         "name": profile.name, "type_compte": profile.type_compte, "zone": profile.zone_id,
-        "phone_anchor": profile.phone_anchor[4:],  # même numéro, autre écriture
     })
     assert response.status_code == 200
     assert response.json()["status"] == "actif"
@@ -517,7 +559,6 @@ def test_d08_champ_sensible_remet_en_attente(client, owner):
     cas = [
         {"name": "Nouveau nom"},
         {"zone": nouvelle_zone.pk},
-        {"phone_anchor": "+237677000001"},
         {"type_compte": "entreprise", "forme_juridique": "sarl"},
     ]
     for changement in cas:
@@ -529,6 +570,22 @@ def test_d08_champ_sensible_remet_en_attente(client, owner):
         profile.refresh_from_db()
         assert profile.status == BusinessStatus.PENDING
         assert not BusinessProfile.objects.visible().filter(pk=profile.pk).exists()
+
+
+def test_d08_phone_anchor_envoye_au_patch_est_ignore(client, owner):
+    # Remplace l'ancien cas D-08 « changer le numéro remet en attente » : le client ne peut plus
+    # modifier le numéro ancré, donc aucun changement de statut ni de numéro.
+    profile = active_profile(owner)
+    ancre = profile.phone_anchor
+    response = patch(client, {"phone_anchor": "+237677000001", "description": "Bonjour"})
+    assert response.status_code == 200, response.content
+    assert response.json()["status"] == "actif"
+    assert "phone_anchor" not in response.json()
+    assert "677000001" not in response.content.decode()
+    profile.refresh_from_db()
+    assert profile.status == BusinessStatus.ACTIVE
+    assert profile.phone_anchor == ancre
+    assert profile.description == "Bonjour"
 
 
 def test_profil_en_attente_reste_en_attente(client, owner):

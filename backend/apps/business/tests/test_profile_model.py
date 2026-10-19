@@ -136,10 +136,16 @@ def test_lieu_repere_refuse():
 
 
 @pytest.mark.parametrize(
-    "field", ["name", "photo", "representant_nom", "representant_photo", "phone_anchor"]
+    "field", ["name", "representant_nom", "representant_photo", "phone_anchor"]
 )
 def test_champ_commun_obligatoire(field):
     assert field in errors_of("boutique", **{field: ""})
+
+
+def test_photo_du_commerce_facultative():
+    assert make_profile(photo="").photo == ""  # valide sans photo
+    assert "photo" not in errors_of("boutique", name="")
+    assert make_profile(photo="profils/photo.jpg").photo
 
 
 def test_prestataire_sans_cni_refuse():

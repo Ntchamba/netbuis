@@ -67,10 +67,11 @@ class BusinessCreateView(generics.GenericAPIView):
     patch=extend_schema(
         tags=["business"], operation_id="business_me_partial_update",
         description=(
-            "Règle D-08 sur un compte `actif` : changer réellement le nom, le type, le lieu ou "
-            "le numéro le remet en `en_attente_validation` ; description, photos et le reste "
-            "ne demandent pas de nouvelle validation. Un compte `rejete` corrigé repasse en "
-            "`en_attente_validation` et son motif est effacé."
+            "Règle D-08 sur un compte `actif` : changer réellement le nom, le type ou le lieu "
+            "le remet en `en_attente_validation` ; description, photos et le reste "
+            "ne demandent pas de nouvelle validation. Le numéro ancré est celui du compte, "
+            "imposé par le serveur : il n'est pas modifiable. Un compte `rejete` corrigé "
+            "repasse en `en_attente_validation` et son motif est effacé."
         ),
         responses={
             200: BusinessProfileSerializer, 400: _INVALID, 404: _NO_BUSINESS, **_ERRORS

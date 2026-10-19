@@ -266,7 +266,7 @@ def test_flush_then_run_again_recreates():
 def test_invalid_profile_cannot_be_built_by_the_helper():
     refs = demo_data.load_referentials()
     values, _ = demo_data.demo_profile_values(1, refs)
-    values["photo"] = ""
+    values["representant_photo"] = ""
     profile = BusinessProfile(owner=make_owner(), **values)
     with pytest.raises(ValidationError):
         profile.clean()

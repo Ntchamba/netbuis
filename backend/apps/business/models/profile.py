@@ -304,8 +304,9 @@ class BusinessProfile(TimeStampedModel):
 
     def clean(self):
         """Règles du modèle. Un profil n'existe qu'une fois soumis : il naît en
-        `en_attente_validation`, donc photo, représentant, numéro (et CNI du prestataire)
-        sont exigés dès l'enregistrement — pas d'état « brouillon » côté serveur."""
+        `en_attente_validation`, donc représentant (nom et photo), numéro (et CNI du
+        prestataire) sont exigés dès l'enregistrement — pas d'état « brouillon » côté serveur.
+        La photo du commerce est FACULTATIVE (maquette CreationBusiness-Infos)."""
         errors: dict[str, str] = {}
         self._check_common(errors)
         if self.type_compte in AccountType.values:
@@ -324,7 +325,6 @@ class BusinessProfile(TimeStampedModel):
         elif self.zone.level not in ZONE_LEVELS_ALLOWED:
             errors["zone"] = "Le lieu doit être une ville, un village ou un quartier."
         for field, message in (
-            ("photo", "La photo est obligatoire."),
             ("representant_nom", "Le nom du représentant est obligatoire."),
             ("representant_photo", "La photo du représentant est obligatoire."),
             ("phone_anchor", "Le numéro est obligatoire."),

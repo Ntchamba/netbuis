@@ -6,9 +6,16 @@ La 4ᵉ est refusée avec le code `SUBSCRIPTION_REQUIRED`. Une requête qui ne f
 éléments ou renvoyer ceux que le profil a déjà n'est pas plafonnée : un abonnement échu ne
 supprime rien et ne bloque pas la modification du reste.
 
-Règle D-08 (profil `actif`) : changer réellement `name`, `type_compte`, `zone` ou `phone_anchor`
-le remet en `en_attente_validation` ; description, photos, repère… non. Un profil `rejete` qui
-reçoit une modification réussie repart en `en_attente_validation`, `motif_rejet` effacé.
+Numéro ancré : toujours `owner.phone` (numéro vérifié par SMS), posé à la création par le serveur.
+Le client ne l'envoie ni ne le modifie : une valeur reçue est ignorée (sinon on pourrait ancrer le
+numéro d'un concurrent). Si `owner.phone` est invalide, la création échoue en 400 sans le numéro.
+
+Règle D-08 (profil `actif`) : changer réellement `name`, `type_compte` ou `zone` le remet en
+`en_attente_validation` ; description, photos, repère… non. `phone_anchor` n'est PLUS dans
+`SENSITIVE_FIELDS` : le client ne peut pas le changer (le numéro du compte ne change pas dans
+cette version), donc « modifier le numéro remet en attente » n'a plus d'objet.
+Un profil `rejete` qui reçoit une modification réussie repart en `en_attente_validation`,
+`motif_rejet` effacé.
 
 Tout est fait dans une transaction ; les erreurs du modèle (`clean()`, signal des
 sous-catégories) deviennent des 400 `{code: "invalid", fields}` en français.
@@ -23,7 +30,11 @@ from apps.business.models import (
     BusinessStatus,
     validate_subcategories,
 )
-from apps.business.models.profile import ALL_STRUCTURE_DETAIL_FIELDS, AccountType
+from apps.business.models.profile import (
+    ALL_STRUCTURE_DETAIL_FIELDS,
+    AccountType,
+    validate_anchor_phone,
+)
 from apps.business.services.subscription import is_subscribed
 from apps.catalog.models import Subcategory
 from apps.core.exceptions import ApiError
@@ -39,8 +50,9 @@ CAPPED_LISTS = {  # champ -> nom affiché dans le message
 # Jamais pris du client, même si un appelant les glisse dans `data`.
 SERVER_FIELDS = (
     "owner", "status", "motif_rejet", "cni_verifiee", "calls_count", "views_count", "id", "pk",
+    "phone_anchor",
 )
-SENSITIVE_FIELDS = ("name", "type_compte", "zone", "phone_anchor")
+SENSITIVE_FIELDS = ("name", "type_compte", "zone")
 
 
 class BusinessExists(ApiError):
@@ -132,11 +144,21 @@ def create_profile(owner, data: dict) -> BusinessProfile:
     `data` : valeurs déjà nettoyées par le sérialiseur (sans owner ni status)."""
     data = {k: v for k, v in data.items() if k not in SERVER_FIELDS}
     subcategories = list(data.pop("sous_categories", []))
-    profile = BusinessProfile(owner=owner, status=BusinessStatus.PENDING, **data)
+    profile = BusinessProfile(
+        owner=owner, status=BusinessStatus.PENDING, phone_anchor=owner.phone, **data
+    )
     try:
         with transaction.atomic():
             if BusinessProfile.objects.filter(owner=owner).exists():
                 raise BusinessExists()
+            try:
+                validate_anchor_phone(owner.phone)
+            except DjangoValidationError:
+                raise ValidationError({
+                    "non_field_errors": [
+                        "Le numéro de votre compte n'est pas valide : contactez le support."
+                    ]
+                }) from None
             profile.clean()
             errors = _structure_detail_errors(profile)
             if errors:

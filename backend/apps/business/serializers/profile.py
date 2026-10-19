@@ -10,7 +10,10 @@ Contrat du corps de requête (mêmes noms que le modèle) :
   (`photo` ↔ kind photo…) et que le fichier existe dans le bon espace (privé pour la CNI et le
   diplôme).
 
-Secrets : `phone_anchor` et `cni_photo` sont en ÉCRITURE SEULE. En lecture, le propriétaire reçoit
+Numéro : le client n'envoie JAMAIS `phone_anchor` (absent du contrat, ignoré s'il est envoyé) ;
+le serveur ancre `owner.phone`, le numéro vérifié par SMS (voir `profile_service`).
+
+Secrets : `cni_photo` est en ÉCRITURE SEULE. En lecture, le propriétaire reçoit
 `phone_masked` (numéro masqué) et `has_cni` ; jamais le numéro entier ni le chemin de la CNI. Les
 messages d'erreur ne répètent jamais la valeur fautive.
 """
@@ -20,7 +23,7 @@ from rest_framework import serializers
 from apps.business.models import Aisle, Amenity, BusinessProfile, Speciality
 from apps.business.services.storage_service import StorageError, get_storage, parse_key
 from apps.catalog.models import Sector, ServiceCategory, StructureType, Subcategory
-from apps.core.utils.phone import mask_phone, normalize_phone
+from apps.core.utils.phone import mask_phone
 from apps.geo.models import Zone
 
 
@@ -106,7 +109,8 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         child=serializers.ChoiceField(choices=Speciality.choices), required=False,
         help_text="Centre de santé : 3 au plus sans abonnement.",
     )
-    photo = StorageKeyField(kind="photo", help_text="Clé de stockage de la photo du compte.")
+    photo = StorageKeyField(
+        kind="photo", help_text="Clé de stockage de la photo du commerce (facultative).")
     representant_photo = StorageKeyField(
         kind="representant_photo", help_text="Clé de stockage de la photo du représentant.")
     diplome_photo = StorageKeyField(
@@ -115,10 +119,6 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
     cni_photo = StorageKeyField(
         kind="cni_photo", write_only=True,
         help_text="Clé de stockage PRIVÉE de la CNI. Jamais renvoyée.",
-    )
-    phone_anchor = serializers.CharField(
-        write_only=True, required=False, allow_blank=True, max_length=20,
-        help_text="Numéro du compte (6XXXXXXXX ou +2376XXXXXXXX). Jamais renvoyé.",
     )
     phone_masked = serializers.SerializerMethodField(
         help_text="Numéro masqué : seuls le premier et les deux derniers chiffres restent"
@@ -129,7 +129,7 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         model = BusinessProfile
         fields = (
             "id", "type_compte", "name", "zone", "repere", "description", "photo",
-            "representant_nom", "representant_photo", "phone_anchor", "phone_masked",
+            "representant_nom", "representant_photo", "phone_masked",
             "whatsapp_available", "status", "motif_rejet",
             "forme_juridique", "rccm",
             "categorie_service", "categorie_service_libre", "cni_photo", "has_cni",
@@ -144,16 +144,6 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "id", "status", "motif_rejet", "cni_verifiee", "calls_count", "views_count",
             "created_at", "updated_at",
         )
-
-    def validate_phone_anchor(self, value: str) -> str:
-        if value == "":
-            return value
-        try:
-            return normalize_phone(value)
-        except ValueError:
-            raise serializers.ValidationError(
-                "Entrez un numéro mobile camerounais à 9 chiffres commençant par 6."
-            ) from None
 
     def validate_sous_categories(self, value):
         return list(dict.fromkeys(value))  # sans doublon, ordre conservé
