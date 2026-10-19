@@ -19,6 +19,9 @@ class BusinessStepScaffold extends StatelessWidget {
     required this.onContinue,
     required this.children,
     this.scrollController,
+    this.continueLabel,
+    this.busy = false,
+    this.bottomNote,
   });
 
   final int step;
@@ -30,11 +33,21 @@ class BusinessStepScaffold extends StatelessWidget {
   final List<Widget> children;
   final ScrollController? scrollController;
 
+  /// Texte du bouton du bas ; « Continuer » par défaut (« Publier ma demande » au récapitulatif).
+  final String? continueLabel;
+
+  /// Envoi en cours : le bouton est remplacé par un indicateur et le retour est bloqué
+  /// (sur l'écran comme avec le geste système).
+  final bool busy;
+
+  /// Message (état d'envoi, erreur) affiché au-dessus du bouton du bas.
+  final Widget? bottomNote;
+
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
     final c = AppColors.of(context);
-    return Scaffold(
+    final scaffold = Scaffold(
       // La barre du bas est celle du Scaffold : un message (SnackBar) s'affiche au-dessus
       // d'elle et ne cache jamais « Continuer ».
       bottomNavigationBar: DecoratedBox(
@@ -46,9 +59,17 @@ class BusinessStepScaffold extends StatelessWidget {
           top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-            child: PrimaryButton(
-              label: l10n.t('business.create.continue'),
-              onPressed: onContinue,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (bottomNote != null) ...[bottomNote!, const SizedBox(height: 10)],
+                PrimaryButton(
+                  label: continueLabel ?? l10n.t('business.create.continue'),
+                  onPressed: onContinue,
+                  loading: busy,
+                ),
+              ],
             ),
           ),
         ),
@@ -63,7 +84,7 @@ class BusinessStepScaffold extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      _BackButton(label: l10n.t('business.create.back')),
+                      _BackButton(label: l10n.t('business.create.back'), enabled: !busy),
                       Expanded(
                         child: Semantics(
                           header: true,
@@ -100,18 +121,21 @@ class BusinessStepScaffold extends StatelessWidget {
         ),
       ),
     );
+    return PopScope(canPop: !busy, child: scaffold);
   }
 }
 
 class _BackButton extends StatelessWidget {
-  const _BackButton({required this.label});
+  const _BackButton({required this.label, this.enabled = true});
 
   final String label;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     void back() {
+      if (!enabled) return;
       if (context.canPop()) {
         context.pop();
       } else {

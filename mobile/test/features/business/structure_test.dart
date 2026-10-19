@@ -49,6 +49,8 @@ Finder _opt(String group, String code) =>
 Finder _field(String name) => find.byKey(ValueKey('business-structure-$name'));
 Finder get _upsell => find.byKey(const ValueKey('business-upsell'));
 Finder get _soon => find.text('Cette étape arrive bientôt');
+// Le récapitulatif (T035) ferme désormais le parcours.
+Finder get _recap => find.text('Publier ma demande');
 Finder get _counter => find.byKey(const ValueKey('business-subcategory-counter'));
 
 ProviderContainer _container(WidgetTester tester) =>
@@ -58,6 +60,12 @@ Future<void> _tap(WidgetTester tester, Finder f) async {
   await tester.ensureVisible(f);
   await tester.pumpAndSettle();
   await tester.tap(f);
+  await tester.pumpAndSettle();
+}
+
+/// Revient de l'écran suivant (récapitulatif) à l'étape testée.
+Future<void> _back(WidgetTester tester) async {
+  await tester.tap(find.byKey(const ValueKey('business-back')));
   await tester.pumpAndSettle();
 }
 
@@ -108,6 +116,8 @@ Future<void> _openDetails(
 }) async {
   await pumpBusinessApp(tester, textScale: textScale, mode: mode, overrides: overrides);
   final notifier = _container(tester).read(businessDraftProvider.notifier)..setType(type);
+  // Champs communs remplis : à la fin de l'étape, le récapitulatif peut s'ouvrir.
+  fillCommonDraft(tester);
   if (code != null) notifier.setStructureType(await _item(code));
   // `viaType` : la pile contient l'étape Type sous les Détails (le retour y mène).
   if (viaType) await _go(tester, Routes.createBusinessStructureType);
@@ -249,6 +259,7 @@ void main() {
       expect(find.text("Quel type d'établissement gérez-vous ?"), findsOneWidget);
       expect(find.text('Étape 2 sur 4'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _tap(tester, _type('sante'));
       await _tap(tester, continueButton);
@@ -308,10 +319,13 @@ void main() {
       expect(
           BusinessCreationFlow.nextRoute(BusinessAccountType.structure, BusinessStep.structureType),
           Routes.createBusinessStructureDetails);
-      // Le lieu / récapitulatif n'existent pas encore.
+      // Le récapitulatif (T035) ferme le parcours Structure.
       expect(
           BusinessCreationFlow.nextRoute(
               BusinessAccountType.structure, BusinessStep.structureDetails),
+          Routes.createBusinessRecap);
+      expect(
+          BusinessCreationFlow.nextRoute(BusinessAccountType.structure, BusinessStep.recap),
           isNull);
     });
   });
@@ -358,7 +372,8 @@ void main() {
       expect(currentDraft(tester).description, 'Grande surface');
 
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('au moins un rayon est obligatoire', (tester) async {
@@ -369,12 +384,14 @@ void main() {
       expect(find.byKey(const ValueKey('business-structure-error-aisle')), findsOneWidget);
       expect(find.text('Choisissez au moins un rayon.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _tap(tester, _opt('aisle', 'autre'));
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('business-structure-error-aisle')), findsNothing);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('plafond de 3 comme les sous-catégories : 4e refusé, encart, « Plus tard »',
@@ -474,7 +491,8 @@ void main() {
       expect(d.description, 'Restaurant familial');
 
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('la cuisine est obligatoire ; la livraison laissée sur « oui » est enregistrée',
@@ -485,12 +503,14 @@ void main() {
       expect(find.byKey(const ValueKey('business-structure-error-cuisine')), findsOneWidget);
       expect(find.text('Choisissez un type de cuisine.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
       expect(currentDraft(tester).livraison, isTrue);
 
       await _tap(tester, _opt('cuisine', 'camerounaise'));
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).cuisine, 'camerounaise');
     });
 
@@ -499,8 +519,10 @@ void main() {
       await _tap(tester, _opt('cuisine', 'autre'));
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).horaires, '');
+      await _back(tester);
 
       await _enter(tester, _field('horaires'), 'x' * 250);
       expect(currentDraft(tester).horaires.length, 200);
@@ -544,7 +566,8 @@ void main() {
       expect(find.bySemanticsLabel('Parking, choisi'), findsOneWidget);
 
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('le standing est obligatoire ; 0 chambre est refusé ; vide est accepté',
@@ -555,6 +578,7 @@ void main() {
       expect(find.byKey(const ValueKey('business-structure-error-standing')), findsOneWidget);
       expect(find.text('Choisissez une catégorie.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _tap(tester, _opt('standing', 'standard'));
       await _enter(tester, _field('chambres'), '0');
@@ -562,12 +586,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Entrez un nombre de chambres entre 1 et 9999.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _enter(tester, _field('chambres'), '');
       expect(currentDraft(tester).nombreChambres, isNull);
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('au plus 4 chiffres dans le nombre de chambres', (tester) async {
@@ -609,7 +635,8 @@ void main() {
       expect(currentDraft(tester).numeroAgrement, 'MINSANTE/2024/0456');
 
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('au moins une spécialité obligatoire ; l\'agrément reste facultatif',
@@ -620,11 +647,13 @@ void main() {
       expect(find.byKey(const ValueKey('business-structure-error-speciality')), findsOneWidget);
       expect(find.text('Choisissez au moins une spécialité.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _tap(tester, _opt('speciality', 'dentisterie'));
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).numeroAgrement, '');
     });
 
@@ -664,6 +693,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Précisez le type de votre établissement.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _enter(tester, _field('libre'), '   ');
       await tester.tap(continueButton);
@@ -674,7 +704,8 @@ void main() {
       expect(currentDraft(tester).structureTypeLibre, 'Salle de sport');
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('le texte libre est limité à 100 caractères', (tester) async {
@@ -691,8 +722,10 @@ void main() {
       await _enter(tester, _field('libre'), 'Pressing');
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).description, '');
+      await _back(tester);
 
       await _enter(tester, _field('description'), 'y' * 1100);
       expect(currentDraft(tester).description.length, 1000);

@@ -27,7 +27,7 @@ enum BusinessStep {
   structureDetails(Routes.createBusinessStructureDetails, built: true),
 
   /// Récapitulatif et envoi (tous les types) : T035.
-  recap(Routes.createBusinessRecap);
+  recap(Routes.createBusinessRecap, built: true);
 
   const BusinessStep(this.path, {this.built = false});
 

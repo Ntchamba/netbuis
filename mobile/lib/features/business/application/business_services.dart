@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/referentials/referential_models.dart';
@@ -51,3 +54,9 @@ final businessStructureTypesProvider = FutureProvider.autoDispose<List<Referenti
   },
   retry: (retryCount, error) => null,
 );
+
+/// Lecture du contenu d'une photo à envoyer (remplaçable dans les tests).
+typedef PhotoBytesReader = Future<Uint8List> Function(String path);
+
+final photoBytesReaderProvider =
+    Provider<PhotoBytesReader>((ref) => (path) => File(path).readAsBytes());

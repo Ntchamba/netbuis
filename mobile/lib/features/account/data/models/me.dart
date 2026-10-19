@@ -48,12 +48,12 @@ class Me {
     );
   }
 
-  Me copyWith({String? name}) => Me(
+  Me copyWith({String? name, bool? hasBusiness}) => Me(
         id: id,
         name: name ?? this.name,
         phoneMasked: phoneMasked,
         language: language,
-        hasBusiness: hasBusiness,
+        hasBusiness: hasBusiness ?? this.hasBusiness,
         freeCallAvailable: freeCallAvailable,
         creditsBalance: creditsBalance,
       );

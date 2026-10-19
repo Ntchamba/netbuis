@@ -108,6 +108,22 @@ FieldError? _requiredText(String raw, int max) {
 
 const Object _keep = Object();
 
+/// Nature d'un envoi de fichier (`kind` de `POST /api/uploads/sign/`), identique au nom du
+/// champ du profil qui reçoit la clé.
+const String kPhotoKind = 'photo';
+const String kRepresentantPhotoKind = 'representant_photo';
+const String kCniPhotoKind = 'cni_photo';
+const String kDiplomePhotoKind = 'diplome_photo';
+
+/// Un fichier déjà envoyé au serveur : la [key] obtenue n'est valable que pour le fichier
+/// local [path] (si la personne change de photo, la clé n'est plus reprise).
+class UploadedPhoto {
+  const UploadedPhoto({required this.path, required this.key});
+
+  final String path;
+  final String key;
+}
+
 /// Ce que la personne a rempli pendant la création de son compte business. Immuable ;
 /// vit en mémoire seulement (jamais sur le disque : il contient des photos et des noms).
 ///
@@ -151,6 +167,7 @@ class BusinessDraft {
     this.equipements = const [],
     this.numeroAgrement = '',
     this.specialites = const [],
+    this.uploaded = const {},
   });
 
   // Communs aux cinq types.
@@ -220,6 +237,10 @@ class BusinessDraft {
   final String numeroAgrement;
   final List<String> specialites;
 
+  /// Fichiers déjà envoyés (par `kind`), gardés en mémoire pour qu'une nouvelle tentative
+  /// d'envoi ne les renvoie pas. Vidés avec le brouillon.
+  final Map<String, UploadedPhoto> uploaded;
+
   /// Copie avec changements. Pour un champ pouvant être vide (`null`), passer `null`
   /// l'efface ; ne rien passer le conserve.
   BusinessDraft copyWith({
@@ -257,6 +278,7 @@ class BusinessDraft {
     List<String>? equipements,
     String? numeroAgrement,
     List<String>? specialites,
+    Map<String, UploadedPhoto>? uploaded,
   }) {
     return BusinessDraft(
       typeCompte: typeCompte ?? this.typeCompte,
@@ -308,6 +330,7 @@ class BusinessDraft {
       equipements: equipements ?? this.equipements,
       numeroAgrement: numeroAgrement ?? this.numeroAgrement,
       specialites: specialites ?? this.specialites,
+      uploaded: uploaded ?? this.uploaded,
     );
   }
 

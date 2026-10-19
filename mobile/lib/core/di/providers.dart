@@ -6,6 +6,9 @@ import '../../features/account/data/repositories/account_repository.dart';
 import '../../features/account/data/repositories/account_repository_api.dart';
 import '../../features/account/data/repositories/account_repository_fake.dart';
 import '../../features/auth/data/repositories/auth_repository.dart';
+import '../../features/business/data/repositories/business_repository.dart';
+import '../../features/business/data/repositories/business_repository_api.dart';
+import '../../features/business/data/repositories/business_repository_fake.dart';
 import '../../features/auth/data/repositories/auth_repository_api.dart';
 import '../../features/auth/data/repositories/auth_repository_fake.dart';
 import '../../features/auth/application/session_refresher.dart';
@@ -44,6 +47,9 @@ final Provider<Dio> dioProvider = Provider<Dio>((ref) {
       refreshSession: refresher.refresh);
 });
 
+/// Client des envois de fichiers (PUT) : sans jeton d'accès ni renouvellement de session.
+final Provider<Dio> uploadDioProvider = Provider<Dio>((ref) => buildUploadDio());
+
 /// Les dépôts lisent (et non surveillent) le client : le client dépend du
 /// renouvellement, qui dépend du dépôt de connexion ; un `watch` ferait un cycle.
 /// Dépôt de connexion : factice si `USE_FAKE_API=true`, sinon relié à l'API.
@@ -57,6 +63,17 @@ final Provider<AuthRepository> authRepositoryProvider =
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
   if (Env.useFakeApi) return AccountRepositoryFake();
   return AccountRepositoryApi(ref.read(dioProvider));
+});
+
+/// Dépôt du compte business : factice si `USE_FAKE_API=true`, sinon relié à l'API.
+/// Le faux dépôt prévient le faux profil quand la demande est « envoyée ».
+final businessRepositoryProvider = Provider<BusinessRepository>((ref) {
+  if (Env.useFakeApi) {
+    final account = ref.read(accountRepositoryProvider);
+    return BusinessRepositoryFake(
+        onCreated: account is AccountRepositoryFake ? account.markHasBusiness : null);
+  }
+  return BusinessRepositoryApi(ref.read(dioProvider), ref.read(uploadDioProvider), Env.apiUrl);
 });
 
 /// Zones géographiques (partagé) : factice si `USE_FAKE_API=true`, sinon relié à l'API.

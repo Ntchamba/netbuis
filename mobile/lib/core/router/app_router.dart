@@ -11,7 +11,9 @@ import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/district_screen.dart';
 import '../../features/business/presentation/screens/legal_form_screen.dart';
 import '../../features/business/presentation/screens/location_screen.dart';
+import '../../features/business/presentation/screens/recap_screen.dart';
 import '../../features/business/presentation/screens/sector_screen.dart';
+import '../../features/business/presentation/screens/sent_screen.dart';
 import '../../features/business/presentation/screens/service_category_screen.dart';
 import '../../features/business/presentation/screens/structure_details_screen.dart';
 import '../../features/business/presentation/screens/structure_type_screen.dart';
@@ -78,6 +80,14 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessStructureDetails,
         builder: (context, state) => const StructureDetailsScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessRecap,
+        builder: (context, state) => const RecapScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessSent,
+        builder: (context, state) => const SentScreen(),
       ),
       GoRoute(
         path: Routes.createBusinessLocation,

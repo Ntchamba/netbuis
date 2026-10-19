@@ -122,6 +122,17 @@ class BusinessDraftController extends Notifier<BusinessDraft> {
     return [...list, code];
   }
 
+  /// Garde (ou retire, avec `null`) la clé obtenue après l'envoi réussi du fichier [kind].
+  void setUploaded(String kind, UploadedPhoto? file) {
+    final map = {...state.uploaded};
+    if (file == null) {
+      map.remove(kind);
+    } else {
+      map[kind] = file;
+    }
+    state = state.copyWith(uploaded: Map.unmodifiable(map));
+  }
+
   /// Repart d'un brouillon vide.
   void reset() => state = const BusinessDraft();
 }

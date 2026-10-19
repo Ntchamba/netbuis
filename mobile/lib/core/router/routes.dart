@@ -26,6 +26,9 @@ class Routes {
   static const createBusinessStructureDetails = '/create-business/structure-details';
   static const createBusinessRecap = '/create-business/recap';
 
+  /// « Demande envoyée » : écran final, ouvert après le succès de l'envoi (sans brouillon).
+  static const createBusinessSent = '/create-business/sent';
+
   /// Choix précis du lieu (ville/village, puis quartier), ouvert depuis le champ
   /// « Ville / Quartier » de l'écran Informations (T034). Ce ne sont pas des étapes.
   static const createBusinessLocation = '/create-business/location';

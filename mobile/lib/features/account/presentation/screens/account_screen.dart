@@ -8,6 +8,7 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/dashed_border.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../business/presentation/widgets/business_status_card.dart';
 import '../../../onboarding/application/city_controller.dart';
 import '../../application/account_controller.dart';
 import '../widgets/profile_identity.dart';
@@ -65,6 +66,10 @@ class AccountScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               if (account.value?.hasBusiness == false) ...[
                 _CreateBusinessCard(onTap: () => context.push(Routes.createBusiness)),
+                const SizedBox(height: 16),
+              ] else if (account.value?.hasBusiness == true) ...[
+                // Compte business déjà demandé : son état remplace l'invitation à l'activer.
+                const BusinessStatusCard(),
                 const SizedBox(height: 16),
               ],
               DecoratedBox(

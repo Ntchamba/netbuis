@@ -11,6 +11,9 @@ class AccountRepositoryFake implements AccountRepository {
 
   Me _me = const Me(id: 1, name: '', phoneMasked: fakePhoneMasked);
 
+  /// Le faux compte a maintenant un compte business (appelé par le faux dépôt « business »).
+  void markHasBusiness() => _me = _me.copyWith(hasBusiness: true);
+
   @override
   Future<Me> getMe() async => _me;
 

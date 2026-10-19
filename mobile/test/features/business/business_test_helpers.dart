@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/app.dart';
+import 'package:netbuis/core/data/zones/zone.dart';
 import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/router/routes.dart';
+import 'package:netbuis/features/account/data/repositories/account_repository.dart';
 import 'package:netbuis/features/business/application/business_draft_controller.dart';
 import 'package:netbuis/features/business/application/business_services.dart';
 import 'package:netbuis/features/business/data/models/business_draft.dart';
@@ -61,7 +63,7 @@ Future<void> pumpBusinessApp(
   WidgetTester tester, {
   FakeSpeechService? speech,
   FakePhotoPicker? photos,
-  ScriptedAccountRepository? account,
+  AccountRepository? account,
   String initialLocation = Routes.createBusiness,
   bool signedIn = true,
   double textScale = 1.0,
@@ -108,3 +110,21 @@ BusinessDraft currentDraft(WidgetTester tester) {
 
 Finder typeButton(String code) => find.byKey(ValueKey('business-type-$code'));
 Finder get continueButton => find.text('Continuer');
+
+/// Remplit les champs communs (écran Informations) pour que le récapitulatif puisse s'ouvrir
+/// après une étape testée seule. Chemins de photos fictifs : rien n'est lu sur le disque.
+void fillCommonDraft(WidgetTester tester) {
+  final container = ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
+  container.read(businessDraftProvider.notifier)
+    ..setName('Boutique Mama Aïcha')
+    ..setRepresentantNom('Aïcha Oumarou')
+    ..setPhotoPath('/fictif/commerce.jpg')
+    ..setRepresentantPhotoPath('/fictif/personne.jpg')
+    ..setCity(const Zone(id: 11, name: 'Maroua', level: ZoneLevel.villeVillage));
+}
+
+/// Le récapitulatif est affiché (bouton « Publier ma demande ») et non l'ancien message.
+void expectRecapShown() {
+  expect(find.text('Publier ma demande'), findsOneWidget);
+  expect(find.text('Cette étape arrive bientôt'), findsNothing);
+}

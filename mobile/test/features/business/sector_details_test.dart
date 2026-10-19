@@ -531,11 +531,13 @@ void main() {
       expect(find.text('Décrivez votre activité.'), findsOneWidget);
 
       await tester.enterText(_description, 'Trajets courts à Maroua');
+      fillCommonDraft(tester);
       await tester.tap(continueButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(find.text('Décrivez votre activité.'), findsNothing);
-      // Le récapitulatif (T035) n'existe pas encore : message « bientôt », pas d'erreur.
-      expect(find.text('Cette étape arrive bientôt'), findsOneWidget);
+      // Le récapitulatif (T035) s'ouvre : il remplace l'ancien message « bientôt ».
+      expectRecapShown();
+      expect(find.text('Étape 4 sur 4'), findsOneWidget);
       final d = currentDraft(tester);
       expect(d.secteurLibre, 'Mototaxi');
       expect(d.descriptionActivite, 'Trajets courts à Maroua');
@@ -558,11 +560,12 @@ void main() {
 
     testWidgets('hors « Autre » la description est facultative : Continuer passe', (tester) async {
       await _openDetails(tester, 'alimentation');
+      fillCommonDraft(tester);
       await tester.tap(continueButton);
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Décrivez votre activité.'), findsNothing);
-      expect(find.text('Cette étape arrive bientôt'), findsOneWidget);
+      expectRecapShown();
     });
 
     testWidgets('Entreprise : Détails est l\'étape 4 sur 5', (tester) async {
@@ -630,15 +633,18 @@ void main() {
     }
   });
 
-  test('les étapes Secteur et Détails sont construites, les suivantes pas encore', () {
+  test('toutes les étapes sont construites, le récapitulatif ferme le parcours', () {
     expect(BusinessStep.sector.built, isTrue);
     expect(BusinessStep.details.built, isTrue);
-    expect(BusinessStep.recap.built, isFalse);
+    expect(BusinessStep.recap.built, isTrue);
+    expect(BusinessStep.values.every((s) => s.built), isTrue);
     expect(BusinessCreationFlow.nextRoute(BusinessAccountType.boutique, BusinessStep.info),
         Routes.createBusinessSector);
     expect(BusinessCreationFlow.nextRoute(BusinessAccountType.boutique, BusinessStep.sector),
         Routes.createBusinessDetails);
-    expect(
-        BusinessCreationFlow.nextRoute(BusinessAccountType.boutique, BusinessStep.details), isNull);
+    expect(BusinessCreationFlow.nextRoute(BusinessAccountType.boutique, BusinessStep.details),
+        Routes.createBusinessRecap);
+    expect(BusinessCreationFlow.nextRoute(BusinessAccountType.boutique, BusinessStep.recap),
+        isNull);
   });
 }

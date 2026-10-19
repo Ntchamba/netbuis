@@ -66,6 +66,8 @@ Finder get _libre => find.byKey(const ValueKey('business-service-libre'));
 Finder get _cni => find.byKey(const ValueKey('business-cni'));
 Finder get _diploma => find.byKey(const ValueKey('business-diploma'));
 Finder get _soon => find.text('Cette étape arrive bientôt');
+// Le récapitulatif (T035) ferme désormais le parcours.
+Finder get _recap => find.text('Publier ma demande');
 
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(Scaffold).first));
@@ -101,6 +103,8 @@ Future<void> _openService(
     settle: settle,
   );
   _container(tester).read(businessDraftProvider.notifier).setType(type);
+  // Champs communs remplis : à la fin de l'étape, le récapitulatif peut s'ouvrir.
+  fillCommonDraft(tester);
   GoRouter.of(tester.element(find.byType(Scaffold).first))
       .push(Routes.createBusinessServiceCategory);
   if (settle) {
@@ -254,16 +258,19 @@ void main() {
       await _tap(tester, continueButton);
       expect(find.text('Précisez votre service.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await tester.enterText(_libre, '   ');
       await _tap(tester, continueButton);
       expect(find.text('Précisez votre service.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await tester.enterText(_libre, 'Mototaxi');
       await _tap(tester, continueButton);
       expect(find.text('Précisez votre service.'), findsNothing);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).categorieServiceLibre, 'Mototaxi');
     });
 
@@ -333,6 +340,7 @@ void main() {
       await _tap(tester, continueButton);
       expect(find.text('Ajoutez la photo de votre CNI.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
       expect(find.text('Étape 2 sur 3'), findsOneWidget);
     });
 
@@ -355,7 +363,8 @@ void main() {
 
       await _tap(tester, continueButton);
       expect(find.text('Ajoutez la photo de votre CNI.'), findsNothing);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -378,6 +387,7 @@ void main() {
       await _tap(tester, continueButton);
       expect(find.text('Choisissez une catégorie de service.'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
     });
 
     testWidgets('diplôme facultatif : sans, avec, puis retrait', (tester) async {
@@ -388,9 +398,10 @@ void main() {
 
       // Sans diplôme : accepté.
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
       expect(currentDraft(tester).diplomePhotoPath, isNull);
-      await tester.pump(const Duration(seconds: 5));
+      await tester.tap(find.byKey(const ValueKey('business-back')));
       await tester.pumpAndSettle();
 
       // Avec diplôme.
@@ -459,6 +470,7 @@ void main() {
       expect(find.text('Étape 2 sur 3'), findsOneWidget);
       expect(find.text('Quel type de service proposez-vous ?'), findsOneWidget);
       expect(_soon, findsNothing);
+      expect(_recap, findsNothing);
 
       await _tap(tester, _cat('autre'));
       await tester.enterText(_libre, 'Traduction');
@@ -481,7 +493,8 @@ void main() {
 
       // Tout est valide : le lieu et le récapitulatif n'existent pas encore (T034, T035).
       await _tap(tester, continueButton);
-      expect(_soon, findsOneWidget);
+      expect(_recap, findsOneWidget);
+      expect(_soon, findsNothing);
     });
 
     testWidgets('changer de type de compte efface catégorie, CNI et diplôme', (tester) async {
@@ -509,6 +522,9 @@ void main() {
           await _addPhoto(tester, _diploma, photos, '/fictif/diplome.jpg');
           await tester.enterText(_libre, 'a' * 100);
           await _tap(tester, continueButton);
+          expect(_recap, findsOneWidget);
+          await tester.tap(find.byKey(const ValueKey('business-back')));
+          await tester.pumpAndSettle();
 
           expect(tester.takeException(), isNull);
           expect(
