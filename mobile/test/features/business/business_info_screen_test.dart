@@ -232,7 +232,7 @@ void main() {
     expect(currentDraft(tester).name.length, 150);
   });
 
-  testWidgets('Commerce, tout rempli : message « Cette étape arrive bientôt », pas de plantage',
+  testWidgets('Commerce, tout rempli : passe à l\'étape Secteur (2 sur 4), brouillon complet',
       (tester) async {
     await pumpBusinessApp(tester);
     await _fillValid(tester);
@@ -240,8 +240,9 @@ void main() {
     await tester.tap(continueButton);
     await tester.pump();
 
-    expect(find.text('Cette étape arrive bientôt'), findsOneWidget);
-    expect(find.text('Étape 1 sur 4'), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(find.text('Quel est votre secteur d\'activité ?'), findsOneWidget);
+    expect(find.text('Étape 2 sur 4'), findsOneWidget);
     expect(tester.takeException(), isNull);
     final d = currentDraft(tester);
     expect(d.name, 'Chez Aïcha');
@@ -273,7 +274,11 @@ void main() {
 
       expect(find.text('Quelle est la forme juridique de votre entreprise ?'), findsNothing,
           reason: code);
-      expect(find.text('Étape 1 sur ${code == 'prestataire_service' ? 3 : 4}'), findsOneWidget,
+      // Commerce et Particulier passent au Secteur (étape 2) ; les deux autres parcours
+      // n'ont pas encore leur écran suivant (T032, T033) et restent à l'étape 1.
+      final next = (code == 'boutique' || code == 'particulier_vendeur') ? 2 : 1;
+      expect(find.text('Étape $next sur ${code == 'prestataire_service' ? 3 : 4}'),
+          findsOneWidget,
           reason: code);
     }
   });

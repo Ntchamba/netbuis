@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/app.dart';
 import 'package:netbuis/core/di/providers.dart';
@@ -65,6 +66,8 @@ Future<void> pumpBusinessApp(
   bool signedIn = true,
   double textScale = 1.0,
   ThemeMode mode = ThemeMode.dark,
+  List<Override> overrides = const [],
+  bool settle = true,
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -84,11 +87,16 @@ Future<void> pumpBusinessApp(
         appPrefsProvider.overrideWithValue(MemoryPrefs(seen: true)),
         speechServiceProvider.overrideWithValue(speech ?? FakeSpeechService()),
         photoPickerProvider.overrideWithValue(photos ?? FakePhotoPicker()),
+        ...overrides,
       ],
       child: NetBuisApp(themeMode: mode, initialLocation: initialLocation),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
 
 /// Brouillon courant de l'application lancée.

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T031 🔄
-- **Prochaine tâche** : T032
+- **Tâche en cours** : T032 🔄
+- **Prochaine tâche** : T033
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -46,8 +46,8 @@
 | ✅ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | 2026-10-18 | logs/T027-verification.md ; 707 tests ; vérificateur CONFORME (1 incohérence mineure corrigée) ; clés u<id>/<kind>/<uuid>.<ext> générées par le serveur ; espace privé backend/private_media (hors dépôt) ; lien de lecture admin 5 min (route à faire en T071) ; MP4 seulement pour la vidéo ; réglages config/ touchés avec autorisation exceptionnelle (STORAGE_BACKEND, PRIVATE_MEDIA_ROOT, UPLOAD_SIGNING_KEY, UPLOAD_TOKEN_TTL, PRIVATE_DOWNLOAD_TTL, taux uploads 60/h, static() en DEBUG) ; validé par Jeff le 2026-10-18 |
 | ✅ | T028 | Backend : données de démonstration | a2 | | 2026-10-18 | logs/T028-verification.md ; 730 tests ; seed_demo --count N (1 à 5 000, 40 s pour 5 000) et --flush ; numéros +237 600… réservés aux données fictives ; photos = clés sans fichier ; prérequis load_zones + seed_referentials ; à étendre en T037, T090, T110 |
 | ✅ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | 2026-10-19 | logs/T030-verification.md ; 279 tests ; brouillon BusinessDraft + BusinessCreationFlow partagés (features/business) ; totaux d'étapes : Commerce/Particulier/Structure 4, Entreprise 5, Prestataire 3 ; flutter_tts 4.2.5 ; encart Profil = texte de la maquette ; account_screen en SingleChildScrollView ; AndroidManifest <queries> TTS_SERVICE à ajouter (b2/T124) |
-| 🔄 | T031 | Mobile : secteur et détails d'activité | b3 | | |
-| ☐ | T032 | Mobile : prestataire de service | b3 | | |
+| ✅ | T031 | Mobile : secteur et détails d'activité | b3 | | 2026-10-19 | logs/T031-verification.md ; 307 tests ; plafond 3 = constante freeSubcategoryLimit (subcategoryLimitProvider prêt pour la valeur du serveur) ; aucun secteur présélectionné ; 3 tests existants adaptés (étape suivante construite) |
+| 🔄 | T032 | Mobile : prestataire de service | b3 | | |
 | ☐ | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | |
 | ☐ | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | |
 | ☐ | T035 | Mobile : récapitulatif et envoi | b3 | | |

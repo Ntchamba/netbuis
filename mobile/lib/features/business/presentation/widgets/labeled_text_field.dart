@@ -20,6 +20,8 @@ class LabeledTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.words,
     this.keyboardType = TextInputType.text,
     this.textInputAction = TextInputAction.next,
+    this.minLines,
+    this.maxLines = 1,
   });
 
   final String label;
@@ -34,6 +36,10 @@ class LabeledTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final TextInputType keyboardType;
   final TextInputAction textInputAction;
+
+  /// Zone de texte sur plusieurs lignes (description) : `minLines` à `maxLines`.
+  final int? minLines;
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +66,8 @@ class LabeledTextField extends StatelessWidget {
           key: fieldKey,
           controller: controller,
           keyboardType: keyboardType,
+          minLines: minLines,
+          maxLines: maxLines,
           textCapitalization: textCapitalization,
           textInputAction: textInputAction,
           inputFormatters: [LengthLimitingTextInputFormatter(maxLength)],

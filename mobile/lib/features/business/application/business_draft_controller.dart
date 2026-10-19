@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/data/referentials/referential_models.dart';
 import '../data/models/business_draft.dart';
 
 /// Brouillon de la demande, partagé par tous les écrans du parcours.
@@ -30,6 +31,26 @@ class BusinessDraftController extends Notifier<BusinessDraft> {
       state = state.copyWith(representantPhotoPath: path);
   void setFormeJuridique(LegalForm? form) => state = state.copyWith(formeJuridique: form);
   void setRccm(String value) => state = state.copyWith(rccm: value);
+
+  /// Choisit le secteur ; un autre secteur vide sous-catégories, nom libre et description.
+  void setSector(Sector sector) => state = state.withSector(sector);
+
+  void setSecteurLibre(String value) => state = state.copyWith(secteurLibre: value);
+  void setDescriptionActivite(String value) =>
+      state = state.copyWith(descriptionActivite: value);
+
+  /// Coche ou décoche une sous-catégorie. Renvoie **faux** quand la case n'a pas pu être
+  /// cochée parce que [limit] est atteint (null = pas de plafond) : rien n'est ajouté.
+  bool toggleSubcategory(int id, {required int? limit}) {
+    final ids = state.sousCategorieIds;
+    if (ids.contains(id)) {
+      state = state.copyWith(sousCategorieIds: [for (final i in ids) if (i != id) i]);
+      return true;
+    }
+    if (limit != null && ids.length >= limit) return false;
+    state = state.copyWith(sousCategorieIds: [...ids, id]);
+    return true;
+  }
 
   /// Repart d'un brouillon vide.
   void reset() => state = const BusinessDraft();

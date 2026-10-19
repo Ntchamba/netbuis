@@ -1,10 +1,25 @@
 // Brouillon de la demande de compte business (corps de POST /api/business/)
+import '../../../../core/data/referentials/referential_models.dart';
 
 /// Longueurs maximales du serveur (backend/apps/business/models/profile.py, openapi.yaml).
 const int kBusinessNameMax = 150;
 const int kBusinessRepereMax = 150;
 const int kBusinessRepresentantMax = 150;
 const int kBusinessRccmMax = 50;
+
+/// `secteur_libre` : 100 caractères au plus (profile.py).
+const int kBusinessSecteurLibreMax = 100;
+
+/// `description_activite` : 500 caractères au plus (profile.py).
+const int kBusinessDescriptionActiviteMax = 500;
+
+/// Code du secteur « Autre » (celui qui ouvre le nom libre).
+const String kOtherSectorCode = 'autre';
+
+/// Nombre de sous-catégories incluses sans abonnement (décision D-12). Aucune route ne
+/// publie encore cette valeur : c'est une constante de l'application. Le serveur reste
+/// l'autorité (erreur `SUBSCRIPTION_REQUIRED` à l'envoi, T035).
+const int freeSubcategoryLimit = 3;
 
 /// Type de compte (`type_compte`). [value] est le code échangé avec le serveur.
 enum BusinessAccountType {
@@ -79,6 +94,7 @@ class BusinessDraft {
     this.formeJuridique,
     this.rccm = '',
     this.secteurId,
+    this.secteur,
     this.secteurLibre = '',
     this.sousCategorieIds = const [],
     this.descriptionActivite = '',
@@ -117,6 +133,10 @@ class BusinessDraft {
 
   // Commerce, Entreprise, Particulier.
   final int? secteurId;
+
+  /// Le secteur choisi (nom, icône, sous-catégories), gardé pour l'affichage des écrans
+  /// Secteur et Détails. Toujours cohérent avec [secteurId].
+  final Sector? secteur;
   final String secteurLibre;
   final List<int> sousCategorieIds;
   final String descriptionActivite;
@@ -154,6 +174,7 @@ class BusinessDraft {
     Object? formeJuridique = _keep,
     String? rccm,
     Object? secteurId = _keep,
+    Object? secteur = _keep,
     String? secteurLibre,
     List<int>? sousCategorieIds,
     String? descriptionActivite,
@@ -189,6 +210,7 @@ class BusinessDraft {
           : formeJuridique as LegalForm?,
       rccm: rccm ?? this.rccm,
       secteurId: identical(secteurId, _keep) ? this.secteurId : secteurId as int?,
+      secteur: identical(secteur, _keep) ? this.secteur : secteur as Sector?,
       secteurLibre: secteurLibre ?? this.secteurLibre,
       sousCategorieIds: sousCategorieIds ?? this.sousCategorieIds,
       descriptionActivite: descriptionActivite ?? this.descriptionActivite,
@@ -230,6 +252,7 @@ class BusinessDraft {
     if (!type.hasSector) {
       d = d.copyWith(
         secteurId: null,
+        secteur: null,
         secteurLibre: '',
         sousCategorieIds: const [],
         descriptionActivite: '',
@@ -260,6 +283,40 @@ class BusinessDraft {
     }
     return d;
   }
+
+  /// Choisit le secteur. Un autre secteur **vide** ce qui appartenait à l'ancien : les
+  /// sous-catégories, le nom libre et la description. Le même secteur ne change rien.
+  BusinessDraft withSector(Sector sector) {
+    if (secteurId == sector.id) return this;
+    return copyWith(
+      secteurId: sector.id,
+      secteur: sector,
+      secteurLibre: '',
+      sousCategorieIds: const [],
+      descriptionActivite: '',
+    );
+  }
+
+  /// Vrai si le secteur choisi est « Autre » (nom libre à écrire).
+  bool get isOtherSector => secteur?.code == kOtherSectorCode;
+
+  /// Vrai si le secteur (obligatoire) manque.
+  bool get sectorMissing => secteurId == null;
+
+  /// Erreur du nom libre du secteur « Autre » (null = valide ou sans objet).
+  FieldError? get secteurLibreError =>
+      isOtherSector ? _requiredText(secteurLibre, kBusinessSecteurLibreMax) : null;
+
+  /// Erreur de la description : obligatoire pour « Autre », facultative sinon.
+  FieldError? get descriptionActiviteError {
+    final v = descriptionActivite.trim();
+    if (v.isEmpty) return isOtherSector ? FieldError.required : null;
+    return _length(v) > kBusinessDescriptionActiviteMax ? FieldError.tooLong : null;
+  }
+
+  /// L'écran Détails est complet.
+  bool get detailsIsValid =>
+      !sectorMissing && secteurLibreError == null && descriptionActiviteError == null;
 
   /// Erreur du nom affiché (null = valide).
   FieldError? get nameError => validateBusinessName(name);

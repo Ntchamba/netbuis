@@ -98,12 +98,14 @@ void main() {
     await _openLegalForm(tester);
 
     await tester.tap(continueButton);
-    await tester.pump();
-    // Aucune erreur : l'étape suivante (Secteur, T031) n'est pas encore là.
-    expect(find.text('Cette étape arrive bientôt'), findsOneWidget);
+    await tester.pumpAndSettle();
+    // Aucune erreur : on passe à l'étape Secteur (3 sur 5).
+    expect(find.text('Étape 3 sur 5'), findsOneWidget);
     expect(currentDraft(tester).rccm, '');
     // La forme préchoisie est enregistrée au passage.
     expect(currentDraft(tester).formeJuridique, LegalForm.individuelle);
+    await tester.tap(find.byKey(const ValueKey('business-back')));
+    await tester.pumpAndSettle();
 
     await tester.ensureVisible(_rccm);
     await tester.enterText(_rccm, 'RC/MRA/2023/B/0456');

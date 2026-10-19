@@ -7,7 +7,9 @@ import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/business/presentation/screens/business_info_screen.dart';
+import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/legal_form_screen.dart';
+import '../../features/business/presentation/screens/sector_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
@@ -51,6 +53,14 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessLegalForm,
         builder: (context, state) => const LegalFormScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessSector,
+        builder: (context, state) => const SectorScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessDetails,
+        builder: (context, state) => const DetailsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

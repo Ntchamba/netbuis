@@ -12,10 +12,10 @@ enum BusinessStep {
   legalForm(Routes.createBusinessLegalForm, built: true),
 
   /// Secteur d'activité (Commerce, Entreprise, Particulier) : T031.
-  sector(Routes.createBusinessSector),
+  sector(Routes.createBusinessSector, built: true),
 
   /// Détails du secteur (Commerce, Entreprise, Particulier) : T031.
-  details(Routes.createBusinessDetails),
+  details(Routes.createBusinessDetails, built: true),
 
   /// Catégorie de service + CNI + diplôme (Prestataire) : T032.
   serviceCategory(Routes.createBusinessServiceCategory),
