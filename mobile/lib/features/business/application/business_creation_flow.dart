@@ -18,7 +18,7 @@ enum BusinessStep {
   details(Routes.createBusinessDetails, built: true),
 
   /// Catégorie de service + CNI + diplôme (Prestataire) : T032.
-  serviceCategory(Routes.createBusinessServiceCategory),
+  serviceCategory(Routes.createBusinessServiceCategory, built: true),
 
   /// Type d'établissement (Structure) : T033.
   structureType(Routes.createBusinessStructureType),

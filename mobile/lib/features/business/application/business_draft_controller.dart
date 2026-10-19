@@ -35,6 +35,15 @@ class BusinessDraftController extends Notifier<BusinessDraft> {
   /// Choisit le secteur ; un autre secteur vide sous-catégories, nom libre et description.
   void setSector(Sector sector) => state = state.withSector(sector);
 
+  /// Choisit la catégorie de service ; une autre catégorie vide le texte libre.
+  void setServiceCategory(ReferentialItem category) =>
+      state = state.withServiceCategory(category);
+
+  void setCategorieServiceLibre(String value) =>
+      state = state.copyWith(categorieServiceLibre: value);
+  void setCniPhotoPath(String? path) => state = state.copyWith(cniPhotoPath: path);
+  void setDiplomePhotoPath(String? path) => state = state.copyWith(diplomePhotoPath: path);
+
   void setSecteurLibre(String value) => state = state.copyWith(secteurLibre: value);
   void setDescriptionActivite(String value) =>
       state = state.copyWith(descriptionActivite: value);

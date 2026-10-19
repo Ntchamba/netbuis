@@ -31,3 +31,13 @@ final businessSectorsProvider = FutureProvider.autoDispose<List<Sector>>(
 /// Vaut [freeSubcategoryLimit] tant qu'aucune route ne publie la valeur du serveur.
 /// C'est ici que se branchera la réponse du serveur (`SUBSCRIPTION_REQUIRED`, T035).
 final subcategoryLimitProvider = Provider<int?>((ref) => freeSubcategoryLimit);
+
+/// Les catégories de service des prestataires, lues via le dépôt de référentiels (jamais
+/// en dur), triées par `order`. Se recharge à chaque ouverture de l'écran.
+final businessServiceCategoriesProvider = FutureProvider.autoDispose<List<ReferentialItem>>(
+  (ref) async {
+    final items = await ref.read(referentialRepositoryProvider).getServiceCategories();
+    return List.unmodifiable([...items]..sort((a, b) => a.order.compareTo(b.order)));
+  },
+  retry: (retryCount, error) => null,
+);

@@ -10,6 +10,7 @@ import '../../features/business/presentation/screens/business_info_screen.dart';
 import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/legal_form_screen.dart';
 import '../../features/business/presentation/screens/sector_screen.dart';
+import '../../features/business/presentation/screens/service_category_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
@@ -57,6 +58,10 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessSector,
         builder: (context, state) => const SectorScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessServiceCategory,
+        builder: (context, state) => const ServiceCategoryScreen(),
       ),
       GoRoute(
         path: Routes.createBusinessDetails,

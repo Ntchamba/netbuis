@@ -24,6 +24,12 @@ class PhotoField extends ConsumerWidget {
     this.errorText,
     this.tapKey,
     this.compact = false,
+    this.labelSuffixColor,
+    this.helper,
+    this.addedSemantics,
+    this.onRemove,
+    this.removeLabel,
+    this.removeKey,
   });
 
   final String label;
@@ -34,6 +40,22 @@ class PhotoField extends ConsumerWidget {
   final ValueChanged<String> onChanged;
   final String? errorText;
   final Key? tapKey;
+
+  /// Couleur de la mention [labelSuffix] (gris par défaut ; la couleur d'accent pour
+  /// « · obligatoire » dans la maquette Prestataire).
+  final Color? labelSuffixColor;
+
+  /// Petite note sous la zone (confidentialité, « Facultatif… »).
+  final String? helper;
+
+  /// Texte lu par le lecteur d'écran quand la photo est ajoutée (ex. « Photo de la CNI
+  /// ajoutée »). Par défaut : « {label}. Photo ajoutée ».
+  final String? addedSemantics;
+
+  /// Si fourni, un bouton [removeLabel] retire la photo choisie.
+  final VoidCallback? onRemove;
+  final String? removeLabel;
+  final Key? removeKey;
 
   /// Disposition en ligne (icône à gauche) comme la photo du représentant.
   final bool compact;
@@ -103,7 +125,10 @@ class PhotoField extends ConsumerWidget {
               if (labelSuffix != null)
                 TextSpan(
                   text: ' $labelSuffix',
-                  style: TextStyle(fontWeight: FontWeight.w400, color: c.textSecondary),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w400,
+                    color: labelSuffixColor ?? c.textSecondary,
+                  ),
                 ),
             ],
           ),
@@ -112,7 +137,9 @@ class PhotoField extends ConsumerWidget {
         const SizedBox(height: 7),
         Semantics(
           button: true,
-          label: has ? '$label. ${l10n.t('business.create.photo.added')}. $shownLabel' : '$label. $shownLabel',
+          label: has
+              ? '${addedSemantics ?? '$label. ${l10n.t('business.create.photo.added')}'}. $shownLabel'
+              : '$label. $shownLabel',
           onTap: () => _pick(context, ref),
           excludeSemantics: true,
           child: InkWell(
@@ -201,6 +228,21 @@ class PhotoField extends ConsumerWidget {
             ),
           ),
         ),
+        if (has && onRemove != null && removeLabel != null)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              key: removeKey,
+              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+              onPressed: onRemove,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(removeLabel!),
+            ),
+          ),
+        if (helper != null) ...[
+          const SizedBox(height: 6),
+          Text(helper!, style: TextStyle(fontSize: 11, height: 1.4, color: c.textSecondary)),
+        ],
         if (errorText != null) ...[
           const SizedBox(height: 6),
           Semantics(

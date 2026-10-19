@@ -16,6 +16,12 @@ const int kBusinessDescriptionActiviteMax = 500;
 /// Code du secteur « Autre » (celui qui ouvre le nom libre).
 const String kOtherSectorCode = 'autre';
 
+/// `categorie_service_libre` : 100 caractères au plus (profile.py).
+const int kBusinessCategorieServiceLibreMax = 100;
+
+/// Code de la catégorie de service « Autre » (celle qui ouvre le texte libre).
+const String kOtherServiceCategoryCode = 'autre';
+
 /// Nombre de sous-catégories incluses sans abonnement (décision D-12). Aucune route ne
 /// publie encore cette valeur : c'est une constante de l'application. Le serveur reste
 /// l'autorité (erreur `SUBSCRIPTION_REQUIRED` à l'envoi, T035).
@@ -99,6 +105,7 @@ class BusinessDraft {
     this.sousCategorieIds = const [],
     this.descriptionActivite = '',
     this.categorieServiceId,
+    this.categorieService,
     this.categorieServiceLibre = '',
     this.cniPhotoPath,
     this.diplomePhotoPath,
@@ -143,8 +150,17 @@ class BusinessDraft {
 
   // Prestataire de service.
   final int? categorieServiceId;
+
+  /// La catégorie de service choisie (nom, code), gardée pour l'affichage. Toujours
+  /// cohérente avec [categorieServiceId].
+  final ReferentialItem? categorieService;
   final String categorieServiceLibre;
+
+  /// Chemin **local** de la photo de la CNI (obligatoire). Gardé en mémoire seulement :
+  /// jamais écrit en préférences, jamais journalisé, jamais affiché en entier au public.
   final String? cniPhotoPath;
+
+  /// Chemin local de la photo du diplôme (facultatif).
   final String? diplomePhotoPath;
 
   // Structure.
@@ -179,6 +195,7 @@ class BusinessDraft {
     List<int>? sousCategorieIds,
     String? descriptionActivite,
     Object? categorieServiceId = _keep,
+    Object? categorieService = _keep,
     String? categorieServiceLibre,
     Object? cniPhotoPath = _keep,
     Object? diplomePhotoPath = _keep,
@@ -217,6 +234,9 @@ class BusinessDraft {
       categorieServiceId: identical(categorieServiceId, _keep)
           ? this.categorieServiceId
           : categorieServiceId as int?,
+      categorieService: identical(categorieService, _keep)
+          ? this.categorieService
+          : categorieService as ReferentialItem?,
       categorieServiceLibre: categorieServiceLibre ?? this.categorieServiceLibre,
       cniPhotoPath: identical(cniPhotoPath, _keep) ? this.cniPhotoPath : cniPhotoPath as String?,
       diplomePhotoPath: identical(diplomePhotoPath, _keep)
@@ -261,6 +281,7 @@ class BusinessDraft {
     if (type != BusinessAccountType.prestataireService) {
       d = d.copyWith(
         categorieServiceId: null,
+        categorieService: null,
         categorieServiceLibre: '',
         cniPhotoPath: null,
         diplomePhotoPath: null,
@@ -296,6 +317,35 @@ class BusinessDraft {
       descriptionActivite: '',
     );
   }
+
+  /// Choisit la catégorie de service (une seule). Une autre catégorie **vide** le texte
+  /// libre, devenu sans objet. La même catégorie ne change rien.
+  BusinessDraft withServiceCategory(ReferentialItem category) {
+    if (categorieServiceId == category.id) return this;
+    return copyWith(
+      categorieServiceId: category.id,
+      categorieService: category,
+      categorieServiceLibre: '',
+    );
+  }
+
+  /// Vrai si la catégorie de service choisie est « Autre » (texte libre à écrire).
+  bool get isOtherServiceCategory => categorieService?.code == kOtherServiceCategoryCode;
+
+  /// Vrai si la catégorie de service (obligatoire) manque.
+  bool get serviceCategoryMissing => categorieServiceId == null;
+
+  /// Erreur du texte libre de la catégorie « Autre » (null = valide ou sans objet).
+  FieldError? get categorieServiceLibreError => isOtherServiceCategory
+      ? _requiredText(categorieServiceLibre, kBusinessCategorieServiceLibreMax)
+      : null;
+
+  /// Vrai si la photo de la CNI (obligatoire) manque.
+  bool get cniPhotoMissing => cniPhotoPath == null;
+
+  /// L'écran « Catégorie & vérification » est complet : le diplôme est facultatif.
+  bool get serviceStepIsValid =>
+      !serviceCategoryMissing && categorieServiceLibreError == null && !cniPhotoMissing;
 
   /// Vrai si le secteur choisi est « Autre » (nom libre à écrire).
   bool get isOtherSector => secteur?.code == kOtherSectorCode;
