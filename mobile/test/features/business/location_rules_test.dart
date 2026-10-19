@@ -98,12 +98,12 @@ void main() {
       expect(d.locationMissing, isFalse);
     });
 
-    test('quartier choisi : zone = le quartier, libellé « Hardé, Maroua »', () {
+    test('quartier choisi : zone = le quartier, libellé « Maroua, Hardé »', () {
       final d = const BusinessDraft().withCity(_maroua).withQuartier(_harde);
       expect(d.zoneId, 17);
       expect(d.ville, _maroua);
       expect(d.quartier, _harde);
-      expect(d.locationLabel, 'Hardé, Maroua');
+      expect(d.locationLabel, 'Maroua, Hardé');
     });
 
     test('« Je ne trouve pas mon quartier » : retour à la ville seule', () {
@@ -134,7 +134,7 @@ void main() {
     test('changer de type de compte garde le lieu', () {
       final d = const BusinessDraft().withCity(_maroua).withQuartier(_dougoi);
       final other = d.withType(BusinessAccountType.structure);
-      expect(other.locationLabel, 'Dougoï, Maroua');
+      expect(other.locationLabel, 'Maroua, Dougoï');
       expect(other.zoneId, 18);
     });
 
@@ -156,7 +156,7 @@ void main() {
         ..setQuartier(_harde)
         ..prefillCity(const SelectedCity(id: 30, name: 'Garoua'));
       expect(container.read(businessDraftProvider).zoneId, 17);
-      expect(container.read(businessDraftProvider).locationLabel, 'Hardé, Maroua');
+      expect(container.read(businessDraftProvider).locationLabel, 'Maroua, Hardé');
     });
   });
 

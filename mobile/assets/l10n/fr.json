@@ -395,5 +395,5 @@
   "business.status.error.unknown": "Impossible de lire l'état de votre compte business.",
   "business.recap.quote": "« {text} »",
   "business.recap.yes": "Oui",
-  "business.recap.error.photoMissing": "Ajoutez la photo de votre activité (obligatoire) pour envoyer votre demande."
+  "business.recap.error.photoMissing": "Ajoutez votre photo (obligatoire, vérification) pour envoyer votre demande."
 }

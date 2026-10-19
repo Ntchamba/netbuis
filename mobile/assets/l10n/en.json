@@ -395,5 +395,5 @@
   "business.status.error.unknown": "Could not read the status of your business account.",
   "business.recap.quote": "“{text}”",
   "business.recap.yes": "Yes",
-  "business.recap.error.photoMissing": "Add the photo of your activity (required) to send your request."
+  "business.recap.error.photoMissing": "Add your photo (required, verification) to send your request."
 }

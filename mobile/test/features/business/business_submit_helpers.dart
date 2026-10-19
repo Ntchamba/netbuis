@@ -201,9 +201,9 @@ class MockBusinessServer {
         fields[f] = ['Fichier inconnu : envoyez-le d\'abord.'];
       }
     }
-    for (final f in const ['photo', 'representant_photo']) {
-      if (body[f] == null) fields[f] = ['obligatoire'];
-    }
+    // `photo` (commerce) est facultative côté serveur (T026c) ; seule celle du représentant
+    // est obligatoire.
+    if (body['representant_photo'] == null) fields['representant_photo'] = ['obligatoire'];
     if (fields.isNotEmpty) {
       return reply(400, {'code': 'invalid', 'message': 'x', 'fields': fields});
     }

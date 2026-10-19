@@ -45,7 +45,7 @@ class RecapScreen extends ConsumerWidget {
     final typeCode = type.value;
     final phone = ref.watch(accountControllerProvider).value?.phoneMasked;
     final owner = fill(l10n.t('business.recap.owner.$typeCode'), {'name': draft.representantNom.trim()});
-    final location = _location(draft);
+    final location = draft.locationLabel ?? '';
     void edit(String route) => context.push(route);
 
     final failed = submit.phase == SubmitPhase.failed;
@@ -169,14 +169,6 @@ class RecapScreen extends ConsumerWidget {
       ],
     );
   }
-}
-
-/// « Maroua, Hardé » : la ville puis le quartier, comme dans la maquette.
-String _location(BusinessDraft d) {
-  final city = d.ville?.name;
-  final district = d.quartier?.name;
-  if (city == null) return '';
-  return district == null ? city : '$city, $district';
 }
 
 /// Miniatures des photos choisies (jamais la CNI).

@@ -32,7 +32,8 @@ enum SubmitProblem {
   /// Compte bloqué ou supprimé.
   support,
 
-  /// La photo du commerce manque (le serveur l'exige) : rien n'est envoyé.
+  /// La photo du représentant manque (obligatoire, vérification) : rien n'est envoyé.
+  /// (La photo du commerce, elle, est facultative.)
   photoMissing,
 
   /// Une photo est refusée (format, taille, contenu illisible) : à changer.
@@ -98,7 +99,7 @@ class BusinessSubmitController extends Notifier<SubmitState> {
     if (state.sending) return;
     final repo = ref.read(businessRepositoryProvider);
     final photos = photosToSend(ref.read(businessDraftProvider));
-    if (ref.read(businessDraftProvider).photoPath == null) {
+    if (ref.read(businessDraftProvider).representantPhotoPath == null) {
       // Le serveur exige cette photo : inutile d'envoyer les autres fichiers pour rien.
       state = const SubmitState(
         phase: SubmitPhase.failed,

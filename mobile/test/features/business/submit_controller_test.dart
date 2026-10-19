@@ -560,14 +560,49 @@ void main() {
       }
     });
 
-    test('photo du commerce absente : rien n\'est envoyé, renvoi aux Informations', () async {
+    test('photo du représentant absente : rien n\'est envoyé, renvoi aux Informations', () async {
+      for (final type in BusinessAccountType.values) {
+        final base = await completeDraft(type);
+        final (c, server) = await _setup(type, draft: base.copyWith(representantPhotoPath: null));
+        await _submit(c);
+        expect(_state(c).problem, SubmitProblem.photoMissing, reason: type.value);
+        expect(_state(c).fixRoute, Routes.createBusiness, reason: type.value);
+        expect(server.events, isEmpty, reason: type.value);
+      }
+    });
+
+    test('envoi sans photo du commerce : OK (sign -> PUT -> POST avec une photo de moins)', () async {
+      for (final type in [BusinessAccountType.boutique, BusinessAccountType.prestataireService]) {
+        final base = await completeDraft(type);
+        final (c, server) = await _setup(type, draft: base.copyWith(photoPath: null));
+        await _submit(c);
+        expect(_state(c).phase, SubmitPhase.sent, reason: type.value);
+        final isProvider = type == BusinessAccountType.prestataireService;
+        final kinds = [
+          'representant_photo',
+          if (isProvider) ...['cni_photo', 'diplome_photo'],
+        ];
+        expect(server.events, [
+          for (final k in kinds) ...['sign:$k', 'put:$k'],
+          'post',
+        ], reason: type.value);
+        expect(server.lastBody!.containsKey('photo'), isFalse, reason: type.value);
+        expect(server.lastBody!.containsKey('phone_anchor'), isFalse, reason: type.value);
+        expect(server.lastBody!['representant_photo'], isNotNull, reason: type.value);
+      }
+    });
+
+    test('progression sans photo du commerce : le total suit le nombre réel de fichiers', () async {
       final base = await completeDraft(BusinessAccountType.boutique);
-      final (c, server) =
+      final (c, _) =
           await _setup(BusinessAccountType.boutique, draft: base.copyWith(photoPath: null));
+      final seen = <(int, int)>[];
+      c.listen(businessSubmitProvider, (_, next) {
+        if (next.sending) seen.add((next.done, next.total));
+      });
       await _submit(c);
-      expect(_state(c).problem, SubmitProblem.photoMissing);
-      expect(_state(c).fixRoute, Routes.createBusiness);
-      expect(server.events, isEmpty);
+      expect(seen, [(0, 2), (1, 2)]);
+      expect(_state(c).phase, SubmitPhase.sent);
     });
 
     test('JPEG, PNG, WebP reconnus ; une taille de 5 242 880 octets passe', () async {

@@ -386,20 +386,28 @@ void main() {
       expect(find.text('Quel type de service proposez-vous ?'), findsOneWidget);
     });
 
-    testWidgets('photo du commerce absente : rien n\'est envoyé, « Corriger » mène aux Informations',
+    testWidgets('photo du représentant absente : le récapitulatif renvoie aux Informations, rien n\'est envoyé',
+        (tester) async {
+      final server = MockBusinessServer();
+      final base = await completeDraft(BusinessAccountType.boutique);
+      await openRecap(tester, base.copyWith(representantPhotoPath: null),
+          overrides: server.overrides());
+      expect(find.text('Informations de base'), findsOneWidget);
+      expect(_submit, findsNothing);
+      expect(server.events, isEmpty);
+    });
+
+    testWidgets('envoi sans photo du commerce : la demande part, sans fichier « photo »',
         (tester) async {
       final server = MockBusinessServer();
       final base = await completeDraft(BusinessAccountType.boutique);
       await openRecap(tester, base.copyWith(photoPath: null), overrides: server.overrides());
       await tester.tap(_submit);
       await tester.pumpAndSettle();
-      expect(
-          find.text('Ajoutez la photo de votre activité (obligatoire) pour envoyer votre demande.'),
-          findsOneWidget);
-      expect(server.events, isEmpty);
-      await tester.tap(find.byKey(const ValueKey('recap-fix')));
-      await tester.pumpAndSettle();
-      expect(find.text('Informations de base'), findsOneWidget);
+      expect(server.events, ['sign:representant_photo', 'put:representant_photo', 'post']);
+      expect(server.lastBody!.containsKey('photo'), isFalse);
+      expect(server.lastBody!.containsKey('phone_anchor'), isFalse);
+      expect(find.byKey(const ValueKey('recap-error')), findsNothing);
     });
 
     testWidgets('compte bloqué et erreur serveur : messages courts, jamais le texte brut',

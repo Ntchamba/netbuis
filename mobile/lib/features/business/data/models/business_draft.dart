@@ -360,12 +360,12 @@ class BusinessDraft {
     return copyWith(quartier: district, zoneId: district.id);
   }
 
-  /// Lieu pour l'affichage : « Hardé, Maroua » ou « Maroua » ; null s'il n'y a rien.
+  /// Lieu pour l'affichage, comme dans les maquettes : « Maroua, Hardé » ou « Maroua » ; null s'il n'y a rien.
   String? get locationLabel {
     final city = ville;
     if (city == null) return null;
     final district = quartier;
-    return district == null ? city.name : '${district.name}, ${city.name}';
+    return district == null ? city.name : '${city.name}, ${district.name}';
   }
 
   /// Vrai si le lieu (obligatoire) manque.

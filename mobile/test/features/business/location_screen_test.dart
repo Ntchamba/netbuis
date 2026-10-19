@@ -252,12 +252,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Étape 1 sur 4'), findsOneWidget);
-      expect(find.descendant(of: _field, matching: find.text('Hardé, Maroua')), findsOneWidget);
+      expect(find.descendant(of: _field, matching: find.text('Maroua, Hardé')), findsOneWidget);
       final d = currentDraft(tester);
       expect(d.zoneId, 17);
       expect(d.ville?.name, 'Maroua');
       expect(d.quartier?.name, 'Hardé');
-      expect(d.locationLabel, 'Hardé, Maroua');
+      expect(d.locationLabel, 'Maroua, Hardé');
       // Aucun appel autre que GET /api/zones/ (villes puis quartiers).
       expect(zones.calls.map((c) => c.level).toSet(), {ZoneLevel.villeVillage, ZoneLevel.quartier});
       expect(zones.getZoneCalls, 0);
@@ -306,7 +306,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(_district(17));
       await tester.pumpAndSettle();
-      expect(currentDraft(tester).locationLabel, 'Hardé, Maroua');
+      expect(currentDraft(tester).locationLabel, 'Maroua, Hardé');
 
       await _openLocation(tester);
       await tester.tap(_city(30));
@@ -485,7 +485,7 @@ void main() {
       await tester.tap(_district(17));
       await tester.pumpAndSettle();
       expect(find.text('Choisissez votre ville ou votre quartier.'), findsNothing);
-      expect(find.descendant(of: _field, matching: find.text('Hardé, Maroua')), findsOneWidget);
+      expect(find.descendant(of: _field, matching: find.text('Maroua, Hardé')), findsOneWidget);
 
       await tester.tap(continueButton);
       await tester.pumpAndSettle();
