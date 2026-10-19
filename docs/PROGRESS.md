@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T035 ↩ (3 corrections de contrat avant T036)
-- **Prochaine tâche** : T036
+- **Tâche en cours** : aucune (arrêt de fin de tranche T036, en attente de Jeff)
+- **Prochaine tâche** : T037
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -50,8 +50,8 @@
 | ✅ | T032 | Mobile : prestataire de service | b3 | | 2026-10-19 | logs/T032-verification.md ; 331 tests ; à trancher par Jeff : le diplôme est-il affichable publiquement (maquette) ou privé (D-17) ? ; CNI et diplôme restent des chemins locaux en mémoire jusqu'à T035 |
 | ✅ | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | 2026-10-19 | logs/T033-verification.md ; 363 tests ; composants de plafond partagés (capped_choice.dart) ; codes = ceux du serveur ; à confirmer par Jeff : livraison d'un restaurant présélectionnée sur « oui » (maquette) |
 | ✅ | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | 2026-10-19 | logs/T034-verification.md ; 407 tests ; écran sans maquette décrit (ville avec recherche, puis quartier facultatif) ; règle de niveau unique isBusinessZoneLevel ; champ Ville / Quartier obligatoire, prérempli depuis la ville de T022 ; refactor minimal de choose_city_screen.dart (CityCard publique) |
-| ↩ | T035 | Mobile : récapitulatif et envoi | b3 | | 2026-10-19 | logs/T035-verification.md, logs/T035-blocage.md ; 525 tests (mobile OK avec faux serveur) ; à corriger avant T036 : phone_anchor repris du compte par le serveur (a2), photo du commerce facultative (maquette), ordre du lieu « Maroua, Hardé » (b3) |
-| ☐ | T036 | Vérification de tranche : créer un commerce de bout en bout | orchestrateur | | |
+| ✅ | T035 | Mobile : récapitulatif et envoi | b3 | | 2026-10-19 | logs/T035-verification.md, logs/T035-blocage.md ; 525 tests (mobile OK avec faux serveur) ; contrat corrigé en T026c et T035c (numéro ancré imposé par le serveur, photo du commerce facultative, lieu « Ville, Quartier ») ; essai réel en T036 |
+| ✅ | T036 | Vérification de tranche : créer un commerce de bout en bout | orchestrateur | 2026-10-19 | logs/T036-tranche.md ; parcours réel mobile → serveur local pour un prestataire (CNI + diplôme en espace privé) et un commerce ; plafond SUBSCRIPTION_REQUIRED, 409, clé d'un autre compte refusée ; reste à Jeff : essai sur téléphone, écrans sans maquette, décisions en attente |
 | | | **PHASE 4 — Espace commerçant : produits et offres** | | | |
 | ☐ | T037 | Backend : offres du commerçant | a2 | | |
 | ☐ | T038 | Mobile : « Mes produits » | b3 | | |
@@ -183,3 +183,4 @@
 | 2026-10-17 | Jeff valide T012 et demande de pousser la branche etape-2/acces. |
 | 2026-10-17 | T023 : le mobile (dépôts réels) affiche les vraies villes et secteurs du backend local. |
 | 2026-10-19 | T026c (correction de contrat trouvée par T035) : le numéro ancré est toujours owner.phone, imposé par le serveur ; la photo du commerce est facultative (maquette). Docs mises à jour (MODELE_DONNEES, D-08). Reste à corriger côté mobile : retrait du refus d'envoi sans photo du commerce et ordre du lieu « Maroua, Hardé ». |
+| 2026-10-19 | T036 : un commerce se crée de bout en bout entre le mobile (code réel) et le backend local ; pas d'émulateur dans la session cloud, l'essai sur téléphone reste à faire par Jeff. |
