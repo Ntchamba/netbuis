@@ -61,6 +61,50 @@ class BusinessDraftController extends Notifier<BusinessDraft> {
     return true;
   }
 
+  /// Choisit le type d'établissement ; un autre type vide le texte libre et les détails.
+  void setStructureType(ReferentialItem type) => state = state.withStructureType(type);
+
+  void setStructureTypeLibre(String value) => state = state.copyWith(structureTypeLibre: value);
+  void setDescription(String value) => state = state.copyWith(description: value);
+  void setCuisine(String code) => state = state.copyWith(cuisine: code);
+  void setLivraison(bool value) => state = state.copyWith(livraison: value);
+  void setHoraires(String value) => state = state.copyWith(horaires: value);
+  void setStanding(String code) => state = state.copyWith(standing: code);
+  void setNombreChambres(int? value) => state = state.copyWith(nombreChambres: value);
+  void setNumeroAgrement(String value) => state = state.copyWith(numeroAgrement: value);
+
+  /// Coche ou décoche un équipement d'hôtel (pas de plafond).
+  void toggleEquipement(String code) {
+    final list = state.equipements;
+    state = state.copyWith(
+      equipements: list.contains(code) ? [for (final c in list) if (c != code) c] : [...list, code],
+    );
+  }
+
+  /// Coche ou décoche un rayon de supermarché ; même règle que [toggleSubcategory] :
+  /// renvoie **faux** (rien n'est ajouté) quand [limit] est atteint.
+  bool toggleRayon(String code, {required int? limit}) {
+    final r = _toggleCode(state.rayons, code, limit);
+    if (r == null) return false;
+    state = state.copyWith(rayons: r);
+    return true;
+  }
+
+  /// Coche ou décoche une spécialité de centre de santé ; même règle que [toggleRayon].
+  bool toggleSpecialite(String code, {required int? limit}) {
+    final r = _toggleCode(state.specialites, code, limit);
+    if (r == null) return false;
+    state = state.copyWith(specialites: r);
+    return true;
+  }
+
+  /// Nouvelle liste, ou null si l'ajout dépasse [limit].
+  static List<String>? _toggleCode(List<String> list, String code, int? limit) {
+    if (list.contains(code)) return [for (final c in list) if (c != code) c];
+    if (limit != null && list.length >= limit) return null;
+    return [...list, code];
+  }
+
   /// Repart d'un brouillon vide.
   void reset() => state = const BusinessDraft();
 }

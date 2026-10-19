@@ -22,6 +22,32 @@ const int kBusinessCategorieServiceLibreMax = 100;
 /// Code de la catégorie de service « Autre » (celle qui ouvre le texte libre).
 const String kOtherServiceCategoryCode = 'autre';
 
+/// `structure_type_libre` : 100 caractères au plus (profile.py).
+const int kBusinessStructureTypeLibreMax = 100;
+
+/// `description` du profil : 1000 caractères au plus (profile.py).
+const int kBusinessDescriptionMax = 1000;
+
+/// `horaires` (restaurant) : 200 caractères au plus (profile.py).
+const int kBusinessHorairesMax = 200;
+
+/// `numero_agrement` (centre de santé) : 50 caractères au plus (profile.py).
+const int kBusinessNumeroAgrementMax = 50;
+
+/// Nombre de chambres : le serveur refuse moins de 1 (profile.py) et n'a pour plafond que
+/// celui d'un entier ; l'application borne la saisie à 4 chiffres (1 à 9999).
+const int kBusinessChambresMin = 1;
+const int kBusinessChambresMax = 9999;
+
+/// Code du type d'établissement « Autre » (celui qui ouvre le texte libre).
+const String kOtherStructureTypeCode = 'autre';
+
+/// Codes des types d'établissement du serveur (GET /api/referentials/structure-types/).
+const String kStructureSupermarche = 'supermarche';
+const String kStructureRestaurant = 'restaurant';
+const String kStructureHotel = 'hotel';
+const String kStructureSante = 'sante';
+
 /// Nombre de sous-catégories incluses sans abonnement (décision D-12). Aucune route ne
 /// publie encore cette valeur : c'est une constante de l'application. Le serveur reste
 /// l'autorité (erreur `SUBSCRIPTION_REQUIRED` à l'envoi, T035).
@@ -110,6 +136,7 @@ class BusinessDraft {
     this.cniPhotoPath,
     this.diplomePhotoPath,
     this.structureTypeId,
+    this.structureType,
     this.structureTypeLibre = '',
     this.rayons = const [],
     this.cuisine = '',
@@ -165,6 +192,10 @@ class BusinessDraft {
 
   // Structure.
   final int? structureTypeId;
+
+  /// Le type d'établissement choisi (nom, icône, code), gardé pour l'affichage. Toujours
+  /// cohérent avec [structureTypeId].
+  final ReferentialItem? structureType;
   final String structureTypeLibre;
   final List<String> rayons;
   final String cuisine;
@@ -200,6 +231,7 @@ class BusinessDraft {
     Object? cniPhotoPath = _keep,
     Object? diplomePhotoPath = _keep,
     Object? structureTypeId = _keep,
+    Object? structureType = _keep,
     String? structureTypeLibre,
     List<String>? rayons,
     String? cuisine,
@@ -245,6 +277,9 @@ class BusinessDraft {
       structureTypeId: identical(structureTypeId, _keep)
           ? this.structureTypeId
           : structureTypeId as int?,
+      structureType: identical(structureType, _keep)
+          ? this.structureType
+          : structureType as ReferentialItem?,
       structureTypeLibre: structureTypeLibre ?? this.structureTypeLibre,
       rayons: rayons ?? this.rayons,
       cuisine: cuisine ?? this.cuisine,
@@ -290,7 +325,16 @@ class BusinessDraft {
     if (type != BusinessAccountType.structure) {
       d = d.copyWith(
         structureTypeId: null,
+        structureType: null,
         structureTypeLibre: '',
+      );
+      d = d._withoutStructureDetails();
+    }
+    return d;
+  }
+
+  /// Vide les détails propres à un type d'établissement (la description, commune, reste).
+  BusinessDraft _withoutStructureDetails() => copyWith(
         rayons: const [],
         cuisine: '',
         livraison: null,
@@ -301,9 +345,73 @@ class BusinessDraft {
         numeroAgrement: '',
         specialites: const [],
       );
-    }
-    return d;
+
+  /// Choisit le type d'établissement. Un autre type **vide** le texte libre et tous les
+  /// détails de l'ancien type (rayons, cuisine, standing…) ; la description, commune à tous
+  /// les types, est conservée. Le même type ne change rien.
+  BusinessDraft withStructureType(ReferentialItem type) {
+    if (structureTypeId == type.id) return this;
+    return copyWith(
+      structureTypeId: type.id,
+      structureType: type,
+      structureTypeLibre: '',
+    )._withoutStructureDetails();
   }
+
+  /// Code du type d'établissement choisi (`supermarche`, `restaurant`, `hotel`, `sante`,
+  /// `autre`), ou null.
+  String? get structureCode => structureType?.code;
+
+  /// Vrai si le type d'établissement (obligatoire) manque.
+  bool get structureTypeMissing => structureTypeId == null;
+
+  /// Vrai si le type choisi est « Autre » (texte libre à écrire).
+  bool get isOtherStructureType => structureCode == kOtherStructureTypeCode;
+
+  /// Erreur du texte libre du type « Autre » (null = valide ou sans objet).
+  FieldError? get structureTypeLibreError => isOtherStructureType
+      ? _requiredText(structureTypeLibre, kBusinessStructureTypeLibreMax)
+      : null;
+
+  /// Supermarché : au moins un rayon.
+  bool get rayonsMissing => structureCode == kStructureSupermarche && rayons.isEmpty;
+
+  /// Restaurant : le type de cuisine est obligatoire.
+  bool get cuisineMissing => structureCode == kStructureRestaurant && cuisine.isEmpty;
+
+  /// Restaurant : livraison oui ou non, obligatoire.
+  bool get livraisonMissing => structureCode == kStructureRestaurant && livraison == null;
+
+  /// Hôtel : le standing est obligatoire.
+  bool get standingMissing => structureCode == kStructureHotel && standing.isEmpty;
+
+  /// Hôtel : le nombre de chambres est facultatif ; s'il est donné, 1 à 9999.
+  bool get nombreChambresInvalid =>
+      structureCode == kStructureHotel &&
+      nombreChambres != null &&
+      (nombreChambres! < kBusinessChambresMin || nombreChambres! > kBusinessChambresMax);
+
+  /// Centre de santé : au moins une spécialité.
+  bool get specialitesMissing => structureCode == kStructureSante && specialites.isEmpty;
+
+  /// Description libre de l'établissement : facultative, 1000 caractères au plus.
+  FieldError? get descriptionError =>
+      _length(description.trim()) > kBusinessDescriptionMax ? FieldError.tooLong : null;
+
+  /// L'écran « Type d'établissement » est complet.
+  bool get structureTypeStepIsValid => !structureTypeMissing;
+
+  /// L'écran « Détails de l'établissement » est complet.
+  bool get structureDetailsIsValid =>
+      !structureTypeMissing &&
+      structureTypeLibreError == null &&
+      !rayonsMissing &&
+      !cuisineMissing &&
+      !livraisonMissing &&
+      !standingMissing &&
+      !nombreChambresInvalid &&
+      !specialitesMissing &&
+      descriptionError == null;
 
   /// Choisit le secteur. Un autre secteur **vide** ce qui appartenait à l'ancien : les
   /// sous-catégories, le nom libre et la description. Le même secteur ne change rien.

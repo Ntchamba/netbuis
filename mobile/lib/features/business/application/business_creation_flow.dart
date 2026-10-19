@@ -21,10 +21,10 @@ enum BusinessStep {
   serviceCategory(Routes.createBusinessServiceCategory, built: true),
 
   /// Type d'établissement (Structure) : T033.
-  structureType(Routes.createBusinessStructureType),
+  structureType(Routes.createBusinessStructureType, built: true),
 
   /// Détails de l'établissement (Structure) : T033.
-  structureDetails(Routes.createBusinessStructureDetails),
+  structureDetails(Routes.createBusinessStructureDetails, built: true),
 
   /// Récapitulatif et envoi (tous les types) : T035.
   recap(Routes.createBusinessRecap);

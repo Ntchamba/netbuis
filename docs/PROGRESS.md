@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T033 🔄
-- **Prochaine tâche** : T034
+- **Tâche en cours** : T034 🔄
+- **Prochaine tâche** : T035
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -48,8 +48,8 @@
 | ✅ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | 2026-10-19 | logs/T030-verification.md ; 279 tests ; brouillon BusinessDraft + BusinessCreationFlow partagés (features/business) ; totaux d'étapes : Commerce/Particulier/Structure 4, Entreprise 5, Prestataire 3 ; flutter_tts 4.2.5 ; encart Profil = texte de la maquette ; account_screen en SingleChildScrollView ; AndroidManifest <queries> TTS_SERVICE à ajouter (b2/T124) |
 | ✅ | T031 | Mobile : secteur et détails d'activité | b3 | | 2026-10-19 | logs/T031-verification.md ; 307 tests ; plafond 3 = constante freeSubcategoryLimit (subcategoryLimitProvider prêt pour la valeur du serveur) ; aucun secteur présélectionné ; 3 tests existants adaptés (étape suivante construite) |
 | ✅ | T032 | Mobile : prestataire de service | b3 | | 2026-10-19 | logs/T032-verification.md ; 331 tests ; à trancher par Jeff : le diplôme est-il affichable publiquement (maquette) ou privé (D-17) ? ; CNI et diplôme restent des chemins locaux en mémoire jusqu'à T035 |
-| 🔄 | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | |
-| ☐ | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | |
+| ✅ | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | 2026-10-19 | logs/T033-verification.md ; 363 tests ; composants de plafond partagés (capped_choice.dart) ; codes = ceux du serveur ; à confirmer par Jeff : livraison d'un restaurant présélectionnée sur « oui » (maquette) |
+| 🔄 | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | |
 | ☐ | T035 | Mobile : récapitulatif et envoi | b3 | | |
 | ☐ | T036 | Vérification de tranche : créer un commerce de bout en bout | orchestrateur | | |
 | | | **PHASE 4 — Espace commerçant : produits et offres** | | | |

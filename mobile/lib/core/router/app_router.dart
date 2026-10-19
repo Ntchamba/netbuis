@@ -11,6 +11,8 @@ import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/legal_form_screen.dart';
 import '../../features/business/presentation/screens/sector_screen.dart';
 import '../../features/business/presentation/screens/service_category_screen.dart';
+import '../../features/business/presentation/screens/structure_details_screen.dart';
+import '../../features/business/presentation/screens/structure_type_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
@@ -66,6 +68,14 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessDetails,
         builder: (context, state) => const DetailsScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessStructureType,
+        builder: (context, state) => const StructureTypeScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessStructureDetails,
+        builder: (context, state) => const StructureDetailsScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

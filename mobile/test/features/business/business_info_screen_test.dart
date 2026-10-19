@@ -275,10 +275,14 @@ void main() {
       expect(find.text('Quelle est la forme juridique de votre entreprise ?'), findsNothing,
           reason: code);
       // Commerce et Particulier passent au Secteur (étape 2), le Prestataire à la Catégorie de
-      // service (étape 2, T032) ; la Structure n'a pas encore son écran (T033) et reste à l'étape 1.
-      final next = code == 'structure' ? 1 : 2;
+      // service (étape 2, T032), la Structure au Type d'établissement (étape 2, T033).
+      const next = 2;
       if (code == 'prestataire_service') {
         expect(find.text('Quel type de service proposez-vous ?'), findsOneWidget);
+      }
+      if (code == 'structure') {
+        expect(find.text("Quel type d'établissement gérez-vous ?"), findsOneWidget);
+        expect(find.text('Cette étape arrive bientôt'), findsNothing);
       }
       expect(find.text('Étape $next sur ${code == 'prestataire_service' ? 3 : 4}'),
           findsOneWidget,

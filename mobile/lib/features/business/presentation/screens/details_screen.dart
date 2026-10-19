@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/data/referentials/referential_models.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,6 +11,7 @@ import '../../application/business_services.dart';
 import '../../data/models/business_draft.dart';
 import '../widgets/business_step_redirect.dart';
 import '../widgets/business_step_scaffold.dart';
+import '../widgets/capped_choice.dart';
 import '../widgets/labeled_text_field.dart';
 import 'business_info_screen.dart' show businessFieldError;
 
@@ -154,7 +154,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Flexible(child: _Counter(count: chosen.length, limit: limit, atCap: atCap)),
+              Flexible(child: CapCounter(count: chosen.length, limit: limit, atCap: atCap)),
             ],
           ),
           const SizedBox(height: 10),
@@ -162,8 +162,9 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
             spacing: 8,
             children: [
               for (final sub in subs)
-                _Chip(
-                  item: sub,
+                ChoiceChipButton(
+                  tapKey: ValueKey('business-sub-${sub.id}'),
+                  label: sub.name,
                   selected: chosen.contains(sub.id),
                   locked: atCap && !chosen.contains(sub.id),
                   selectedText: l10n.t('business.create.sector.selected'),
@@ -174,7 +175,7 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           ),
           if (_upsellRequested && atCap) ...[
             const SizedBox(height: 12),
-            _Upsell(
+            LimitUpsell(
               limit: limit,
               onLater: () => setState(() => _upsellRequested = false),
             ),
@@ -253,216 +254,6 @@ class _DetailsScreenState extends ConsumerState<DetailsScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// « X/3 inclus sans abonnement » (ou « Illimité · abonné ✓ » sans plafond).
-class _Counter extends StatelessWidget {
-  const _Counter({required this.count, required this.limit, required this.atCap});
-
-  final int count;
-  final int? limit;
-  final bool atCap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = L10n.of(context);
-    final c = AppColors.of(context);
-    final max = '${limit ?? 0}';
-    final label = limit == null
-        ? l10n.t('business.create.details.counterUnlimited')
-        : l10n
-            .t('business.create.details.counter')
-            .replaceAll('{n}', '$count')
-            .replaceAll('{max}', max);
-    final spoken = limit == null
-        ? label
-        : l10n
-            .t('business.create.details.counterSemantics')
-            .replaceAll('{n}', '$count')
-            .replaceAll('{max}', max);
-    return Semantics(
-      liveRegion: true,
-      label: spoken,
-      excludeSemantics: true,
-      child: Text(
-        label,
-        key: const ValueKey('business-subcategory-counter'),
-        textAlign: TextAlign.end,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: limit == null || atCap ? c.accentText : c.textSecondary,
-        ),
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({
-    required this.item,
-    required this.selected,
-    required this.locked,
-    required this.selectedText,
-    required this.lockedText,
-    required this.onTap,
-  });
-
-  final ReferentialItem item;
-  final bool selected;
-  final bool locked;
-  final String selectedText;
-  final String lockedText;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final spoken = selected
-        ? selectedText.replaceAll('{label}', item.name)
-        : (locked ? lockedText.replaceAll('{label}', item.name) : item.name);
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: spoken,
-      onTap: onTap,
-      excludeSemantics: true,
-      child: Opacity(
-        opacity: locked ? 0.5 : 1,
-        child: InkWell(
-          key: ValueKey('business-sub-${item.id}'),
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: Center(
-              widthFactor: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.accent : c.card,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: selected ? AppColors.accent : c.border, width: 1.5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                  child: Text(
-                    locked ? '🔒 ${item.name}' : item.name,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? AppColors.onAccent : c.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Encart « Limite atteinte » : l'abonnement n'est pas encore possible, le bouton est
-/// donc désactivé et porte la mention « bientôt » ; « Plus tard » ferme l'encart.
-class _Upsell extends StatelessWidget {
-  const _Upsell({required this.limit, required this.onLater});
-
-  final int? limit;
-  final VoidCallback onLater;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = L10n.of(context);
-    final c = AppColors.of(context);
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final max = '${limit ?? 0}';
-    final subscribe = l10n.t('business.create.details.upsell.subscribe');
-    final soon = l10n.t('business.create.details.upsell.soon');
-    return DecoratedBox(
-      key: const ValueKey('business-upsell'),
-      decoration: BoxDecoration(
-        color: dark ? const Color(0xFF241D10) : const Color(0xFFFFF6E8),
-        border: Border.all(color: AppColors.accent),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Semantics(
-              liveRegion: true,
-              child: Text(
-                l10n.t('business.create.details.upsell.title').replaceAll('{max}', max),
-                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.t('business.create.details.upsell.body').replaceAll('{max}', max),
-              style: TextStyle(fontSize: 12, height: 1.45, color: c.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            IntrinsicHeight(
-                child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Semantics(
-                    button: true,
-                    enabled: false,
-                    label: '$subscribe, $soon',
-                    excludeSemantics: true,
-                    child: FilledButton(
-                      key: const ValueKey('business-upsell-subscribe'),
-                      onPressed: null,
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(48, 48),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            subscribe,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
-                          ),
-                          Text(
-                            soon,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  key: const ValueKey('business-upsell-later'),
-                  onPressed: onLater,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
-                    foregroundColor: c.textSecondary,
-                    side: BorderSide(color: c.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Text(
-                    l10n.t('business.create.details.upsell.later'),
-                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            )),
-          ],
-        ),
-      ),
     );
   }
 }

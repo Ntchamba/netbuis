@@ -41,3 +41,13 @@ final businessServiceCategoriesProvider = FutureProvider.autoDispose<List<Refere
   },
   retry: (retryCount, error) => null,
 );
+
+/// Les types d'établissement des structures, lus via le dépôt de référentiels (jamais en
+/// dur), triés par `order`. Se recharge à chaque ouverture de l'écran.
+final businessStructureTypesProvider = FutureProvider.autoDispose<List<ReferentialItem>>(
+  (ref) async {
+    final items = await ref.read(referentialRepositoryProvider).getStructureTypes();
+    return List.unmodifiable([...items]..sort((a, b) => a.order.compareTo(b.order)));
+  },
+  retry: (retryCount, error) => null,
+);

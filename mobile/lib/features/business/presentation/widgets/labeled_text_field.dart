@@ -22,6 +22,7 @@ class LabeledTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.next,
     this.minLines,
     this.maxLines = 1,
+    this.extraFormatters = const [],
   });
 
   final String label;
@@ -40,6 +41,9 @@ class LabeledTextField extends StatelessWidget {
   /// Zone de texte sur plusieurs lignes (description) : `minLines` à `maxLines`.
   final int? minLines;
   final int? maxLines;
+
+  /// Filtres de saisie en plus de la longueur maximale (chiffres seulement, par exemple).
+  final List<TextInputFormatter> extraFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +74,7 @@ class LabeledTextField extends StatelessWidget {
           maxLines: maxLines,
           textCapitalization: textCapitalization,
           textInputAction: textInputAction,
-          inputFormatters: [LengthLimitingTextInputFormatter(maxLength)],
+          inputFormatters: [...extraFormatters, LengthLimitingTextInputFormatter(maxLength)],
           onChanged: onChanged,
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
