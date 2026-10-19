@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T030 🔄
-- **Prochaine tâche** : T031
+- **Tâche en cours** : T031 🔄
+- **Prochaine tâche** : T032
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -45,8 +45,8 @@
 | ✅ | T026 | Backend : API de création et de modification du compte business | a2 | | 2026-10-18 | logs/T026-verification.md ; 532 tests ; corps de requête : référentiels par id entier, listes d'établissement par codes ; photos = clés de stockage (format contrôlé seulement, propriété de la clé à contrôler en T027) ; détails de structure obligatoires choisis par a2 : supermarché ≥ 1 rayon, restaurant cuisine + livraison, hôtel standing, santé ≥ 1 spécialité ; changement de type : champs de l'ancien type à vider dans la même requête ; BusinessProfile.objects.visible() = règle unique de visibilité publique |
 | ✅ | T027 | 🔒 Backend : envoi des photos et pièces d'identité | a2 | | 2026-10-18 | logs/T027-verification.md ; 707 tests ; vérificateur CONFORME (1 incohérence mineure corrigée) ; clés u<id>/<kind>/<uuid>.<ext> générées par le serveur ; espace privé backend/private_media (hors dépôt) ; lien de lecture admin 5 min (route à faire en T071) ; MP4 seulement pour la vidéo ; réglages config/ touchés avec autorisation exceptionnelle (STORAGE_BACKEND, PRIVATE_MEDIA_ROOT, UPLOAD_SIGNING_KEY, UPLOAD_TOKEN_TTL, PRIVATE_DOWNLOAD_TTL, taux uploads 60/h, static() en DEBUG) ; validé par Jeff le 2026-10-18 |
 | ✅ | T028 | Backend : données de démonstration | a2 | | 2026-10-18 | logs/T028-verification.md ; 730 tests ; seed_demo --count N (1 à 5 000, 40 s pour 5 000) et --flush ; numéros +237 600… réservés aux données fictives ; photos = clés sans fichier ; prérequis load_zones + seed_referentials ; à étendre en T037, T090, T110 |
-| 🔄 | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | |
-| ☐ | T031 | Mobile : secteur et détails d'activité | b3 | | |
+| ✅ | T030 | Mobile : création du compte business, étapes 1 et forme juridique | b3 | | 2026-10-19 | logs/T030-verification.md ; 279 tests ; brouillon BusinessDraft + BusinessCreationFlow partagés (features/business) ; totaux d'étapes : Commerce/Particulier/Structure 4, Entreprise 5, Prestataire 3 ; flutter_tts 4.2.5 ; encart Profil = texte de la maquette ; account_screen en SingleChildScrollView ; AndroidManifest <queries> TTS_SERVICE à ajouter (b2/T124) |
+| 🔄 | T031 | Mobile : secteur et détails d'activité | b3 | | |
 | ☐ | T032 | Mobile : prestataire de service | b3 | | |
 | ☐ | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | |
 | ☐ | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | |
@@ -164,6 +164,7 @@
 
 | Écran | Tâche | Choix fait |
 |---|---|---|
+| Création du compte business, étape Informations : feuille de choix de photo, messages d'erreur, « Cette étape arrive bientôt » | T030 | textes courts écrits par b3 (FR/EN) ; le bouton de bascule de thème de la maquette n'est pas reproduit |
 | Choisir ma ville (écran entier) + textes city.* + « Ma ville » / « Non choisie » dans Profil | T022 | cartes du Profil (fond, bordure, rayon 16), titre 21 px gras, accent #F2942E, icône générique de ville ; une carte par ville de niveau ville_village |
 | Saisie du nom après la première connexion (titre, aide, champ, boutons) | T011b | « Comment vous appelez-vous ? » / « Votre prénom ou votre nom, comme vous voulez qu'on vous appelle. C'est facultatif. » / « Prénom ou nom » / « Continuer » / « Passer » |
 | Connexion : textes d'erreur, compte à rebours « Renvoyer le code dans N s », libellés d'accessibilité | T011 | textes courts écrits sans maquette (ex. « Code incorrect », « Code expiré », « Trop d'essais, réessayez plus tard », « Contactez le support », « Pas de connexion. Vérifiez votre réseau et réessayez. ») |

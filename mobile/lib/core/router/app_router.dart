@@ -6,6 +6,8 @@ import '../../features/account/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
+import '../../features/business/presentation/screens/business_info_screen.dart';
+import '../../features/business/presentation/screens/legal_form_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
@@ -39,6 +41,16 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.yourName,
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      // Création du compte business : une route par étape, les écrans de T031 à T035
+      // s'ajoutent ici (et passent leur `BusinessStep` à `built: true`).
+      GoRoute(
+        path: Routes.createBusiness,
+        builder: (context, state) => const BusinessInfoScreen(),
+      ),
+      GoRoute(
+        path: Routes.createBusinessLegalForm,
+        builder: (context, state) => const LegalFormScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

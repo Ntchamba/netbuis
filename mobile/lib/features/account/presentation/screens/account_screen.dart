@@ -6,6 +6,7 @@ import '../../../../core/l10n/l10n.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/dashed_border.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../onboarding/application/city_controller.dart';
 import '../../application/account_controller.dart';
@@ -44,9 +45,13 @@ class AccountScreen extends ConsumerWidget {
         child: Semantics(
           label: l10n.t('profile.title'),
           container: true,
-          child: ListView(
+          // Colonne qui défile (et non liste paresseuse) : tout est construit même quand
+          // l'encart « compte business » et une grande police poussent la fin hors de l'écran.
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-            children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               Semantics(
                 header: true,
                 child: Text(
@@ -58,6 +63,10 @@ class AccountScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               identity,
               const SizedBox(height: 16),
+              if (account.value?.hasBusiness == false) ...[
+                _CreateBusinessCard(onTap: () => context.push(Routes.createBusiness)),
+                const SizedBox(height: 16),
+              ],
               DecoratedBox(
                 decoration: BoxDecoration(
                   color: c.card,
@@ -90,7 +99,8 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -236,6 +246,52 @@ class _CityRow extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Invitation à créer son compte business (maquette Profil, encart en tirets) : visible
+/// seulement tant que le compte n'a pas de compte business.
+class _CreateBusinessCard extends StatelessWidget {
+  const _CreateBusinessCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context);
+    final c = AppColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return DashedBorderBox(
+      key: const ValueKey('profile-create-business'),
+      color: dark ? const Color(0xFF3A3A2E) : const Color(0xFFE3C98A),
+      background: c.card,
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              l10n.t('business.create.profile.title'),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            l10n.t('business.create.profile.body'),
+            style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary),
+          ),
+          const SizedBox(height: 10),
+          FilledButton(
+            key: const ValueKey('profile-create-business-button'),
+            onPressed: onTap,
+            style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+            child: Text(l10n.t('business.create.profile.button'), textAlign: TextAlign.center),
+          ),
+        ],
       ),
     );
   }

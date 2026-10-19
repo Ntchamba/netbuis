@@ -14,4 +14,15 @@ class Routes {
   static const map = '/map';
   static const forum = '/forum';
   static const profile = '/profile';
+
+  /// Création du compte business : un écran par étape (protégés par la garde de connexion).
+  /// Les écrans des étapes suivantes sont ajoutés par T031 à T035.
+  static const createBusiness = '/create-business';
+  static const createBusinessLegalForm = '/create-business/legal-form';
+  static const createBusinessSector = '/create-business/sector';
+  static const createBusinessDetails = '/create-business/details';
+  static const createBusinessServiceCategory = '/create-business/service-category';
+  static const createBusinessStructureType = '/create-business/structure-type';
+  static const createBusinessStructureDetails = '/create-business/structure-details';
+  static const createBusinessRecap = '/create-business/recap';
 }

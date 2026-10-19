@@ -22,6 +22,8 @@ dependencies:
   intl: ^0.20.3
   # Recherche vocale
   speech_to_text: ^7.5.0
+  # Lecture à voix haute (synthèse vocale du téléphone)
+  flutter_tts: ^4.2.5
   # Cartes (optionnel)
   geolocator: ^14.1.1
   flutter_map: ^8.3.2
