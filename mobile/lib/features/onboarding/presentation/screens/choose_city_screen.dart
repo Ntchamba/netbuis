@@ -41,13 +41,13 @@ class ChooseCityScreen extends ConsumerWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (error, _) => _Message(
-        text: _errorMessage(l10n, error),
+      error: (error, _) => CityMessage(
+        text: cityErrorMessage(l10n, error),
         isError: true,
         onRetry: () => ref.invalidate(citiesProvider),
       ),
       data: (list) => list.isEmpty
-          ? _Message(
+          ? CityMessage(
               text: l10n.t('city.empty'),
               onRetry: () => ref.invalidate(citiesProvider),
             )
@@ -62,7 +62,7 @@ class ChooseCityScreen extends ConsumerWidget {
                     for (final city in list)
                       SizedBox(
                         width: width,
-                        child: _CityCard(
+                        child: CityCard(
                           city: city,
                           selected: city.id == selectedId,
                           onTap: () => _choose(context, ref, city),
@@ -113,27 +113,39 @@ class ChooseCityScreen extends ConsumerWidget {
   }
 }
 
-/// Message court et traduit ; jamais le texte du serveur.
-String _errorMessage(L10n l10n, Object error) {
+/// Message court et traduit ; jamais le texte du serveur. Partagé avec le choix du lieu
+/// d'un commerce (T034).
+String cityErrorMessage(L10n l10n, Object error) {
   if (error is ApiException && error.code == ApiErrorCode.network) {
     return l10n.t('city.error.network');
   }
   return l10n.t('city.error.unknown');
 }
 
-class _CityCard extends StatelessWidget {
-  const _CityCard({required this.city, required this.selected, required this.onTap});
+/// Carte d'une ville (icône + nom). Partagée avec le choix du lieu d'un commerce (T034).
+class CityCard extends StatelessWidget {
+  const CityCard({
+    super.key,
+    required this.city,
+    required this.selected,
+    required this.onTap,
+    this.selectedLabel,
+  });
 
   final Zone city;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Texte lu à voix haute quand la carte est choisie, avec `{name}` ; par défaut
+  /// « {name}, sélectionnée » (clé `city.selected`).
+  final String? selectedLabel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
     final c = AppColors.of(context);
     final label = selected
-        ? l10n.t('city.selected').replaceAll('{name}', city.name)
+        ? (selectedLabel ?? l10n.t('city.selected')).replaceAll('{name}', city.name)
         : city.name;
     return Semantics(
       button: true,
@@ -192,8 +204,9 @@ class _CityCard extends StatelessWidget {
   }
 }
 
-class _Message extends StatelessWidget {
-  const _Message({required this.text, required this.onRetry, this.isError = false});
+/// Message d'état (erreur, liste vide) avec « Réessayer ». Partagé avec T034.
+class CityMessage extends StatelessWidget {
+  const CityMessage({super.key, required this.text, required this.onRetry, this.isError = false});
 
   final String text;
   final bool isError;

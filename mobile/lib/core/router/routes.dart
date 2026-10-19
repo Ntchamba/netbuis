@@ -25,4 +25,9 @@ class Routes {
   static const createBusinessStructureType = '/create-business/structure-type';
   static const createBusinessStructureDetails = '/create-business/structure-details';
   static const createBusinessRecap = '/create-business/recap';
+
+  /// Choix précis du lieu (ville/village, puis quartier), ouvert depuis le champ
+  /// « Ville / Quartier » de l'écran Informations (T034). Ce ne sont pas des étapes.
+  static const createBusinessLocation = '/create-business/location';
+  static const createBusinessDistrict = '/create-business/location/district';
 }

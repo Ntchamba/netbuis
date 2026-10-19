@@ -68,6 +68,7 @@ Future<void> pumpBusinessApp(
   ThemeMode mode = ThemeMode.dark,
   List<Override> overrides = const [],
   bool settle = true,
+  MemoryPrefs? prefs,
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -84,7 +85,7 @@ Future<void> pumpBusinessApp(
         authRepositoryProvider.overrideWithValue(FlowRepository()),
         tokenStorageProvider
             .overrideWithValue(MemoryTokenStorage(refresh: signedIn ? 'ref-1' : null)),
-        appPrefsProvider.overrideWithValue(MemoryPrefs(seen: true)),
+        appPrefsProvider.overrideWithValue(prefs ?? MemoryPrefs(seen: true)),
         speechServiceProvider.overrideWithValue(speech ?? FakeSpeechService()),
         photoPickerProvider.overrideWithValue(photos ?? FakePhotoPicker()),
         ...overrides,

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T034 🔄
-- **Prochaine tâche** : T035
+- **Tâche en cours** : T035 🔄
+- **Prochaine tâche** : T036
 - **Dernière mise à jour** : 2026-10-16
 - **Branche** : etape-2/acces
 
@@ -49,8 +49,8 @@
 | ✅ | T031 | Mobile : secteur et détails d'activité | b3 | | 2026-10-19 | logs/T031-verification.md ; 307 tests ; plafond 3 = constante freeSubcategoryLimit (subcategoryLimitProvider prêt pour la valeur du serveur) ; aucun secteur présélectionné ; 3 tests existants adaptés (étape suivante construite) |
 | ✅ | T032 | Mobile : prestataire de service | b3 | | 2026-10-19 | logs/T032-verification.md ; 331 tests ; à trancher par Jeff : le diplôme est-il affichable publiquement (maquette) ou privé (D-17) ? ; CNI et diplôme restent des chemins locaux en mémoire jusqu'à T035 |
 | ✅ | T033 | Mobile : structure (supermarché, restaurant, hôtel, centre de santé) | b3 | | 2026-10-19 | logs/T033-verification.md ; 363 tests ; composants de plafond partagés (capped_choice.dart) ; codes = ceux du serveur ; à confirmer par Jeff : livraison d'un restaurant présélectionnée sur « oui » (maquette) |
-| 🔄 | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | |
-| ☐ | T035 | Mobile : récapitulatif et envoi | b3 | | |
+| ✅ | T034 | Mobile : choix précis du lieu (ville/village puis quartier) — écran sans maquette | b3 | | 2026-10-19 | logs/T034-verification.md ; 407 tests ; écran sans maquette décrit (ville avec recherche, puis quartier facultatif) ; règle de niveau unique isBusinessZoneLevel ; champ Ville / Quartier obligatoire, prérempli depuis la ville de T022 ; refactor minimal de choose_city_screen.dart (CityCard publique) |
+| 🔄 | T035 | Mobile : récapitulatif et envoi | b3 | | |
 | ☐ | T036 | Vérification de tranche : créer un commerce de bout en bout | orchestrateur | | |
 | | | **PHASE 4 — Espace commerçant : produits et offres** | | | |
 | ☐ | T037 | Backend : offres du commerçant | a2 | | |
@@ -164,6 +164,7 @@
 
 | Écran | Tâche | Choix fait |
 |---|---|---|
+| Choix du lieu du commerce (ville / village puis quartier, écran complet, 2 écrans) | T034 | cartes de T022, bouton retour rond des maquettes CreationBusiness ; quartier facultatif (« Je ne trouve pas mon quartier ») ; textes business.create.location.* écrits par b3 |
 | Création du compte business, étape Informations : feuille de choix de photo, messages d'erreur, « Cette étape arrive bientôt » | T030 | textes courts écrits par b3 (FR/EN) ; le bouton de bascule de thème de la maquette n'est pas reproduit |
 | Choisir ma ville (écran entier) + textes city.* + « Ma ville » / « Non choisie » dans Profil | T022 | cartes du Profil (fond, bordure, rayon 16), titre 21 px gras, accent #F2942E, icône générique de ville ; une carte par ville de niveau ville_village |
 | Saisie du nom après la première connexion (titre, aide, champ, boutons) | T011b | « Comment vous appelez-vous ? » / « Votre prénom ou votre nom, comme vous voulez qu'on vous appelle. C'est facultatif. » / « Prénom ou nom » / « Continuer » / « Passer » |

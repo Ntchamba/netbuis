@@ -1,5 +1,7 @@
 // Brouillon de la demande de compte business (corps de POST /api/business/)
 import '../../../../core/data/referentials/referential_models.dart';
+import '../../../../core/data/zones/zone.dart';
+import '../../application/business_zone_rules.dart';
 
 /// Longueurs maximales du serveur (backend/apps/business/models/profile.py, openapi.yaml).
 const int kBusinessNameMax = 150;
@@ -123,6 +125,8 @@ class BusinessDraft {
     this.representantNom = '',
     this.representantPhotoPath,
     this.zoneId,
+    this.ville,
+    this.quartier,
     this.formeJuridique,
     this.rccm = '',
     this.secteurId,
@@ -158,8 +162,17 @@ class BusinessDraft {
   final String representantNom;
   final String? representantPhotoPath;
 
-  /// Identifiant de la ville/village ou du quartier (écran du lieu, T034).
+  /// Identifiant envoyé au serveur (`zone`) : le quartier s'il est choisi, sinon la
+  /// ville/village (écran du lieu, T034). Toujours d'un niveau accepté par
+  /// [isBusinessZoneLevel] quand il est écrit par [withCity] / [withQuartier].
   final int? zoneId;
+
+  /// La ville ou le village choisi, gardé pour l'affichage (récapitulatif, champ lieu).
+  /// En mémoire seulement.
+  final Zone? ville;
+
+  /// Le quartier choisi (facultatif), gardé pour l'affichage. Toujours enfant de [ville].
+  final Zone? quartier;
 
   // Entreprise.
   final LegalForm? formeJuridique;
@@ -218,6 +231,8 @@ class BusinessDraft {
     String? representantNom,
     Object? representantPhotoPath = _keep,
     Object? zoneId = _keep,
+    Object? ville = _keep,
+    Object? quartier = _keep,
     Object? formeJuridique = _keep,
     String? rccm,
     Object? secteurId = _keep,
@@ -254,6 +269,8 @@ class BusinessDraft {
           ? this.representantPhotoPath
           : representantPhotoPath as String?,
       zoneId: identical(zoneId, _keep) ? this.zoneId : zoneId as int?,
+      ville: identical(ville, _keep) ? this.ville : ville as Zone?,
+      quartier: identical(quartier, _keep) ? this.quartier : quartier as Zone?,
       formeJuridique: identical(formeJuridique, _keep)
           ? this.formeJuridique
           : formeJuridique as LegalForm?,
@@ -293,6 +310,43 @@ class BusinessDraft {
       specialites: specialites ?? this.specialites,
     );
   }
+
+  /// Choisit la ville ou le village. Lève [InvalidBusinessZoneException] pour toute zone
+  /// qui n'est pas de niveau `ville_village` (région, département… : trop vague).
+  /// Une **autre** ville vide le quartier choisi ; la même ville le garde.
+  BusinessDraft withCity(Zone city) {
+    ensureBusinessZone(city, expected: ZoneLevel.villeVillage);
+    final keep = ville?.id == city.id;
+    final q = keep ? quartier : null;
+    return copyWith(ville: city, quartier: q, zoneId: q?.id ?? city.id);
+  }
+
+  /// Choisit le quartier de la ville déjà choisie, ou l'efface avec `null` (« Je ne trouve
+  /// pas mon quartier » : le lieu redevient la ville seule). Lève
+  /// [InvalidBusinessZoneException] si la zone n'est pas de niveau `quartier`, et
+  /// [StateError] s'il n'y a pas encore de ville ou si le quartier n'est pas dans la ville.
+  BusinessDraft withQuartier(Zone? district) {
+    final city = ville;
+    if (district == null) {
+      return city == null ? this : copyWith(quartier: null, zoneId: city.id);
+    }
+    ensureBusinessZone(district, expected: ZoneLevel.quartier);
+    if (city == null || district.parent != city.id) {
+      throw StateError('Quartier sans sa ville');
+    }
+    return copyWith(quartier: district, zoneId: district.id);
+  }
+
+  /// Lieu pour l'affichage : « Hardé, Maroua » ou « Maroua » ; null s'il n'y a rien.
+  String? get locationLabel {
+    final city = ville;
+    if (city == null) return null;
+    final district = quartier;
+    return district == null ? city.name : '${district.name}, ${city.name}';
+  }
+
+  /// Vrai si le lieu (obligatoire) manque.
+  bool get locationMissing => zoneId == null;
 
   /// Change le type de compte et **vide** ce qui n'a plus d'objet pour le nouveau type
   /// (le serveur refuse les champs d'un autre type). Les champs communs (nom, repère,
@@ -487,5 +541,8 @@ class BusinessDraft {
 
   /// Les champs obligatoires de l'écran Informations sont remplis et valides.
   bool get infoIsValid =>
-      nameError == null && representantNomError == null && !representantPhotoMissing;
+      nameError == null &&
+      representantNomError == null &&
+      !representantPhotoMissing &&
+      !locationMissing;
 }

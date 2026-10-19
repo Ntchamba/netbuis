@@ -155,18 +155,25 @@ void main() {
     }
   });
 
-  testWidgets('le lieu est un résumé non modifiable : la ville choisie en T022', (tester) async {
+  testWidgets('le lieu est un champ tappable : ville de T022 préremplie, chevron, ouvre le choix',
+      (tester) async {
     await pumpBusinessApp(tester);
-    await _show(tester, find.byKey(const ValueKey('business-location')));
+    final field = find.byKey(const ValueKey('business-location'));
+    await _show(tester, field);
 
     expect(find.text('Ville / Quartier'), findsOneWidget);
-    expect(find.descendant(of: find.byKey(const ValueKey('business-location')), matching: find.text('Maroua')),
-        findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('business-location')));
+    expect(find.descendant(of: field, matching: find.text('Maroua')), findsOneWidget);
+    expect(find.descendant(of: field, matching: find.byIcon(Icons.chevron_right)), findsOneWidget);
+    expect(tester.getSize(field).height, greaterThanOrEqualTo(48));
+    // La ville mémorisée est dans le brouillon : le lieu de départ est valide.
+    expect(currentDraft(tester).zoneId, 16);
+    expect(currentDraft(tester).locationLabel, 'Maroua');
+
+    await tester.tap(field);
     await tester.pumpAndSettle();
-    // Rien ne s'ouvre avant T034 : on reste sur l'écran Informations.
-    expect(find.text('Étape 1 sur 4'), findsOneWidget);
-    expect(find.byType(EditableText), findsWidgets);
+    // Le choix du lieu s'ouvre (T034) ; on n'est plus sur l'écran Informations.
+    expect(find.text('Choisir le lieu de votre commerce'), findsOneWidget);
+    expect(find.text('Étape 1 sur 4'), findsNothing);
   });
 
   testWidgets('repère optionnel et numéro masqué « ✓ vérifié » (jamais le numéro complet)',
@@ -195,6 +202,8 @@ void main() {
     expect(find.text('Ajoutez une photo.'), findsOneWidget);
     expect(find.text('Étape 1 sur 4'), findsOneWidget);
     expect(find.text('Cette étape arrive bientôt'), findsNothing);
+    // Le lieu est déjà valide (ville de T022 préremplie) : aucune erreur de lieu.
+    expect(find.text('Choisissez votre ville ou votre quartier.'), findsNothing);
   });
 
   testWidgets('les erreurs partent quand le champ est rempli', (tester) async {

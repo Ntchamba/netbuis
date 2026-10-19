@@ -143,12 +143,16 @@ void main() {
       expect(validateRepresentantName('b' * 151), FieldError.tooLong);
     });
 
-    test('infoIsValid exige nom, représentant ET photo du représentant', () {
-      const base = BusinessDraft(name: 'Chez Aïcha', representantNom: 'Aïcha B.');
+    test('infoIsValid exige nom, représentant, photo du représentant ET lieu', () {
+      const base = BusinessDraft(name: 'Chez Aïcha', representantNom: 'Aïcha B.', zoneId: 16);
       expect(base.infoIsValid, isFalse);
       expect(base.representantPhotoMissing, isTrue);
       expect(base.copyWith(representantPhotoPath: '/p.jpg').infoIsValid, isTrue);
       expect(base.copyWith(representantPhotoPath: '/p.jpg', name: ' ').infoIsValid, isFalse);
+      // Sans lieu, tout le reste étant rempli, l'écran Informations reste incomplet.
+      final noPlace = base.copyWith(representantPhotoPath: '/p.jpg', zoneId: null);
+      expect(noPlace.locationMissing, isTrue);
+      expect(noPlace.infoIsValid, isFalse);
     });
 
     test('changer de type vide ce qui n\'a plus d\'objet et garde le commun', () {

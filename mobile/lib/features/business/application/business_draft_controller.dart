@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/referentials/referential_models.dart';
+import '../../../core/data/zones/zone.dart';
+import '../../../core/storage/prefs.dart';
 import '../data/models/business_draft.dart';
 
 /// Brouillon de la demande, partagé par tous les écrans du parcours.
@@ -22,6 +24,21 @@ class BusinessDraftController extends Notifier<BusinessDraft> {
 
   /// Change le type de compte (vide les champs devenus sans objet).
   void setType(BusinessAccountType type) => state = state.withType(type);
+
+  /// Choisit la ville ou le village (vide le quartier si la ville change). Lève
+  /// `InvalidBusinessZoneException` si la zone n'est pas de niveau `ville_village`.
+  void setCity(Zone city) => state = state.withCity(city);
+
+  /// Choisit le quartier de la ville choisie, ou `null` pour garder la ville seule.
+  void setQuartier(Zone? district) => state = state.withQuartier(district);
+
+  /// Reprend la ville mémorisée (T022) comme lieu de départ, seulement si aucun lieu
+  /// n'est encore choisi. La ville mémorisée vient de la liste des zones `ville_village`
+  /// (c'est la seule que l'écran de T022 propose) : son niveau est donc `ville_village`.
+  void prefillCity(SelectedCity? city) {
+    if (city == null || state.zoneId != null) return;
+    setCity(Zone(id: city.id, name: city.name, level: ZoneLevel.villeVillage));
+  }
 
   void setName(String value) => state = state.copyWith(name: value);
   void setRepere(String value) => state = state.copyWith(repere: value);
