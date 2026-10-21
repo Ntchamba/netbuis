@@ -25,6 +25,7 @@ MODIFIER_REGLAGES = "peut_modifier_reglages"
 EXPORTER = "peut_exporter"
 GERER_ADMINS = "peut_gerer_admins"  # attribuer / retirer les rôles
 ACCORDER_ABONNEMENT = "peut_accorder_abonnement"
+GERER_REFERENTIELS = "peut_gerer_referentiels"  # zones, secteurs, catalogue (T074b)
 
 PERMISSION_LABELS = {
     VOIR_DEMANDES: "Voir la file des demandes de compte business",
@@ -36,6 +37,7 @@ PERMISSION_LABELS = {
     EXPORTER: "Exporter des données",
     GERER_ADMINS: "Attribuer ou retirer les rôles d'administration",
     ACCORDER_ABONNEMENT: "Accorder un abonnement",
+    GERER_REFERENTIELS: "Gérer les référentiels (zones, secteurs, catalogue)",
 }
 
 GROUP_PERMISSIONS = {

@@ -30,7 +30,7 @@ def matching_products(term: str) -> dict:
         .values_list("pk", "score")
     )
     by_synonym = (
-        Synonym.objects.filter(product__is_active=True)
+        Synonym.objects.filter(product__is_active=True, is_active=True)
         .annotate(score=best_score([(term, 1.0)], plain_text("normalized_term")))
         .filter(score__gte=SIMILARITY_THRESHOLD)
         .values_list("product_id", "score")

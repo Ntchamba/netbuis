@@ -104,3 +104,18 @@ def test_index_trigramme_presents_en_base():
         rows = dict(cursor.fetchall())
     assert set(rows) == {"catalog_product_name_trgm", "catalog_synonym_term_trgm"}
     assert all("gin_trgm_ops" in definition for definition in rows.values())
+
+
+def test_synonyme_actif_par_defaut_et_recherche_ignore_les_inactifs():
+    from apps.search.text.synonyms_expand import matching_products
+
+    product = make_product("Ndolé", synonyms=["tchop"])
+    synonym = Synonym.objects.get(product=product, term="tchop")
+    assert synonym.is_active is True
+    assert product.pk in matching_products("tchop")
+    synonym.is_active = False
+    synonym.save()
+    assert product.pk not in matching_products("tchop")
+    synonym.is_active = True
+    synonym.save()
+    assert product.pk in matching_products("tchop")

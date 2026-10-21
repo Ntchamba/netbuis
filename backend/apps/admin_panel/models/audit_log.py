@@ -24,6 +24,13 @@ class AuditAction(models.TextChoices):
     MODERATION_CONTENU = "moderation_contenu", "Modération d'un contenu"
     CONSULTATION_NUMERO = "consultation_numero", "Consultation du numéro complet d'un compte"
     EXPORT_COMPTES = "export_comptes", "Export CSV des comptes"
+    CREATION_REFERENTIEL = "creation_referentiel", "Création d'un élément de référentiel"
+    MODIFICATION_REFERENTIEL = (
+        "modification_referentiel", "Modification d'un élément de référentiel")
+    DESACTIVATION_REFERENTIEL = (
+        "desactivation_referentiel", "Désactivation d'un élément de référentiel")
+    REACTIVATION_REFERENTIEL = (
+        "reactivation_referentiel", "Réactivation d'un élément de référentiel")
 
 
 # Un motif est OBLIGATOIRE pour ces actions (spec : rejet, blocage, suppression).

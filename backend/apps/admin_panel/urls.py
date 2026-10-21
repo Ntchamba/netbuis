@@ -5,6 +5,7 @@ from .views.admins import AdminDetailView, AdminListCreateView
 from .views.businesses import ApproveView, BusinessRequestListView, PrivateFileView, RejectView
 from .views.export import AccountsCsvView
 from .views.me import AdminMeView
+from .views.referentials import FreeValuesView, build_views
 from .views.settings import SettingDetailView, SettingListView
 from .views.stats import AdminStatsView
 from .views.users import (
@@ -16,6 +17,24 @@ from .views.users import (
 )
 
 app_name = "admin_panel"
+
+_REF_PATHS = []
+for _slug in ("zones", "sectors", "subcategories", "service-categories", "structure-types",
+              "products", "synonyms"):
+    _v = build_views(_slug)
+    _name = _slug.replace("-", "_")
+    _REF_PATHS += [
+        path(f"referentials/{_slug}/", _v["list"].as_view(), name=f"ref-{_name}"),
+        path(f"referentials/{_slug}/<int:pk>/", _v["detail"].as_view(),
+             name=f"ref-{_name}-detail"),
+    ]
+    if "deactivate" in _v:
+        _REF_PATHS += [
+            path(f"referentials/{_slug}/<int:pk>/deactivate/", _v["deactivate"].as_view(),
+                 name=f"ref-{_name}-deactivate"),
+            path(f"referentials/{_slug}/<int:pk>/reactivate/", _v["reactivate"].as_view(),
+                 name=f"ref-{_name}-reactivate"),
+        ]
 
 urlpatterns = [
     path("me/", AdminMeView.as_view(), name="me"),
@@ -33,5 +52,7 @@ urlpatterns = [
     path("admins/", AdminListCreateView.as_view(), name="admins"),
     path("admins/<int:pk>/", AdminDetailView.as_view(), name="admin-detail"),
     path("export/accounts.csv", AccountsCsvView.as_view(), name="export-accounts"),
+    path("referentials/free-values/", FreeValuesView.as_view(), name="ref-free-values"),
+    *_REF_PATHS,
     path("private-files/<str:token>/", PrivateFileView.as_view(), name="private-file"),
 ]

@@ -19,6 +19,11 @@ class Synonym(TimeStampedModel):
         help_text="Minuscules, sans accents (calculé à l'enregistrement).",
     )
 
+    is_active = models.BooleanField(
+        "actif", default=True, db_index=True,
+        help_text="Désactivé : le synonyme n'est plus utilisé par la recherche.",
+    )
+
     class Meta:
         verbose_name = "synonyme"
         verbose_name_plural = "synonymes"

@@ -34,7 +34,7 @@ class CatalogProductSearchView(generics.ListAPIView):
         term = normalize_query(raw)
         if not term:
             raise ValidationError({"q": "Tapez au moins une lettre ou un chiffre."})
-        synonyms = Synonym.objects.filter(product=OuterRef("pk"))
+        synonyms = Synonym.objects.filter(product=OuterRef("pk"), is_active=True)
         by_synonym_start = Exists(synonyms.filter(normalized_term__startswith=term))
         by_synonym_contains = Exists(synonyms.filter(normalized_term__contains=term))
         rank = Case(

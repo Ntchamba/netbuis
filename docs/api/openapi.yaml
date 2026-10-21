@@ -634,6 +634,2308 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Jeton absent ou invalide
+  /api/admin/referentials/free-values/:
+    get:
+      operationId: admin_ref_free_values
+      description: Valeurs libres saisies par les commerçants (« Autre »), regroupées
+        par valeur normalisée, triées par fréquence décroissante, 100 au plus par
+        champ. Comptes bloqués ou supprimés exclus. Aucun numéro ni donnée personnelle.
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FreeValues'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/products/:
+    get:
+      operationId: admin_ref_products_list
+      description: Liste paginée (produit du catalogue), actifs et désactivés.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Identifiant de la sous-catégorie
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminProductList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_products_create
+      description: Crée produit du catalogue (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProduct'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/products/{id}/:
+    get:
+      operationId: admin_ref_products_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProduct'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_products_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProduct'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/products/{id}/deactivate/:
+    post:
+      operationId: admin_ref_products_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProduct'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/products/{id}/reactivate/:
+    post:
+      operationId: admin_ref_products_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProduct'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/sectors/:
+    get:
+      operationId: admin_ref_sectors_list
+      description: Liste paginée (secteur), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminSectorList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_sectors_create
+      description: Crée secteur (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSector'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/sectors/{id}/:
+    get:
+      operationId: admin_ref_sectors_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSector'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_sectors_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSector'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/sectors/{id}/deactivate/:
+    post:
+      operationId: admin_ref_sectors_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSector'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/sectors/{id}/reactivate/:
+    post:
+      operationId: admin_ref_sectors_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSector'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/service-categories/:
+    get:
+      operationId: admin_ref_service_categories_list
+      description: Liste paginée (catégorie de service), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminItemList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_service_categories_create
+      description: Crée catégorie de service (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/service-categories/{id}/:
+    get:
+      operationId: admin_ref_service_categories_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_service_categories_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/service-categories/{id}/deactivate/:
+    post:
+      operationId: admin_ref_service_categories_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/service-categories/{id}/reactivate/:
+    post:
+      operationId: admin_ref_service_categories_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/structure-types/:
+    get:
+      operationId: admin_ref_structure_types_list
+      description: Liste paginée (type de structure), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminItemList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_structure_types_create
+      description: Crée type de structure (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/structure-types/{id}/:
+    get:
+      operationId: admin_ref_structure_types_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_structure_types_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/structure-types/{id}/deactivate/:
+    post:
+      operationId: admin_ref_structure_types_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/structure-types/{id}/reactivate/:
+    post:
+      operationId: admin_ref_structure_types_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminItem'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/subcategories/:
+    get:
+      operationId: admin_ref_subcategories_list
+      description: Liste paginée (sous-catégorie), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      - in: query
+        name: sector
+        schema:
+          type: string
+        description: Identifiant du secteur
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminSubcategoryList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_subcategories_create
+      description: Crée sous-catégorie (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubcategoryCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubcategoryCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubcategoryCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubcategory'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/subcategories/{id}/:
+    get:
+      operationId: admin_ref_subcategories_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubcategory'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_subcategories_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItemUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubcategory'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/subcategories/{id}/deactivate/:
+    post:
+      operationId: admin_ref_subcategories_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubcategory'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/subcategories/{id}/reactivate/:
+    post:
+      operationId: admin_ref_subcategories_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubcategory'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/synonyms/:
+    get:
+      operationId: admin_ref_synonyms_list
+      description: Liste paginée (synonyme), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: product
+        schema:
+          type: string
+        description: Identifiant du produit
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminSynonymList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_synonyms_create
+      description: Crée synonyme (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynonymCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SynonymCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SynonymCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSynonym'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/synonyms/{id}/:
+    get:
+      operationId: admin_ref_synonyms_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSynonym'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_synonyms_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSynonymUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSynonymUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSynonymUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSynonym'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/synonyms/{id}/deactivate/:
+    post:
+      operationId: admin_ref_synonyms_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSynonym'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/synonyms/{id}/reactivate/:
+    post:
+      operationId: admin_ref_synonyms_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSynonym'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/zones/:
+    get:
+      operationId: admin_ref_zones_list
+      description: Liste paginée (zone), actifs et désactivés.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+        description: true ou false
+      - in: query
+        name: level
+        schema:
+          type: string
+        description: Niveau (pays, region, departement, arrondissement, ville_village,
+          quartier, repere)
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: parent
+        schema:
+          type: string
+        description: Identifiant du parent, ou `root` pour les pays
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Recherche sur le nom (sans accents)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminZoneList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    post:
+      operationId: admin_ref_zones_create
+      description: Crée zone (audit `creation_referentiel`).
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZoneCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ZoneCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ZoneCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminZone'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/zones/{id}/:
+    get:
+      operationId: admin_ref_zones_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminZone'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+    patch:
+      operationId: admin_ref_zones_update
+      description: Modifie les champs envoyés (le niveau et le code stable ne changent
+        pas). Audit `modification_referentiel` avec ancienne et nouvelle valeur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedZoneUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedZoneUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedZoneUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminZone'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid (champ manquant ou incorrect, parent d'un mauvais niveau,
+            cycle…) avec le détail dans `fields`
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/zones/{id}/deactivate/:
+    post:
+      operationId: admin_ref_zones_deactivate
+      description: Désactive (jamais de suppression). Audit `desactivation_referentiel`.
+        Refusé tant que des éléments rattachés sont actifs (409 `has_active_children`)
+        ; la ligne « Autre » est protégée (409 `protected_item`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminZone'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/referentials/zones/{id}/reactivate/:
+    post:
+      operationId: admin_ref_zones_reactivate
+      description: Réactive (jamais de suppression). Audit `reactivation_referentiel`.
+        Refusé si le parent est désactivé (409 `parent_inactive`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminZone'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: already_exists / has_active_children / parent_inactive / protected_item
+            / invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
   /api/admin/requests/:
     get:
       operationId: admin_requests_list
@@ -2722,6 +5024,32 @@ components:
       - roles
       - status
       - temporary_password
+    AdminItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        order:
+          type: integer
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - code
+      - icon
+      - id
+      - is_active
+      - name
+      - order
+      - updated_at
     AdminLogin:
       type: object
       properties:
@@ -2762,6 +5090,67 @@ components:
       - permissions
       - phone_masked
       - roles
+    AdminProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: integer
+          nullable: true
+        category_name:
+          type: string
+          nullable: true
+          readOnly: true
+        synonyms_count:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - category
+      - category_name
+      - id
+      - is_active
+      - name
+      - synonyms_count
+      - updated_at
+    AdminSector:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        order:
+          type: integer
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+        active_children_count:
+          type: integer
+          readOnly: true
+          description: Sous-catégories actives
+      required:
+      - active_children_count
+      - code
+      - icon
+      - id
+      - is_active
+      - name
+      - order
+      - updated_at
     AdminStats:
       type: object
       properties:
@@ -2816,6 +5205,114 @@ components:
       - searches_week
       - subscribers
       - subscription_threshold
+    AdminSubcategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        order:
+          type: integer
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+        sector:
+          type: integer
+      required:
+      - code
+      - icon
+      - id
+      - is_active
+      - name
+      - order
+      - sector
+      - updated_at
+    AdminSynonym:
+      type: object
+      properties:
+        id:
+          type: integer
+        product:
+          type: integer
+        product_name:
+          type: string
+          readOnly: true
+        term:
+          type: string
+        is_active:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - is_active
+      - product
+      - product_name
+      - term
+      - updated_at
+    AdminZone:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          maxLength: 150
+        level:
+          allOf:
+          - $ref: '#/components/schemas/LevelEnum'
+          title: Niveau
+        parent:
+          type: integer
+          nullable: true
+        parent_name:
+          type: string
+          nullable: true
+          readOnly: true
+        official_code:
+          type: string
+          title: Code officiel
+          maxLength: 30
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Ordre
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        is_active:
+          type: boolean
+          title: Active
+        active_children_count:
+          type: integer
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - active_children_count
+      - id
+      - level
+      - name
+      - parent_name
+      - updated_at
     AuditEntry:
       type: object
       properties:
@@ -3282,6 +5779,41 @@ components:
         * `association` - Association
         * `etablissement_public` - Établissement public
         * `autre` - Autre
+    FreeValue:
+      type: object
+      properties:
+        value:
+          type: string
+          description: Forme la plus fréquente saisie
+        normalized:
+          type: string
+          description: Minuscules, sans accents
+        count:
+          type: integer
+          description: Nombre de commerces
+      required:
+      - count
+      - normalized
+      - value
+    FreeValues:
+      type: object
+      properties:
+        secteur_libre:
+          type: array
+          items:
+            $ref: '#/components/schemas/FreeValue'
+        categorie_service_libre:
+          type: array
+          items:
+            $ref: '#/components/schemas/FreeValue'
+        structure_type_libre:
+          type: array
+          items:
+            $ref: '#/components/schemas/FreeValue'
+      required:
+      - categorie_service_libre
+      - secteur_libre
+      - structure_type_libre
     HighTraffic:
       type: object
       properties:
@@ -3361,6 +5893,27 @@ components:
             pré-rempli.'
       required:
       - call_id
+    ItemCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        icon:
+          type: string
+          maxLength: 16
+        order:
+          type: integer
+          minimum: 0
+        code:
+          type: string
+          description: Code stable (minuscules, chiffres, « _ ») ; non modifiable
+            ensuite.
+          pattern: ^[a-z0-9]+(?:_[a-z0-9]+)*$
+          maxLength: 50
+      required:
+      - code
+      - name
     LanguageEnum:
       enum:
       - fr
@@ -3700,6 +6253,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountList'
+    PaginatedAdminItemList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminItem'
     PaginatedAdminList:
       type: object
       required:
@@ -3723,6 +6299,121 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Admin'
+    PaginatedAdminProductList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminProduct'
+    PaginatedAdminSectorList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminSector'
+    PaginatedAdminSubcategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminSubcategory'
+    PaginatedAdminSynonymList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminSynonym'
+    PaginatedAdminZoneList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminZone'
     PaginatedBusinessRequestList:
       type: object
       required:
@@ -4009,6 +6700,18 @@ components:
           type: string
           format: date-time
           readOnly: true
+    PatchedItemUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        icon:
+          type: string
+          maxLength: 16
+        order:
+          type: integer
+          minimum: 0
     PatchedMe:
       type: object
       properties:
@@ -4087,6 +6790,15 @@ components:
           type: string
           format: date-time
           readOnly: true
+    PatchedProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        category:
+          type: integer
+          nullable: true
     PatchedSettingUpdate:
       type: object
       properties:
@@ -4095,6 +6807,40 @@ components:
           type: string
           description: Commentaire facultatif, ajouté au journal d'audit.
           maxLength: 500
+    PatchedSynonymUpdate:
+      type: object
+      properties:
+        term:
+          type: string
+          maxLength: 150
+    PatchedZoneUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        parent:
+          type: integer
+          nullable: true
+          description: Zone parente (niveau supérieur attendu) ; absente pour un pays.
+        official_code:
+          type: string
+          maxLength: 30
+        order:
+          type: integer
+          minimum: 0
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+          nullable: true
     PlatformEnum:
       enum:
       - android
@@ -4103,6 +6849,17 @@ components:
       description: |-
         * `android` - Android
         * `ios` - iOS
+    ProductCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        category:
+          type: integer
+          nullable: true
+      required:
+      - name
     PublicBusiness:
       type: object
       properties:
@@ -4251,6 +7008,13 @@ components:
         * `bazar_electromenager` - Bazar & Électroménager
         * `produits_bebes` - Produits pour bébés
         * `autre` - Autre
+    Reason:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Commentaire facultatif, ajouté au journal d'audit.
+          maxLength: 500
     RefreshRequest:
       type: object
       properties:
@@ -4572,6 +7336,28 @@ components:
       - id
       - name
       - order
+    SubcategoryCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        icon:
+          type: string
+          maxLength: 16
+        order:
+          type: integer
+          minimum: 0
+        code:
+          type: string
+          pattern: ^[a-z0-9]+(?:_[a-z0-9]+)*$
+          maxLength: 60
+        sector:
+          type: integer
+      required:
+      - code
+      - name
+      - sector
     Suggestion:
       type: object
       properties:
@@ -4589,6 +7375,17 @@ components:
       required:
       - text
       - type
+    SynonymCreate:
+      type: object
+      properties:
+        term:
+          type: string
+          maxLength: 150
+        product:
+          type: integer
+      required:
+      - product
+      - term
     TypeCompteEnum:
       enum:
       - boutique
@@ -4764,6 +7561,39 @@ components:
       - official_code
       - order
       - parent
+    ZoneCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        parent:
+          type: integer
+          nullable: true
+          description: Zone parente (niveau supérieur attendu) ; absente pour un pays.
+        official_code:
+          type: string
+          maxLength: 30
+        order:
+          type: integer
+          minimum: 0
+        latitude:
+          type: number
+          format: double
+          maximum: 90
+          minimum: -90
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          maximum: 180
+          minimum: -180
+          nullable: true
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+      required:
+      - level
+      - name
     ZoneDetail:
       type: object
       properties:
