@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T040
-- **Prochaine tâche** : T041
+- **Tâche en cours** : T041
+- **Prochaine tâche** : T043
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -56,7 +56,7 @@
 | ✅ | T037 | Backend : offres du commerçant | a2 | 2026-10-21 | docs/verifications/T037.md ; vérificateur CONFORME ; reste : offres dans seed_demo |
 | ✅ | T038 | Mobile : « Mes produits » | b3 | 2026-10-21 | docs/verifications/T038.md ; vérificateur CONFORME |
 | | | **PHASE 5 — Recherche et écran d'Accueil (Étape 4, chemin critique)** | | | |
-| ☐ | T040 | Backend : moteur de recherche | a3 | | |
+| ✅ | T040 | Backend : moteur de recherche | a3 | 2026-10-21 | docs/verifications/T040.md ; vérificateur CONFORME |
 | ☐ | T041 | Backend : route de recherche, suggestions, recherche vocale | a3 | | |
 | ☐ | T043 | Mobile : données et état de la recherche | b2 | | |
 | ☐ | T044 | Mobile : écran d'Accueil | b2 | | |
