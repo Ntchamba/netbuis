@@ -598,6 +598,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: 'no_business : pas de compte business ; not_found : offre introuvable'
+  /api/calls/initiate/:
+    post:
+      operationId: calls_initiate
+      description: 'Vérifie les droits et la limite anti-aspiration, enregistre l''appel,
+        puis renvoie le numéro du commerçant POUR CET APPEL SEULEMENT (Cache-Control:
+        no-store).'
+      tags:
+      - calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Initiate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Initiate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Initiate'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiateResponse'
+          description: ''
+        '400':
+          description: invalid
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+          description: NOT_AUTHENTICATED
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+          description: ACCOUNT_BLOCKED, OWN_BUSINESS
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+          description: BUSINESS_NOT_ACTIVE
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+          description: CHANNEL_UNAVAILABLE
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorCode'
+          description: RATE_LIMITED
   /api/catalog/products/:
     get:
       operationId: catalog_products_list
@@ -1477,6 +1539,27 @@ components:
       - name
       - sector
       - subcategory
+    ChannelEnum:
+      enum:
+      - call
+      type: string
+      description: '* `call` - call'
+    CodeEnum:
+      enum:
+      - NOT_AUTHENTICATED
+      - ACCOUNT_BLOCKED
+      - BUSINESS_NOT_ACTIVE
+      - OWN_BUSINESS
+      - RATE_LIMITED
+      - CHANNEL_UNAVAILABLE
+      type: string
+      description: |-
+        * `NOT_AUTHENTICATED` - NOT_AUTHENTICATED
+        * `ACCOUNT_BLOCKED` - ACCOUNT_BLOCKED
+        * `BUSINESS_NOT_ACTIVE` - BUSINESS_NOT_ACTIVE
+        * `OWN_BUSINESS` - OWN_BUSINESS
+        * `RATE_LIMITED` - RATE_LIMITED
+        * `CHANNEL_UNAVAILABLE` - CHANNEL_UNAVAILABLE
     CuisineEnum:
       enum:
       - camerounaise
@@ -1513,6 +1596,16 @@ components:
       required:
       - code
       - message
+    ErrorCode:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/CodeEnum'
+        message:
+          type: string
+      required:
+      - code
+      - message
     FormeJuridiqueEnum:
       enum:
       - individuelle
@@ -1533,6 +1626,34 @@ components:
         * `association` - Association
         * `etablissement_public` - Établissement public
         * `autre` - Autre
+    Initiate:
+      type: object
+      properties:
+        business_id:
+          type: integer
+          minimum: 1
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        platform:
+          $ref: '#/components/schemas/PlatformEnum'
+        operator:
+          $ref: '#/components/schemas/OperatorEnum'
+      required:
+      - business_id
+      - channel
+      - platform
+    InitiateResponse:
+      type: object
+      description: Seul endroit de l'API qui renvoie le numéro d'un commerçant.
+      properties:
+        call_id:
+          type: integer
+        phone:
+          type: string
+          description: Numéro du commerçant (+2376XXXXXXXX), pour cet appel.
+      required:
+      - call_id
+      - phone
     LanguageEnum:
       enum:
       - fr
@@ -1649,6 +1770,14 @@ components:
       - name
       - on_request
       - updated_at
+    OperatorEnum:
+      enum:
+      - orange
+      - mtn
+      type: string
+      description: |-
+        * `orange` - Orange
+        * `mtn` - MTN
     OtpRequest:
       type: object
       properties:
@@ -2007,6 +2136,14 @@ components:
           type: string
           format: date-time
           readOnly: true
+    PlatformEnum:
+      enum:
+      - android
+      - ios
+      type: string
+      description: |-
+        * `android` - Android
+        * `ios` - iOS
     PublicBusiness:
       type: object
       properties:

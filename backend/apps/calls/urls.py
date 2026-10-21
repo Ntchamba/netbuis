@@ -1,12 +1,10 @@
-"""Routes de l'app calls (à remplir pendant l'implémentation).
+"""Routes de l'app calls (T050). Suite en T051 : feedback, whatsapp-report, history."""
+from django.urls import path
 
-Routes prévues (voir docs/api/openapi.yaml) :
-#   calls/initiate/
-#   calls/<id>/feedback/
-#   calls/<id>/whatsapp-report/
-"""
-from django.urls import path  # noqa: F401
+from .views.initiate import InitiateCallView
 
 app_name = "calls"
 
-urlpatterns = []
+urlpatterns = [
+    path("calls/initiate/", InitiateCallView.as_view(), name="initiate"),
+]
