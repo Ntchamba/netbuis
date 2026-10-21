@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T048
-- **Prochaine tâche** : T050
+- **Tâche en cours** : T050
+- **Prochaine tâche** : T051
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -64,7 +64,7 @@
 | ✅ | T046 | Mobile : recherche vocale | b2 | 2026-10-21 | docs/verifications/T046.md ; vérificateur CONFORME |
 | ✅ | T047b | Backend : fiche publique | a2 | 2026-10-21 | docs/verifications/T047b.md ; vérificateur CONFORME |
 | ✅ | T047 | Mobile : fiche publique du commerçant | b2 | 2026-10-21 | docs/verifications/T047.md ; vérificateur CONFORME |
-| ☐ | T048 | Vérification de tranche : trouver un commerçant | orchestrateur | | |
+| ✅ | T048 | Vérification de tranche : trouver un commerçant | orchestrateur | 2026-10-21 | docs/verifications/T048.md ; vérificateur CONFORME |
 | | | **PHASE 6 — Appeler et écrire sur WhatsApp (Étape 4, zone la plus sensible)** | | | |
 | ☐ | T050 | 🔒 Backend : lancer un appel | a3 | | |
 | ☐ | T051 | Backend : WhatsApp, retour d'appel, historique | a3 | | |
