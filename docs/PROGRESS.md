@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T057
-- **Prochaine tâche** : T060
+- **Tâche en cours** : T060
+- **Prochaine tâche** : T061
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -73,7 +73,7 @@
 | ✅ | T054 | Mobile : WhatsApp et retour d'appel | b2 | 2026-10-21 | docs/verifications/T054.md ; vérificateur CONFORME |
 | ✅ | T055 | Mobile : dernier résultat hors connexion | b2 | 2026-10-21 | docs/verifications/T055.md ; vérificateur CONFORME |
 | ✅ | T056 | Tests du bloc recherche et appel | b2 | 2026-10-21 | docs/verifications/T056.md ; vérificateur CONFORME |
-| ☐ | T057 | Vérification de tranche CRITIQUE : de la recherche à l'appel | orchestrateur | | |
+| ✅ | T057 | Vérification de tranche CRITIQUE : de la recherche à l'appel | orchestrateur | 2026-10-21 | docs/verifications/T057.md ; vérificateur CONFORME |
 | | | **PHASE 7 — Explorer par quartier (Étape 4)** | | | |
 | ☐ | T060 | Backend : carte par zones | a2 | | |
 | ☐ | T061 | Mobile : écran Carte | b2 | | |
