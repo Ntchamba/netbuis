@@ -156,11 +156,11 @@ test("sans permission : /comptes, /demandes et / affichent « Accès refusé » 
   }
 });
 
-test("pages provisoires lisibles pour Demandes", async () => {
+test("pages provisoires lisibles pour Comptes (Demandes a sa vraie page depuis T082)", async () => {
   server(FULL);
-  const div = await mount("/demandes");
+  const div = await mount("/comptes");
   expect(div.textContent).toContain("Cette page arrive bientôt.");
-  expect(div.querySelector("header h2")?.textContent).toBe("Demandes en attente");
+  expect(div.querySelector("header h2")?.textContent).toBe("Comptes");
 });
 
 test("Déconnexion appelle le serveur et ramène à la connexion", async () => {

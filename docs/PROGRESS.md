@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T082
-- **Prochaine tâche** : T083
+- **Tâche en cours** : T083
+- **Prochaine tâche** : T085
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -92,7 +92,7 @@
 | ✅ | T077 | 🔒 Dashboard : connexion de l'administrateur | c3 | 2026-10-21 | docs/verifications/T077.md ; vérificateur CONFORME |
 | ✅ | T078 | Dashboard : mise en page | c3 | 2026-10-21 | docs/verifications/T078.md ; vérificateur CONFORME |
 | ✅ | T081 | Dashboard : Vue d'ensemble | c3 | 2026-10-21 | docs/verifications/T081.md ; vérificateur CONFORME |
-| ☐ | T082 | Dashboard : Demandes | c3 | | |
+| ✅ | T082 | Dashboard : Demandes | c3 | 2026-10-21 | docs/verifications/T082.md ; vérificateur CONFORME |
 | ☐ | T083 | Dashboard : Comptes | c3 | | |
 | ☐ | T085 | Dashboard : référentiels | c3 | | |
 | ☐ | T086 | Dashboard : réglages et administrateurs | c3 | | |

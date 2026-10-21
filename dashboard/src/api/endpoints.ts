@@ -6,6 +6,8 @@ export const ENDPOINTS = {
   me: "/api/admin/me/",
   stats: "/api/admin/stats/",
   requests: "/api/admin/requests/",
+  /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */
+  privateFilesPrefix: "/api/admin/private-files/",
 } as const;
 
 /** Routes d'authentification : un 401 n'y déclenche jamais de rafraîchissement. */
