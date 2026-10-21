@@ -16,6 +16,9 @@ from apps.admin_panel.permissions import require
 from apps.admin_panel.services import rights_service as rights
 from tests.factories.user_factory import AdminFactory, UserFactory
 
+from ._contrat import ROUTES, concrete, discovered
+from ._contrat import VALIDATEUR_PEUT as VALIDATEUR_ROUTES
+
 pytestmark = pytest.mark.django_db
 
 ME = "/api/admin/me/"
@@ -246,3 +249,45 @@ def test_bout_en_bout_createsuperuser_puis_groupe():
     assert response.json()["roles"] == ["Administrateur complet"]
     assert response.json()["permissions"] == sorted(ALL)
     assert "677000001" not in response.content.decode()
+
+
+# --- T075 : exhaustivité et matrice par route (registre central : _contrat.py) ----------
+
+
+
+def test_toutes_les_routes_admin_sont_dans_le_registre():
+    """Une nouvelle route /api/admin/ non déclarée dans _contrat.ROUTES fait échouer ce test."""
+    trouvees, declarees = set(discovered()), set(ROUTES)
+    assert trouvees - declarees == set(), "route(s) non couverte(s) par la matrice"
+    assert declarees - trouvees == set(), "route(s) du registre qui n'existent plus"
+
+
+def test_les_permissions_du_registre_existent():
+    assert {p for p in ROUTES.values() if p} <= set(ALL)
+
+
+def _call(client, method, path):
+    if method == "get":
+        return client.get(path)
+    return getattr(client, method)(path, {}, format="json")
+
+
+def _refuse(response):
+    return response.status_code == 403 and response.json().get("code") == "permission_denied"
+
+
+@pytest.mark.parametrize("route", sorted(ROUTES), ids=lambda k: f"{k[0].upper()} {k[1]}")
+def test_matrice_de_permissions_par_route(route):
+    method, template = route
+    permission = ROUTES[route]
+    path = concrete(template)
+    assert _call(APIClient(), method, path).status_code == 401
+    for intrus in (UserFactory(), AdminFactory()):  # compte simple ; admin sans groupe
+        response = _call(api_as(intrus), method, path)
+        assert _refuse(response), (intrus, response.status_code)
+    validateur_ok = permission is None or permission in VALIDATEUR_ROUTES
+    reponse = _call(api_as(admin_in("Validateur")), method, path)
+    assert _refuse(reponse) is (not validateur_ok), reponse.status_code
+    assert reponse.status_code != 401
+    complet = _call(api_as(admin_in("Administrateur complet")), method, path)
+    assert complet.status_code != 401 and not _refuse(complet), complet.status_code

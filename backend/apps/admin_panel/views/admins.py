@@ -53,7 +53,9 @@ class AdminListCreateView(generics.ListAPIView):
         responses={200: AdminSerializer(many=True), **_ERRORS},
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        response = super().get(request, *args, **kwargs)
+        response["Cache-Control"] = "no-store"
+        return response
 
     @extend_schema(
         tags=["admin"], operation_id="admin_admins_create", request=AdminCreateSerializer,

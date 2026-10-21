@@ -31,4 +31,6 @@ class AdminMeView(APIView):
         data = AdminMeSerializer.build(
             user, rights_service.admin_roles(user), rights_service.admin_permissions(user)
         )
-        return Response(data)
+        response = Response(data)
+        response["Cache-Control"] = "no-store"
+        return response

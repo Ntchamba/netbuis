@@ -31,7 +31,9 @@ class SettingListView(APIView):
         responses={200: SettingSerializer(many=True), **_ERRORS},
     )
     def get(self, request):
-        return Response(SettingSerializer(settings_service.list_settings(), many=True).data)
+        response = Response(SettingSerializer(settings_service.list_settings(), many=True).data)
+        response["Cache-Control"] = "no-store"
+        return response
 
 
 class SettingDetailView(APIView):
