@@ -566,5 +566,22 @@
   "call.error.channelUnavailable": "This business cannot be called right now.",
   "call.error.network": "No connection. Check your network and try again.",
   "call.error.generic": "The call could not be placed. Try again.",
-  "call.error.placeFailed": "The phone could not place the call. Try again."
+  "call.error.placeFailed": "The phone could not place the call. Try again.",
+  "profile.history": "My call history",
+  "history.title": "My call history",
+  "history.subtitle": "The shops and people you contacted through NetBuis",
+  "history.back": "Profile",
+  "history.loading": "Loading history",
+  "history.error": "The history could not be loaded. Check your network and try again.",
+  "history.loadMoreError": "The next entries could not be loaded.",
+  "history.retry": "Try again",
+  "history.empty.title": "No calls yet",
+  "history.empty.body": "When you call a seller from NetBuis, they will show up here so you can call again in one tap.",
+  "history.empty.action": "Find a seller",
+  "history.badge.call": "Call",
+  "history.badge.whatsapp": "WhatsApp",
+  "history.callAgain": "Call {name} again",
+  "history.today": "Today",
+  "history.yesterday": "Yesterday",
+  "history.entry": "{name}, {zone}, {date}, {type}"
 }

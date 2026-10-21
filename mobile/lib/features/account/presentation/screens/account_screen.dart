@@ -65,6 +65,11 @@ class AccountScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               identity,
               const SizedBox(height: 16),
+              _HistoryRow(
+                label: l10n.t('profile.history'),
+                onTap: () => context.push(Routes.callHistory),
+              ),
+              const SizedBox(height: 16),
               if (account.value?.hasBusiness == false) ...[
                 _CreateBusinessCard(onTap: () => context.push(Routes.createBusiness)),
                 const SizedBox(height: 16),
@@ -201,6 +206,56 @@ class _LogoutRow extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(label, style: TextStyle(fontSize: 14, color: color)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Entrée « Historique de mes appels » (maquette Profil).
+class _HistoryRow extends StatelessWidget {
+  const _HistoryRow({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.card,
+        border: Border.all(color: c.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Semantics(
+          button: true,
+          label: label,
+          onTap: onTap,
+          excludeSemantics: true,
+          child: InkWell(
+            key: const ValueKey('profile-history'),
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 52),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Icon(Icons.history, size: 20, color: c.textSecondary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(label,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                    ),
+                    Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

@@ -566,5 +566,22 @@
   "call.error.channelUnavailable": "Ce commerce ne peut pas être appelé pour le moment.",
   "call.error.network": "Pas de connexion. Vérifiez votre réseau et réessayez.",
   "call.error.generic": "L'appel n'a pas pu être lancé. Réessayez.",
-  "call.error.placeFailed": "Le téléphone n'a pas pu lancer l'appel. Réessayez."
+  "call.error.placeFailed": "Le téléphone n'a pas pu lancer l'appel. Réessayez.",
+  "profile.history": "Historique de mes appels",
+  "history.title": "Historique de mes appels",
+  "history.subtitle": "Les commerçants et particuliers que vous avez appelés via NetBuis",
+  "history.back": "Profil",
+  "history.loading": "Chargement de l'historique",
+  "history.error": "L'historique n'a pas pu être chargé. Vérifiez votre réseau et réessayez.",
+  "history.loadMoreError": "La suite n'a pas pu être chargée.",
+  "history.retry": "Réessayer",
+  "history.empty.title": "Aucun appel pour le moment",
+  "history.empty.body": "Quand vous appellerez un commerçant depuis NetBuis, il apparaîtra ici pour le rappeler en un geste.",
+  "history.empty.action": "Trouver un commerçant",
+  "history.badge.call": "Appel",
+  "history.badge.whatsapp": "WhatsApp",
+  "history.callAgain": "Rappeler {name}",
+  "history.today": "Aujourd'hui",
+  "history.yesterday": "Hier",
+  "history.entry": "{name}, {zone}, {date}, {type}"
 }

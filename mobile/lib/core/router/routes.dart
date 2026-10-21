@@ -19,6 +19,8 @@ class Routes {
   static String businessDetailPath(int id) => '/business/$id';
   static const forum = '/forum';
   static const profile = '/profile';
+  /// Historique de mes appels (T053), ouvert depuis Profil.
+  static const callHistory = '/history';
 
   /// Création du compte business : un écran par étape (protégés par la garde de connexion).
   /// Les écrans des étapes suivantes sont ajoutés par T031 à T035.

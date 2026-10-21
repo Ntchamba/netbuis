@@ -18,6 +18,7 @@ import '../../features/business/presentation/screens/sent_screen.dart';
 import '../../features/business/presentation/screens/service_category_screen.dart';
 import '../../features/business/presentation/screens/structure_details_screen.dart';
 import '../../features/business/presentation/screens/structure_type_screen.dart';
+import '../../features/call/presentation/screens/call_history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
@@ -99,6 +100,10 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessDistrict,
         builder: (context, state) => const DistrictScreen(),
+      ),
+      GoRoute(
+        path: Routes.callHistory,
+        builder: (context, state) => const CallHistoryScreen(),
       ),
       GoRoute(path: Routes.search, builder: (context, state) => const SearchScreen()),
       GoRoute(
