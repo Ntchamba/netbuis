@@ -564,6 +564,37 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, sans la permission, ou compte
             bloqué
+  /api/admin/stats/:
+    get:
+      operationId: admin_stats_retrieve
+      description: 'Chiffres de la vue d''ensemble. Fenêtres de 7 jours glissantes.
+        Comptes à fort trafic : appels des dernières 24 h au-dessus du seuil `seuil_appels_abonnement`,
+        non abonnés ; id, nom et compteur seulement (jamais de numéro). `revenue_month`
+        vaut 0 avec `unavailable: true` tant que les paiements ne sont pas faits.'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStats'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
   /api/auth/admin/login/:
     post:
       operationId: auth_admin_login_create
@@ -2334,6 +2365,60 @@ components:
       - permissions
       - phone_masked
       - roles
+    AdminStats:
+      type: object
+      properties:
+        accounts_total:
+          type: integer
+          description: Comptes non supprimés
+        accounts_new_week:
+          type: integer
+          description: Créés sur les 7 derniers jours
+        active_businesses:
+          type: integer
+          description: Comptes business actifs (ni bloqués ni supprimés)
+        neighborhoods_covered:
+          type: integer
+          description: Quartiers distincts où se trouve au moins un compte business
+            actif
+        pending_requests:
+          type: integer
+          description: Demandes business en attente
+        calls_week:
+          type: integer
+          description: Appels et WhatsApp, 7 derniers jours
+        searches_week:
+          type: integer
+          description: Recherches, 7 derniers jours
+        subscribers:
+          type: integer
+          description: Comptes business actifs avec un abonnement en cours
+        subscription_threshold:
+          type: integer
+          description: Seuil d'appels quotidiens (PlatformSetting seuil_appels_abonnement)
+        high_traffic_count:
+          type: integer
+          description: Comptes non abonnés au-dessus du seuil sur 24 h
+        high_traffic:
+          type: array
+          items:
+            $ref: '#/components/schemas/HighTraffic'
+          description: Les 10 plus sollicités ; numéro jamais renvoyé
+        revenue_month:
+          $ref: '#/components/schemas/Revenue'
+      required:
+      - accounts_new_week
+      - accounts_total
+      - active_businesses
+      - calls_week
+      - high_traffic
+      - high_traffic_count
+      - neighborhoods_covered
+      - pending_requests
+      - revenue_month
+      - searches_week
+      - subscribers
+      - subscription_threshold
     AuditEntry:
       type: object
       properties:
@@ -2800,6 +2885,22 @@ components:
         * `association` - Association
         * `etablissement_public` - Établissement public
         * `autre` - Autre
+    HighTraffic:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant du compte business
+        name:
+          type: string
+          description: Nom affiché du compte business
+        calls_per_day:
+          type: integer
+          description: Appels reçus sur les dernières 24 h
+      required:
+      - calls_per_day
+      - id
+      - name
     History:
       type: object
       description: 'Aucun numéro ni lien : seulement ce que l''écran d''historique
@@ -3760,6 +3861,22 @@ components:
       - id
       - motif_rejet
       - status
+    Revenue:
+      type: object
+      properties:
+        amount:
+          type: integer
+          description: 0 tant que les paiements ne sont pas faits
+        currency:
+          type: string
+        unavailable:
+          type: boolean
+          description: 'true : chiffre non disponible (paiements non branchés), à
+            ne pas afficher comme un vrai zéro'
+      required:
+      - amount
+      - currency
+      - unavailable
     SearchResult:
       type: object
       description: 'Lit un `BusinessProfile` ; le contexte peut contenir `prices`
