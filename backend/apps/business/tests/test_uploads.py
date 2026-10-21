@@ -607,9 +607,13 @@ def test_url_temporaire_jeton_falsifie_ou_d_un_autre_usage(owner):
 def test_aucune_route_ne_sert_les_pieces_privees(client, owner):
     key = make_stored_file(owner, "cni_photo")
     token = get_storage().private_download_url(key).split("/")[-2]
-    for url in (f"/media/{key}", f"/api/media/{key}", f"/api/admin/private-files/{token}/",
-                f"/private_media/{key}"):
+    for url in (f"/media/{key}", f"/api/media/{key}", f"/private_media/{key}"):
         assert client.get(url).status_code == 404
+    # La route de lecture existe depuis T071 mais est réservée à l'administration : ni ce
+    # commerçant ni un anonyme ne la franchissent (voir admin_panel/tests/test_businesses.py).
+    url = f"/api/admin/private-files/{token}/"
+    assert client.get(url).status_code in (401, 403)
+    assert APIClient().get(url).status_code == 401
 
 
 def test_stockage_inconnu_refuse():

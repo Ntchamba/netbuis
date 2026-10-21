@@ -30,6 +30,202 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, ou compte bloqué/supprimé
+  /api/admin/private-files/{token}/:
+    get:
+      operationId: admin_private_file_retrieve
+      description: Sert une pièce privée à l'administrateur désigné par le jeton,
+        et à lui seul.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: La pièce (image)
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid_link : jeton faux, expiré ou lié à un autre administrateur'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+  /api/admin/requests/:
+    get:
+      operationId: admin_requests_list
+      description: 'File d''attente des comptes business en attente (les plus anciens
+        d''abord). `cni_url` et `diplome_url` sont des URL temporaires (5 minutes)
+        liées à l''administrateur qui les reçoit : à ouvrir avec son jeton d''accès
+        via `GET /api/admin/private-files/<jeton>/`. Le numéro est masqué.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: 'Seule valeur : business'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBusinessRequestList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_type
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/requests/{id}/approve/:
+    post:
+      operationId: admin_requests_approve
+      description: Passe le compte à `actif` ; pour un prestataire, la CNI est marquée
+        vérifiée du même geste. Écrit l'audit `validation_business`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDecision'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'already_processed : la demande a déjà été traitée'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/requests/{id}/reject/:
+    post:
+      operationId: admin_requests_reject
+      description: Rejette le compte avec un motif obligatoire, que le commerçant
+        lit dans `motif_rejet` (`/api/business/me/`). Écrit l'audit `rejet_business`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reject'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Reject'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Reject'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDecision'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'already_processed : la demande a déjà été traitée'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
   /api/auth/admin/login/:
     post:
       operationId: auth_admin_login_create
@@ -1788,6 +1984,133 @@ components:
       - updated_at
       - views_count
       - zone
+    BusinessRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          type: string
+          readOnly: true
+          description: Toujours « business »
+        type_compte:
+          allOf:
+          - $ref: '#/components/schemas/TypeCompteEnum'
+          readOnly: true
+          title: Type de compte
+        name:
+          type: string
+          readOnly: true
+          title: Nom affiché
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+          title: Statut
+        owner_id:
+          type: integer
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        phone_masked:
+          type: string
+          readOnly: true
+          description: Ex. « +237 6•• •• •• 12 »
+        zone:
+          type: integer
+          readOnly: true
+          title: Lieu
+          description: Ville/village ou quartier.
+        zone_name:
+          type: string
+          readOnly: true
+        repere:
+          type: string
+          readOnly: true
+          title: Repère
+          description: Ex. « À côté du Grand Manguier ».
+        description:
+          type: string
+          readOnly: true
+        representant_nom:
+          type: string
+          readOnly: true
+          title: Nom du représentant
+        forme_juridique:
+          allOf:
+          - $ref: '#/components/schemas/FormeJuridiqueEnum'
+          readOnly: true
+        rccm:
+          type: string
+          readOnly: true
+        categorie_service:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: Catégorie de service
+        categorie_service_name:
+          type: string
+          nullable: true
+          readOnly: true
+        categorie_service_libre:
+          type: string
+          readOnly: true
+          title: Catégorie de service (libre)
+        cni_verifiee:
+          type: boolean
+          readOnly: true
+          title: CNI vérifiée
+        photo_url:
+          type: string
+          nullable: true
+          readOnly: true
+        representant_photo_url:
+          type: string
+          nullable: true
+          readOnly: true
+        cni_url:
+          type: string
+          nullable: true
+          readOnly: true
+          description: URL temporaire (5 min) liée à l'administrateur ; prestataire
+            seulement
+        diplome_url:
+          type: string
+          nullable: true
+          readOnly: true
+          description: URL temporaire (5 min) liée à l'administrateur ; si un diplôme
+            a été envoyé
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - categorie_service
+      - categorie_service_libre
+      - categorie_service_name
+      - cni_url
+      - cni_verifiee
+      - created_at
+      - description
+      - diplome_url
+      - forme_juridique
+      - id
+      - name
+      - owner_id
+      - owner_name
+      - phone_masked
+      - photo_url
+      - rccm
+      - repere
+      - representant_nom
+      - representant_photo_url
+      - status
+      - type
+      - type_compte
+      - zone
+      - zone_name
     CatalogProduct:
       type: object
       properties:
@@ -2299,6 +2622,29 @@ components:
         * `answered` - Appel abouti
         * `no_answer` - Pas de réponse
         * `wrong_number` - Mauvais numéro
+    PaginatedBusinessRequestList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessRequest'
     PaginatedHistoryList:
       type: object
       required:
@@ -2810,6 +3156,30 @@ components:
             plus valable. Absent pour le dashboard : il est reposé dans le cookie.'
       required:
       - access
+    Reject:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Motif du rejet (obligatoire, 1000 caractères au plus). Lu par
+            le commerçant.
+    RequestDecision:
+      type: object
+      description: 'Réponse de approve / reject : l''état du dossier après décision.'
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        cni_verifiee:
+          type: boolean
+        motif_rejet:
+          type: string
+      required:
+      - cni_verifiee
+      - id
+      - motif_rejet
+      - status
     SearchResult:
       type: object
       description: 'Lit un `BusinessProfile` ; le contexte peut contenir `prices`

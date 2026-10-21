@@ -323,22 +323,32 @@ class LocalStorageService(StorageService):
             raise PrivateKey("Cette pièce est privée : elle n'a pas d'adresse publique.")
         return f"{_media_prefix()}{key}"
 
-    def private_download_url(self, key: str, ttl: int | None = None) -> str:
+    def private_download_url(
+        self, key: str, ttl: int | None = None, admin_id: int | None = None
+    ) -> str:
+        """URL temporaire de lecture d'une pièce privée. Avec `admin_id` (T071), le jeton est
+        LIÉ à cet administrateur : un autre compte qui le reçoit ne peut pas l'ouvrir."""
         if not is_private_kind(parse_key(key).kind):
             raise PublicKey("Seules les pièces privées ont une adresse temporaire.")
         lifetime = settings.PRIVATE_DOWNLOAD_TTL if ttl is None else ttl
+        payload = {"key": key, "exp": int(time.time()) + int(lifetime)}
+        if admin_id is not None:
+            payload["aid"] = int(admin_id)
         token = signing.dumps(
-            {"key": key, "exp": int(time.time()) + int(lifetime)},
-            key=settings.UPLOAD_SIGNING_KEY, salt=_DOWNLOAD_SALT, compress=False,
+            payload, key=settings.UPLOAD_SIGNING_KEY, salt=_DOWNLOAD_SALT, compress=False,
         )
         return f"{settings.PRIVATE_DOWNLOAD_URL_PREFIX}{token}/"
 
-    def open_private_download(self, token: str) -> BinaryIO:
+    def open_private_download(self, token: str, admin_id: int | None = None) -> BinaryIO:
         """Pour la route admin (T071) : ouvre la pièce désignée par un jeton de lecture valide
-        (signature juste, non expiré). Sinon `InvalidToken`, sans dire pourquoi."""
+        (signature juste, non expiré, et lié au même `admin_id` que celui du jeton : un jeton
+        lié refuse l'absence d'admin ou un autre admin). Sinon `InvalidToken`, sans dire
+        pourquoi."""
         try:
             data = signing.loads(token, key=settings.UPLOAD_SIGNING_KEY, salt=_DOWNLOAD_SALT)
             if int(data["exp"]) <= time.time():
+                raise InvalidToken
+            if data.get("aid") != (None if admin_id is None else int(admin_id)):
                 raise InvalidToken
             key = data["key"]
             if not is_private_kind(parse_key(key).kind):
