@@ -1,3 +1,4 @@
-// Routage (React Router)
-// Agent C · Étape É5
-export {};
+export const PATHS = {
+  home: "/",
+  login: "/connexion",
+} as const;
