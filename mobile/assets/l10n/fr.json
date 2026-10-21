@@ -491,5 +491,15 @@
   "search.empty.tipShorter": "Essayez un mot plus court ou un autre mot.",
   "search.empty.tipPlace": "Vous pouvez aussi changer de ville ou de secteur.",
   "search.empty.changeCity": "Changer de ville",
-  "search.empty.clearFilters": "Retirer le secteur"
+  "search.empty.clearFilters": "Retirer le secteur",
+  "voice.listening": "Je vous écoute... dites le nom d'un produit",
+  "voice.listening.stop": "Touchez pour arrêter",
+  "voice.rationale.title": "Utiliser le micro ?",
+  "voice.rationale.body": "NetBuis utilise le micro de votre téléphone seulement pour comprendre ce que vous cherchez. Rien n'est enregistré. Android va vous demander de l'autoriser.",
+  "voice.rationale.ok": "Continuer",
+  "voice.rationale.cancel": "Non merci",
+  "voice.error.denied": "Le micro n'est pas autorisé. Vous pouvez écrire votre recherche, ou l'autoriser dans les réglages du téléphone.",
+  "voice.error.unavailable": "La recherche vocale n'est pas disponible sur ce téléphone. Écrivez votre recherche.",
+  "voice.error.noSpeech": "Je n'ai rien compris. Réessayez ou écrivez votre recherche.",
+  "voice.error.failed": "La recherche vocale ne marche pas pour le moment. Écrivez votre recherche."
 }

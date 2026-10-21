@@ -11,6 +11,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/netbuis_logo.dart';
 import '../../../account/application/account_controller.dart';
 import '../../../search/application/search_controller.dart';
+import '../../../search/voice_search/application/voice_search_controller.dart';
+import '../../../search/voice_search/presentation/voice_button.dart';
+import '../../../search/voice_search/presentation/voice_listening_sheet.dart';
 import '../../../search/presentation/widgets/result_card.dart';
 import '../../application/home_sectors.dart';
 import '../../application/invite_steps.dart';
@@ -32,7 +35,7 @@ class HomeScreen extends ConsumerStatefulWidget {
   /// Point d'entrée de la recherche écrite (T045). Sans lui : « Bientôt disponible ».
   final VoidCallback? onOpenSearch;
 
-  /// Point d'entrée de la recherche vocale (T046). Sans lui : « Bientôt disponible ».
+  /// Remplace la recherche vocale intégrée (tests). Sans lui : explication, micro, écoute.
   final VoidCallback? onVoiceSearch;
 
   /// Remplace `FeatureFlags.teamEnabled` (tests).
@@ -68,6 +71,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(SnackBar(content: Text(L10n.of(context).t('home.soon'))));
+  }
+
+  /// Échec ou refus du micro : message simple, puis retour à la recherche écrite.
+  void _onVoiceChange(VoiceState? previous, VoiceState next) {
+    if (next.phase != VoicePhase.failed || previous?.phase == VoicePhase.failed) {
+      return;
+    }
+    final l10n = L10n.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      content: Text(l10n.t('voice.error.${next.error?.name ?? 'failed'}')),
+      duration: const Duration(seconds: 5),
+    ));
+    ref.read(voiceSearchControllerProvider.notifier).acknowledge();
+    widget.onOpenSearch?.call();
   }
 
   Future<void> _openSectors(List<Sector> sectors, String? selected) async {
@@ -106,12 +125,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final c = AppColors.of(context);
-    final l10n = L10n.of(context);
     final search = ref.watch(searchControllerProvider);
+    ref.listen(voiceSearchControllerProvider, _onVoiceChange);
+    final listening = ref.watch(
+        voiceSearchControllerProvider.select((v) => v.phase == VoicePhase.listening));
     final sectors = ref.watch(homeSectorsProvider).value ?? const [];
     return SafeArea(
-      child: Column(
+      child: Stack(
+        children: [
+          _buildContent(context, search, sectors),
+          // Bandeau de la maquette, sous la barre de recherche (en-tête 20+48+12, décalage 58).
+          if (listening)
+            Positioned(
+              left: 20,
+              right: 20,
+              top: 138,
+              child: VoiceListeningBanner(
+                onCancel: ref.read(voiceSearchControllerProvider.notifier).cancel,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, SearchState search, List<Sector> sectors) {
+    final c = AppColors.of(context);
+    final l10n = L10n.of(context);
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
@@ -138,7 +179,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: SearchBarEntry(
               onSearch: widget.onOpenSearch ?? _soon,
-              onVoice: widget.onVoiceSearch ?? _soon,
+              onVoice: widget.onVoiceSearch ?? () => startVoiceSearch(context, ref),
             ),
           ),
           Padding(
@@ -160,7 +201,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
         ],
-      ),
     );
   }
 }

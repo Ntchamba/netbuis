@@ -491,5 +491,15 @@
   "search.empty.tipShorter": "Try a shorter word or a different word.",
   "search.empty.tipPlace": "You can also change the city or the sector.",
   "search.empty.changeCity": "Change city",
-  "search.empty.clearFilters": "Remove the sector"
+  "search.empty.clearFilters": "Remove the sector",
+  "voice.listening": "Listening... say the name of a product",
+  "voice.listening.stop": "Tap to stop",
+  "voice.rationale.title": "Use the microphone?",
+  "voice.rationale.body": "NetBuis uses your phone's microphone only to understand what you are looking for. Nothing is recorded. Android will ask you to allow it.",
+  "voice.rationale.ok": "Continue",
+  "voice.rationale.cancel": "No thanks",
+  "voice.error.denied": "The microphone is not allowed. You can type your search, or allow it in the phone settings.",
+  "voice.error.unavailable": "Voice search is not available on this phone. Type your search.",
+  "voice.error.noSpeech": "I did not understand. Try again or type your search.",
+  "voice.error.failed": "Voice search is not working right now. Type your search."
 }

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T046
-- **Prochaine tâche** : T047b
+- **Tâche en cours** : T047b
+- **Prochaine tâche** : T047
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -61,7 +61,7 @@
 | ✅ | T043 | Mobile : données et état de la recherche | b2 | 2026-10-21 | docs/verifications/T043.md ; vérificateur CONFORME |
 | ✅ | T044 | Mobile : écran d'Accueil | b2 | 2026-10-21 | docs/verifications/T044.md ; vérificateur CONFORME |
 | ✅ | T045 | Mobile : recherche écrite et résultats | b2 | 2026-10-21 | docs/verifications/T045.md ; vérificateur CONFORME |
-| ☐ | T046 | Mobile : recherche vocale | b2 | | |
+| ✅ | T046 | Mobile : recherche vocale | b2 | 2026-10-21 | docs/verifications/T046.md ; vérificateur CONFORME |
 | ☐ | T047b | Backend : fiche publique | a2 | | |
 | ☐ | T047 | Mobile : fiche publique du commerçant | b2 | | |
 | ☐ | T048 | Vérification de tranche : trouver un commerçant | orchestrateur | | |

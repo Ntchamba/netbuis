@@ -264,7 +264,7 @@ void main() {
 
     testWidgets('sans écran de recherche branché : « Bientôt disponible »', (tester) async {
       await _pump(tester);
-      await tester.tap(find.byKey(const Key('home-voice')));
+      await tester.tap(find.byKey(const Key('home-search')));
       await tester.pump();
       expect(find.text('Bientôt disponible'), findsOneWidget);
     });
