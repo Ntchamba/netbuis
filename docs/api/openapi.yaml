@@ -4,6 +4,344 @@ info:
   version: 0.1.0
   description: 'Contrat d''API NetBuis (source de vérité : docs/api/openapi.yaml)'
 paths:
+  /api/admin/accounts/:
+    get:
+      operationId: admin_accounts_list
+      description: Comptes, du plus récent au plus ancien, paginés. Numéro toujours
+        masqué.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Nom du compte ou du commerce, ou numéro (chiffres, 3 au moins
+          ; Administrateur complet seulement, ignoré pour un Validateur) ; le numéro
+          reste masqué dans la réponse
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - all
+          - blocked
+          - business
+          - deleted
+          - simple
+        description: all (défaut), simple, business, blocked, deleted
+      - in: query
+        name: zone
+        schema:
+          type: integer
+        description: 'Zone (ville, quartier…) : comptes business situés dans cette
+          zone ou celles qu''elle contient'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccountListList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_type / invalid_zone
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/accounts/{id}/:
+    get:
+      operationId: admin_accounts_retrieve
+      description: 'Vue détaillée : identité, type, profil business et pièces (URL
+        temporaires de 5 min liées à l''administrateur), historique de statuts, dernières
+        actions d''audit. `phone` (numéro complet) n''est renvoyé qu''à l''Administrateur
+        complet et chaque affichage est audité (`consultation_numero`) ; sinon il
+        vaut null.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountDetail'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+    delete:
+      operationId: admin_accounts_delete
+      description: Suppression DOUCE (`is_deleted`, `deleted_at`) avec motif obligatoire
+        dans le corps ; jetons de rafraîchissement invalidés. Audit `suppression_compte`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (motif manquant, rien n'est écrit) ou self_action_forbidden
+            (action sur son propre compte)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state, ou last_full_admin (dernier Administrateur complet
+            actif)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/accounts/{id}/block/:
+    post:
+      operationId: admin_accounts_block
+      description: 'Bloque le compte (motif obligatoire, 255 caractères au plus) :
+        plus de connexion, jetons invalidés, disparu de la recherche, des fiches et
+        des appels. Audit `blocage_compte`.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountReason'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountReason'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountReason'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (motif manquant, rien n'est écrit) ou self_action_forbidden
+            (action sur son propre compte)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state, ou last_full_admin (dernier Administrateur complet
+            actif)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/accounts/{id}/restore/:
+    post:
+      operationId: admin_accounts_restore
+      description: Restaure un compte supprimé. Audit `restauration_compte`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state, ou last_full_admin (dernier Administrateur complet
+            actif)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/accounts/{id}/unblock/:
+    post:
+      operationId: admin_accounts_unblock
+      description: Débloque le compte. Audit `deblocage_compte`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountState'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (motif manquant, rien n'est écrit) ou self_action_forbidden
+            (action sur son propre compte)
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state, ou last_full_admin (dernier Administrateur complet
+            actif)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
   /api/admin/me/:
     get:
       operationId: admin_me_retrieve
@@ -1761,6 +2099,201 @@ components:
             est posé dans le cookie HttpOnly netbuis_refresh.
       required:
       - access
+    AccountDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone_masked:
+          type: string
+          readOnly: true
+          description: Ex. « +237 6•• •• •• 41 »
+        type:
+          type: string
+          readOnly: true
+          description: simple ou business
+        status:
+          type: string
+          readOnly: true
+          description: actif, bloque ou supprime
+        is_admin:
+          type: boolean
+        is_blocked:
+          type: boolean
+        is_deleted:
+          type: boolean
+        business_name:
+          type: string
+          nullable: true
+          readOnly: true
+        business_status:
+          type: string
+          nullable: true
+          readOnly: true
+        zone_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        zone_name:
+          type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+        phone:
+          type: string
+          nullable: true
+          readOnly: true
+          description: 'Numéro complet : Administrateur complet seulement (audité),
+            sinon null'
+        language:
+          type: string
+        blocked_reason:
+          type: string
+        blocked_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            type: string
+          readOnly: true
+          description: Groupes d'administration du compte
+        business:
+          allOf:
+          - $ref: '#/components/schemas/BusinessRequest'
+          nullable: true
+          readOnly: true
+          description: Profil business et pièces (URL temporaires de 5 min), ou null
+        status_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+          readOnly: true
+        recent_audit:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntry'
+          readOnly: true
+      required:
+      - blocked_at
+      - blocked_reason
+      - business
+      - business_name
+      - business_status
+      - created_at
+      - deleted_at
+      - id
+      - is_admin
+      - is_blocked
+      - is_deleted
+      - language
+      - name
+      - phone
+      - phone_masked
+      - recent_audit
+      - roles
+      - status
+      - status_history
+      - type
+      - zone_id
+      - zone_name
+    AccountList:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone_masked:
+          type: string
+          readOnly: true
+          description: Ex. « +237 6•• •• •• 41 »
+        type:
+          type: string
+          readOnly: true
+          description: simple ou business
+        status:
+          type: string
+          readOnly: true
+          description: actif, bloque ou supprime
+        is_admin:
+          type: boolean
+        is_blocked:
+          type: boolean
+        is_deleted:
+          type: boolean
+        business_name:
+          type: string
+          nullable: true
+          readOnly: true
+        business_status:
+          type: string
+          nullable: true
+          readOnly: true
+        zone_id:
+          type: integer
+          nullable: true
+          readOnly: true
+        zone_name:
+          type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - business_name
+      - business_status
+      - created_at
+      - id
+      - is_admin
+      - is_blocked
+      - is_deleted
+      - name
+      - phone_masked
+      - status
+      - type
+      - zone_id
+      - zone_name
+    AccountReason:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: 'Motif (obligatoire pour bloquer : 255 caractères au plus ;
+            pour supprimer : 1000 au plus).'
+    AccountState:
+      type: object
+      description: 'Réponse des actions : l''état du compte après l''action.'
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          readOnly: true
+        is_blocked:
+          type: boolean
+        is_deleted:
+          type: boolean
+        blocked_reason:
+          type: string
+        deleted_at:
+          type: string
+          format: date-time
+      required:
+      - blocked_reason
+      - deleted_at
+      - id
+      - is_blocked
+      - is_deleted
+      - status
     AdminLogin:
       type: object
       properties:
@@ -1801,6 +2334,30 @@ components:
       - permissions
       - phone_masked
       - roles
+    AuditEntry:
+      type: object
+      properties:
+        action:
+          type: string
+        label:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+        admin_id:
+          type: integer
+        admin_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - action
+      - admin_id
+      - admin_name
+      - created_at
+      - label
+      - reason
     BlankEnum:
       enum:
       - ''
@@ -2622,6 +3179,29 @@ components:
         * `answered` - Appel abouti
         * `no_answer` - Pas de réponse
         * `wrong_number` - Mauvais numéro
+    PaginatedAccountListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountList'
     PaginatedBusinessRequestList:
       type: object
       required:
