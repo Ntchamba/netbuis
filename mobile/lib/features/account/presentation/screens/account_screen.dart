@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/dashed_border.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../business/presentation/widgets/business_status_card.dart';
+import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
 import '../../application/account_controller.dart';
 import '../widgets/profile_identity.dart';
@@ -70,6 +71,8 @@ class AccountScreen extends ConsumerWidget {
               ] else if (account.value?.hasBusiness == true) ...[
                 // Compte business déjà demandé : son état remplace l'invitation à l'activer.
                 const BusinessStatusCard(),
+                const SizedBox(height: 10),
+                const MyProductsEntry(),
                 const SizedBox(height: 16),
               ],
               DecoratedBox(

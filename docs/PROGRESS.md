@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T038
-- **Prochaine tâche** : T040
+- **Tâche en cours** : T040
+- **Prochaine tâche** : T041
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -54,7 +54,7 @@
 | ✅ | T036 | Vérification de tranche : créer un commerce de bout en bout | orchestrateur | 2026-10-19 | logs/T036-tranche.md ; parcours réel mobile → serveur local pour un prestataire (CNI + diplôme en espace privé) et un commerce ; plafond SUBSCRIPTION_REQUIRED, 409, clé d'un autre compte refusée ; reste à Jeff : essai sur téléphone, écrans sans maquette, décisions en attente |
 | | | **PHASE 4 — Espace commerçant : produits et offres** | | | |
 | ✅ | T037 | Backend : offres du commerçant | a2 | 2026-10-21 | docs/verifications/T037.md ; vérificateur CONFORME ; reste : offres dans seed_demo |
-| ☐ | T038 | Mobile : « Mes produits » | b3 | | |
+| ✅ | T038 | Mobile : « Mes produits » | b3 | 2026-10-21 | docs/verifications/T038.md ; vérificateur CONFORME |
 | | | **PHASE 5 — Recherche et écran d'Accueil (Étape 4, chemin critique)** | | | |
 | ☐ | T040 | Backend : moteur de recherche | a3 | | |
 | ☐ | T041 | Backend : route de recherche, suggestions, recherche vocale | a3 | | |
