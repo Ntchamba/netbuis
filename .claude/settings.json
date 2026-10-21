@@ -29,7 +29,9 @@
       "Bash(mkdir -p:*)",
       "Bash(source:*)",
       "Bash(psql:*)",
-      "Bash(pip-audit:*)"
+      "Bash(pip-audit:*)",
+      "Bash(git push -u origin claude/:*)",
+      "Bash(git push origin claude/:*)"
     ],
     "deny": [
       "Bash(cat */.env:*)",
@@ -38,14 +40,17 @@
       "Bash(cat backend/.env:*)",
       "Bash(env:*)",
       "Bash(git clean:*)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(grep * backend/.env:*)",
       "Bash(printenv:*)",
       "Bash(rm -rf:*)",
       "Read(./**/.env)",
       "Read(./.env)",
-      "Read(./backend/.env)"
+      "Read(./backend/.env)",
+      "Bash(git push origin main:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)"
     ]
   }
 }
