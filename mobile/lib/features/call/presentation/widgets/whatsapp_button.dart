@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/call_controller.dart';
+import 'call_button.dart';
 import 'call_sheet.dart';
 import 'report_no_whatsapp_dialog.dart';
 
@@ -16,29 +17,34 @@ class WhatsappButton extends StatelessWidget {
     required this.businessName,
     required this.onPressed,
     this.available = true,
+    this.offline = false,
   });
 
   final String businessName;
   final bool available;
+
+  /// Hors connexion : désactivé avec « Hors connexion ».
+  final bool offline;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
     final c = AppColors.of(context);
-    final off = l10n.t('home.card.whatsappOff');
+    final off = l10n.t(offline ? 'offline.label' : 'home.card.whatsappOff');
     final label = l10n.t('home.card.whatsapp');
+    final enabled = available && !offline;
     return SizedBox(
       height: 48,
       child: OutlinedButton(
-        onPressed: available ? onPressed : null,
+        onPressed: enabled ? onPressed : null,
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Semantics(
-          label: available
+          label: enabled
               ? l10n
                   .t('home.card.whatsappLabel')
                   .replaceFirst('{name}', businessName)
@@ -58,7 +64,7 @@ class WhatsappButton extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 14, fontWeight: FontWeight.w700)),
-                    if (!available)
+                    if (!enabled)
                       Text(off,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -83,6 +89,7 @@ Future<void> startWhatsapp(
   required String businessName,
 }) async {
   final container = ProviderScope.containerOf(context);
+  if (blockIfOffline(context, container)) return;
   final flow = container.read(whatsappFlowProvider.notifier);
   if (!flow.begin(businessId, businessName)) return;
   await showModalBottomSheet<void>(

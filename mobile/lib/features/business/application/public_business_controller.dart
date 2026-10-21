@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/env.dart';
 import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../search/application/offline_controller.dart';
 import '../data/models/public_business.dart';
 import '../data/repositories/public_business_repository.dart';
 import '../data/repositories/public_business_repository_api.dart';
@@ -20,8 +21,13 @@ final publicBusinessRepositoryProvider = Provider<PublicBusinessRepository>((ref
 final publicBusinessProvider =
     FutureProvider.autoDispose.family<PublicBusiness, int>((ref, id) async {
   try {
-    return await ref.read(publicBusinessRepositoryProvider).get(id);
-  } on ApiException {
+    final business = await ref.read(publicBusinessRepositoryProvider).get(id);
+    if (ref.mounted) ref.read(offlineProvider.notifier).set(false);
+    return business;
+  } on ApiException catch (e) {
+    if (ref.mounted && e.code == ApiErrorCode.network) {
+      ref.read(offlineProvider.notifier).set(true);
+    }
     rethrow;
   } on Object {
     throw const ApiException(ApiErrorCode.unknown);

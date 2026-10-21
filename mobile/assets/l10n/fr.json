@@ -614,5 +614,9 @@
   "history.whatsappAgain": "Écrire à {name} sur WhatsApp",
   "history.today": "Aujourd'hui",
   "history.yesterday": "Hier",
-  "history.entry": "{name}, {zone}, {date}, {type}"
+  "history.entry": "{name}, {zone}, {date}, {type}",
+  "offline.label": "Hors connexion",
+  "offline.banner": "Hors connexion : derniers résultats enregistrés. Appeler et WhatsApp reviennent avec le réseau.",
+  "offline.blocked": "Pas de réseau : l'appel et WhatsApp sont indisponibles pour le moment.",
+  "offline.retry": "Réessayer"
 }

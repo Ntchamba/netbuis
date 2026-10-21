@@ -12,7 +12,9 @@ import '../../../../core/widgets/netbuis_logo.dart';
 import '../../../call/presentation/widgets/call_button.dart';
 import '../../../call/presentation/widgets/whatsapp_button.dart';
 import '../../../account/application/account_controller.dart';
+import '../../../search/application/offline_controller.dart';
 import '../../../search/application/search_controller.dart';
+import '../../../search/presentation/widgets/offline_banner.dart';
 import '../../../search/voice_search/application/voice_search_controller.dart';
 import '../../../search/voice_search/presentation/voice_button.dart';
 import '../../../search/voice_search/presentation/voice_listening_sheet.dart';
@@ -240,7 +242,8 @@ class _Results extends ConsumerWidget {
         return _Message(text: l10n.t('home.results.empty'));
       case SearchStatus.results:
         final extra = state.loadingMore || state.loadMoreFailed ? 1 : 0;
-        return ListView.separated(
+        final offline = ref.watch(offlineProvider);
+        final list = ListView.separated(
           key: const Key('home-results'),
           controller: controller,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -250,6 +253,7 @@ class _Results extends ConsumerWidget {
             if (i < state.items.length) {
               return ResultCard(
                 result: state.items[i],
+                offline: offline,
                 onCall: () => startCall(context,
                     businessId: state.items[i].id, businessName: state.items[i].name),
                 onWhatsapp: () => startWhatsapp(context,
@@ -270,6 +274,11 @@ class _Results extends ConsumerWidget {
             );
           },
         );
+        if (!state.fromCache) return list;
+        return Column(children: [
+          OfflineBanner(onRetry: notifier.retry),
+          Expanded(child: list),
+        ]);
     }
   }
 }

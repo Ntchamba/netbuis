@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/env.dart';
 import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../search/application/offline_controller.dart';
 import '../data/models/call_history_entry.dart';
 import '../data/repositories/call_history_repository.dart';
 import '../data/repositories/call_history_repository_api.dart';
@@ -91,6 +92,7 @@ class CallHistoryController extends Notifier<HistoryState> {
     try {
       final page = await _repo.history(page: 1);
       if (!ref.mounted || ticket != _ticket) return;
+      ref.read(offlineProvider.notifier).set(false);
       state = HistoryState(
         status:
             page.results.isEmpty ? HistoryStatus.empty : HistoryStatus.results,
@@ -100,6 +102,9 @@ class CallHistoryController extends Notifier<HistoryState> {
       );
     } on ApiException catch (e) {
       if (!ref.mounted || ticket != _ticket) return;
+      if (e.code == ApiErrorCode.network) {
+        ref.read(offlineProvider.notifier).set(true);
+      }
       state = HistoryState(status: HistoryStatus.error, error: e);
     }
   }

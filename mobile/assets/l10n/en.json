@@ -614,5 +614,9 @@
   "history.whatsappAgain": "Message {name} on WhatsApp",
   "history.today": "Today",
   "history.yesterday": "Yesterday",
-  "history.entry": "{name}, {zone}, {date}, {type}"
+  "history.entry": "{name}, {zone}, {date}, {type}",
+  "offline.label": "Offline",
+  "offline.banner": "Offline: showing your last saved results. Calling and WhatsApp come back with the network.",
+  "offline.blocked": "No network: calling and WhatsApp are unavailable for now.",
+  "offline.retry": "Try again"
 }

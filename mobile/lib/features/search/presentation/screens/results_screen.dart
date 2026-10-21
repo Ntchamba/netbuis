@@ -8,7 +8,9 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../call/presentation/widgets/call_button.dart';
 import '../../../call/presentation/widgets/whatsapp_button.dart';
+import '../../application/offline_controller.dart';
 import '../../application/search_controller.dart';
+import '../widgets/offline_banner.dart';
 import '../widgets/result_card.dart';
 
 /// L'ordre des résultats vient du serveur (abonnés d'abord) : aucune étiquette « abonné »
@@ -77,7 +79,8 @@ class SearchResultsView extends ConsumerWidget {
         );
       case SearchStatus.results:
         final extra = state.loadingMore || state.loadMoreFailed ? 1 : 0;
-        return ListView.separated(
+        final offline = ref.watch(offlineProvider);
+        final list = ListView.separated(
           key: const Key('search-results'),
           controller: scroll,
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
@@ -88,6 +91,7 @@ class SearchResultsView extends ConsumerWidget {
               final item = state.items[i];
               return ResultCard(
                 result: item,
+                offline: offline,
                 onCall: () => startCall(context, businessId: item.id, businessName: item.name),
                 onWhatsapp: () =>
                     startWhatsapp(context, businessId: item.id, businessName: item.name),
@@ -113,6 +117,11 @@ class SearchResultsView extends ConsumerWidget {
             );
           },
         );
+        if (!state.fromCache) return list;
+        return Column(children: [
+          OfflineBanner(onRetry: notifier.retry),
+          Expanded(child: list),
+        ]);
     }
   }
 }

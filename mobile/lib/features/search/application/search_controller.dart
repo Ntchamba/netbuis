@@ -6,7 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/config/env.dart';
 import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../auth/application/auth_controller.dart';
+import '../../auth/application/auth_state.dart';
 import '../../onboarding/application/city_controller.dart';
+import '../data/search_cache.dart';
+import 'offline_controller.dart';
 import '../data/models/search_query.dart';
 import '../data/models/search_result.dart';
 import '../data/repositories/search_repository.dart';
@@ -21,6 +25,9 @@ final searchRepositoryProvider = Provider<SearchRepository>((ref) {
   if (Env.useFakeApi) return SearchRepositoryFake();
   return SearchRepositoryApi(ref.read(dioProvider));
 });
+
+/// Mémoire du dernier résultat réussi (hors connexion).
+final searchCacheProvider = Provider<SearchCache>((ref) => SharedSearchCache());
 
 enum SearchStatus {
   /// Rien n'est encore lancé (ville pas encore connue).
@@ -44,6 +51,7 @@ class SearchState {
     this.error,
     this.fromVoice = false,
     this.cleanedQuery,
+    this.fromCache = false,
   });
 
   final SearchQuery query;
@@ -67,6 +75,9 @@ class SearchState {
 
   /// Terme nettoyé renvoyé par le serveur pour une recherche vocale.
   final String? cleanedQuery;
+
+  /// Vrai : ce sont les derniers résultats mémorisés, affichés faute de réseau.
+  final bool fromCache;
 
   SearchState copyWith({
     SearchQuery? query,
@@ -94,6 +105,7 @@ class SearchState {
         error: clearError ? null : (error ?? this.error),
         fromVoice: fromVoice ?? this.fromVoice,
         cleanedQuery: cleanedQuery ?? this.cleanedQuery,
+        fromCache: fromCache,
       );
 }
 
@@ -105,11 +117,22 @@ class SearchController extends Notifier<SearchState> {
   Timer? _timer;
   int _ticket = 0;
 
+  /// Dernière recherche demandée (réussie ou non) : « Réessayer » relance celle-là,
+  /// même si des résultats mémorisés d'une autre requête sont affichés.
+  SearchQuery? _attempt;
+  bool _attemptVoice = false;
+
   @override
   SearchState build() {
     ref.onDispose(() {
       _timer?.cancel();
       _ticket++;
+    });
+    // Déconnexion : le dernier résultat mémorisé est effacé.
+    ref.listen(authControllerProvider, (_, next) {
+      if (next is AuthLoggedOut) {
+        _cacheSafely(() => ref.read(searchCacheProvider).clear());
+      }
     });
     final city = ref.watch(selectedCityProvider);
     if (city.isLoading) return const SearchState();
@@ -161,11 +184,18 @@ class SearchController extends Notifier<SearchState> {
   /// « Réessayer » après une erreur : relance la même recherche.
   void retry() {
     _timer?.cancel();
-    _run(state.query, voice: state.fromVoice);
+    _run(_attempt ?? state.query, voice: _attempt == null ? state.fromVoice : _attemptVoice);
+  }
+
+  /// La mémoire du téléphone ne doit jamais casser la recherche.
+  static void _cacheSafely(Future<void> Function() action) {
+    action().catchError((Object _) {});
   }
 
   Future<void> _run(SearchQuery query, {bool voice = false}) async {
     final ticket = ++_ticket;
+    _attempt = query;
+    _attemptVoice = voice;
     state = SearchState(
       query: query,
       status: SearchStatus.loading,
@@ -174,6 +204,16 @@ class SearchController extends Notifier<SearchState> {
     try {
       final page = await _fetch(query, voice, 1);
       if (!ref.mounted || ticket != _ticket) return;
+      ref.read(offlineProvider.notifier).set(false);
+      // La mémoire n'est écrite qu'après un succès, jamais après une erreur.
+      if (page.results.isNotEmpty) {
+        _cacheSafely(() => ref.read(searchCacheProvider).write(CachedSearch(
+              query: query,
+              items: page.results,
+              count: page.count,
+              voice: voice,
+            )));
+      }
       state = SearchState(
         query: query,
         status: page.results.isEmpty ? SearchStatus.empty : SearchStatus.results,
@@ -186,7 +226,32 @@ class SearchController extends Notifier<SearchState> {
       );
     } on ApiException catch (e) {
       if (!ref.mounted || ticket != _ticket) return;
+      if (e.code == ApiErrorCode.network) {
+        ref.read(offlineProvider.notifier).set(true);
+        final saved = await _readCache();
+        if (!ref.mounted || ticket != _ticket) return;
+        if (saved != null) {
+          state = SearchState(
+            query: saved.query,
+            status: SearchStatus.results,
+            items: saved.items,
+            count: saved.count,
+            page: 1,
+            fromVoice: saved.voice,
+            fromCache: true,
+          );
+          return;
+        }
+      }
       state = SearchState(query: query, status: SearchStatus.error, error: e, fromVoice: voice);
+    }
+  }
+
+  Future<CachedSearch?> _readCache() async {
+    try {
+      return await ref.read(searchCacheProvider).read();
+    } on Object {
+      return null;
     }
   }
 

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../search/application/offline_controller.dart';
 import '../../application/call_history_controller.dart';
 import '../../data/models/call_history_entry.dart';
 import '../widgets/call_button.dart';
@@ -170,6 +171,13 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
                 ],
               ),
             ),
+            if (ref.watch(offlineProvider))
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Text(l10n.t('offline.blocked'),
+                    key: const Key('history-offline'),
+                    style: TextStyle(fontSize: 13, color: c.textSecondary)),
+              ),
             Expanded(child: body),
           ],
         ),
@@ -202,6 +210,7 @@ class _HistoryCard extends ConsumerWidget {
     final l10n = L10n.of(context);
     final c = AppColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final offline = ref.watch(offlineProvider);
     final isWhatsapp = entry.type == HistoryType.whatsapp;
     final date =
         formatHistoryDate(context, entry.date, ref.watch(historyNowProvider)());
@@ -289,10 +298,14 @@ class _HistoryCard extends ConsumerWidget {
             ),
             IconButton(
               key: ValueKey('history-recall-${entry.id}'),
-              tooltip: l10n
-                  .t('history.callAgain')
-                  .replaceAll('{name}', entry.businessName),
-              onPressed: () => startCall(
+              tooltip: offline
+                  ? '${l10n.t('history.callAgain').replaceAll('{name}', entry.businessName)}, ${l10n.t('offline.label')}'
+                  : l10n
+                      .t('history.callAgain')
+                      .replaceAll('{name}', entry.businessName),
+              onPressed: offline
+                  ? null
+                  : () => startCall(
                 context,
                 businessId: entry.businessId,
                 businessName: entry.businessName,
@@ -302,8 +315,12 @@ class _HistoryCard extends ConsumerWidget {
             ),
             IconButton(
               key: ValueKey('history-whatsapp-${entry.id}'),
-              tooltip: l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName),
-              onPressed: () => startWhatsapp(
+              tooltip: offline
+                  ? '${l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName)}, ${l10n.t('offline.label')}'
+                  : l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName),
+              onPressed: offline
+                  ? null
+                  : () => startWhatsapp(
                 context,
                 businessId: entry.businessId,
                 businessName: entry.businessName,

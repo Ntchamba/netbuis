@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/call_controller.dart';
+import '../../../../core/l10n/l10n.dart';
+import '../../../search/application/offline_controller.dart';
 import 'call_sheet.dart';
 import 'feedback_sheet.dart';
 
@@ -15,6 +17,7 @@ Future<void> startCall(
   required String businessName,
 }) async {
   final container = ProviderScope.containerOf(context);
+  if (blockIfOffline(context, container)) return;
   final navigator = Navigator.of(context);
   final flow = container.read(callFlowProvider.notifier);
   if (!flow.begin(businessId, businessName)) return;
@@ -33,4 +36,13 @@ Future<void> startCall(
     await showCallFeedback(navigator,
         callId: placedCallId, businessName: businessName);
   }
+}
+
+/// Hors connexion : ni appel ni WhatsApp. Affiche le message et renvoie vrai (rien n'est ouvert).
+bool blockIfOffline(BuildContext context, ProviderContainer container) {
+  if (!container.read(offlineProvider)) return false;
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  messenger?.hideCurrentSnackBar();
+  messenger?.showSnackBar(SnackBar(content: Text(L10n.of(context).t('offline.blocked'))));
+  return true;
 }

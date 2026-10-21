@@ -10,6 +10,7 @@ import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
 import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
+import 'package:netbuis/features/search/data/search_cache.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/data/models/search_query.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
@@ -76,6 +77,7 @@ Future<_Search> _pump(WidgetTester tester, {_Search? repo, FakeCallRepository? c
     overrides: [
       appPrefsProvider.overrideWithValue(MemoryPrefs()),
       searchRepositoryProvider.overrideWithValue(search),
+      searchCacheProvider.overrideWithValue(MemorySearchCache()),
       referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
       ...callOverrides(FakeCallChannel(), call ?? FakeCallRepository()),
     ],
@@ -225,6 +227,10 @@ void main() {
 
   testWidgets('erreur réseau : message et « Réessayer »', (tester) async {
     final repo = await _pump(tester);
+    // Sans résultat mémorisé : c'est le message d'erreur qui s'affiche (avec mémoire : voir offline_test).
+    await ProviderScope.containerOf(tester.element(find.byType(SearchScreen)))
+        .read(searchCacheProvider)
+        .clear();
     repo.fail = true;
     await _type(tester, 'riz');
     await tester.testTextInput.receiveAction(TextInputAction.search);

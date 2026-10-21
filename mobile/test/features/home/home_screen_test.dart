@@ -15,6 +15,7 @@ import 'package:netbuis/features/home/data/share_service.dart';
 import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
 import 'package:netbuis/features/home/presentation/widgets/category_chips.dart';
 import 'package:netbuis/features/home/presentation/widgets/invite_dialog.dart';
+import 'package:netbuis/features/search/data/search_cache.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/data/models/search_query.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
@@ -98,6 +99,7 @@ Future<void> _pump(
     overrides: [
       appPrefsProvider.overrideWithValue(MemoryPrefs()),
       searchRepositoryProvider.overrideWithValue(search ?? _Search()),
+      searchCacheProvider.overrideWithValue(MemorySearchCache()),
       referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
       accountRepositoryProvider.overrideWithValue(account ?? AccountRepositoryFake()),
       shareServiceProvider.overrideWithValue(share ?? _Share()),

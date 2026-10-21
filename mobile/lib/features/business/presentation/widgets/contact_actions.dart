@@ -13,6 +13,7 @@ class ContactActions extends StatelessWidget {
     this.onCall,
     this.onWhatsapp,
     this.onReport,
+    this.offline = false,
   });
 
   final String businessName;
@@ -25,6 +26,9 @@ class ContactActions extends StatelessWidget {
   final VoidCallback? onWhatsapp;
   final VoidCallback? onReport;
 
+  /// Hors connexion : Appeler et WhatsApp désactivés, avec « Hors connexion ».
+  final bool offline;
+
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context);
@@ -33,13 +37,20 @@ class ContactActions extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (offline)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(l10n.t('offline.blocked'),
+                key: const Key('detail-offline'),
+                style: TextStyle(fontSize: 13, color: c.textSecondary)),
+          ),
         _Action(
           key: const Key('detail-call'),
           icon: Icons.call,
           label: l10n.t('home.card.call'),
           semantics: l10n.t('home.card.callLabel').replaceFirst('{name}', businessName),
-          note: onCall == null ? soon : null,
-          onPressed: onCall,
+          note: offline ? l10n.t('offline.label') : (onCall == null ? soon : null),
+          onPressed: offline ? null : onCall,
           filled: true,
         ),
         const SizedBox(height: 10),
@@ -48,10 +59,12 @@ class ContactActions extends StatelessWidget {
           icon: Icons.chat_outlined,
           label: l10n.t('business.detail.whatsapp'),
           semantics: l10n.t('business.detail.whatsapp'),
-          note: !whatsappAvailable
+          note: offline
+              ? l10n.t('offline.label')
+              : !whatsappAvailable
               ? l10n.t('business.detail.whatsappOff')
               : (onWhatsapp == null ? soon : null),
-          onPressed: whatsappAvailable ? onWhatsapp : null,
+          onPressed: whatsappAvailable && !offline ? onWhatsapp : null,
         ),
         const SizedBox(height: 4),
         TextButton.icon(

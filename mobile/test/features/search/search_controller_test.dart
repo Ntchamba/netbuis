@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/storage/prefs.dart';
+import 'package:netbuis/features/search/data/search_cache.dart';
+import 'package:netbuis/features/auth/application/auth_controller.dart';
+import 'package:netbuis/features/auth/application/auth_state.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/application/suggestions_controller.dart';
 import 'package:netbuis/features/search/data/models/search_query.dart';
@@ -46,9 +49,17 @@ class ScriptedSearch implements SearchRepository {
   }
 }
 
+/// Session ouverte sans toucher au stockage sécurisé.
+class _StubAuth extends AuthController {
+  @override
+  AuthState build() => const AuthAuthenticated();
+}
+
 ProviderContainer _container(ScriptedSearch repo, {SelectedCity? city}) {
   final c = ProviderContainer(overrides: [
     searchRepositoryProvider.overrideWithValue(repo),
+    searchCacheProvider.overrideWithValue(MemorySearchCache()),
+    authControllerProvider.overrideWith(_StubAuth.new),
     appPrefsProvider.overrideWithValue(
         MemoryPrefs(city: city ?? const SelectedCity(id: 16, name: 'Maroua'))),
   ]);

@@ -9,6 +9,7 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../call/presentation/widgets/call_button.dart';
 import '../../../call/presentation/widgets/whatsapp_button.dart';
+import '../../../search/application/offline_controller.dart';
 import '../../application/public_business_controller.dart';
 import '../../data/models/public_business.dart';
 import '../widgets/contact_actions.dart';
@@ -53,7 +54,7 @@ class BusinessDetailScreen extends ConsumerWidget {
                   action: l10n.t('business.detail.retry'),
                   onAction: () => ref.invalidate(publicBusinessProvider(businessId)),
                 ),
-          data: (b) => _Content(business: b),
+          data: (b) => _Content(business: b, offline: ref.watch(offlineProvider)),
         ),
       ),
     );
@@ -61,9 +62,10 @@ class BusinessDetailScreen extends ConsumerWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.business});
+  const _Content({required this.business, this.offline = false});
 
   final PublicBusiness business;
+  final bool offline;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +132,7 @@ class _Content extends StatelessWidget {
         ContactActions(
           businessName: b.name,
           whatsappAvailable: b.whatsappAvailable,
+          offline: offline,
           onCall: () => startCall(context, businessId: b.id, businessName: b.name),
           onWhatsapp: () => startWhatsapp(context, businessId: b.id, businessName: b.name),
         ),

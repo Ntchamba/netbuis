@@ -57,6 +57,22 @@ class SearchResult {
   /// dans ce cas le serveur refuse lui-même avec CHANNEL_UNAVAILABLE si WhatsApp est coupé.
   final bool whatsappAvailable;
 
+  /// Seuls les champs publics de la carte (aucun numéro, aucun lien) ; relu par [SearchResult.fromJson].
+  Map<String, Object?> toJson() => {
+        'id': id,
+        'name': name,
+        'kind': kind,
+        'secteur': secteur,
+        'secteur_code': secteurCode,
+        'zone': zone == null ? null : {'id': zone!.id, 'name': zone!.name},
+        'repere': repere,
+        'description_activite': descriptionActivite,
+        'photo': photo,
+        'prix_indicatif': prixIndicatif,
+        'verifie': verifie,
+        'whatsapp_available': whatsappAvailable,
+      };
+
   /// Lève [FormatException] si la réponse n'a pas la forme du contrat.
   factory SearchResult.fromJson(Map<String, dynamic> json) {
     final id = json['id'];

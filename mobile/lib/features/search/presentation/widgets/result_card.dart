@@ -9,7 +9,7 @@ import '../../data/models/search_result.dart';
 /// Aucun numéro ici : il ne sort que de POST /api/calls/initiate/ (T052).
 /// Le bouton « Appeler » n'a pas de prix tant que `CREDITS_ENABLED=False` (D-19).
 class ResultCard extends StatelessWidget {
-  const ResultCard({super.key, required this.result, this.onCall, this.onWhatsapp, this.onOpen});
+  const ResultCard({super.key, required this.result, this.onCall, this.onWhatsapp, this.onOpen, this.offline = false});
 
   final SearchResult result;
 
@@ -21,6 +21,9 @@ class ResultCard extends StatelessWidget {
 
   /// Ouvre la fiche publique du commerce (tap sur la carte).
   final VoidCallback? onOpen;
+
+  /// Hors connexion : Appeler et WhatsApp sont désactivés, avec un message.
+  final bool offline;
 
   /// « Repère — Zone », ou l'un des deux, ou vide.
   static String location(SearchResult r) => [
@@ -106,22 +109,34 @@ class ResultCard extends StatelessWidget {
                     child: SizedBox(
                 height: 48,
                 child: FilledButton.icon(
-                  onPressed: onCall,
+                  onPressed: offline ? null : onCall,
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.onAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.call, size: 18),
                   label: Semantics(
-                    label: l10n
-                        .t('home.card.callLabel')
-                        .replaceFirst('{name}', result.name),
+                    label: offline
+                        ? '${l10n.t('home.card.call')}, ${l10n.t('offline.label')}'
+                        : l10n
+                            .t('home.card.callLabel')
+                            .replaceFirst('{name}', result.name),
                     excludeSemantics: true,
-                    child: Text(l10n.t('home.card.call'),
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.t('home.card.call'),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w700)),
+                        if (offline)
+                          Text(l10n.t('offline.label'),
+                              key: const Key('card-call-offline'),
+                              style: const TextStyle(fontSize: 11)),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -133,6 +148,7 @@ class ResultCard extends StatelessWidget {
                       key: const Key('card-whatsapp'),
                       businessName: result.name,
                       available: result.whatsappAvailable,
+                      offline: offline,
                       onPressed: onWhatsapp,
                     ),
                   ),
