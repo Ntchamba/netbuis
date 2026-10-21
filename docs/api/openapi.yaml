@@ -794,6 +794,125 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: 'invalid : `q` absent, vide ou trop long'
+  /api/map/areas/{id}/businesses/:
+    get:
+      operationId: map_area_businesses
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page (20 par page).
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - map
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSearchResultList'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
+  /api/map/cities/:
+    get:
+      operationId: map_cities
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filtre par nom (sans accents/casse).
+      tags:
+      - map
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapCities'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
+  /api/map/cities/{id}/areas/:
+    get:
+      operationId: map_city_areas
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - map
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapAreas'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
   /api/me/:
     get:
       operationId: me_retrieve
@@ -1838,6 +1957,143 @@ components:
         * `ville_village` - Ville / village
         * `quartier` - Quartier
         * `repere` - Repère
+    MapArea:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        businesses_count:
+          type: integer
+        products_count:
+          type: integer
+          description: Offres actives référencées.
+      required:
+      - businesses_count
+      - id
+      - name
+      - products_count
+    MapAreas:
+      type: object
+      properties:
+        city:
+          $ref: '#/components/schemas/MapZoneRef'
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapArea'
+        businesses_without_area:
+          type: integer
+          description: Commerces rattachés à la ville elle-même, sans quartier.
+      required:
+      - areas
+      - businesses_without_area
+      - city
+    MapCities:
+      type: object
+      properties:
+        cities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapCity'
+        regions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapRegion'
+      required:
+      - cities
+      - regions
+    MapCity:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+          nullable: true
+        longitude:
+          type: number
+          format: double
+          nullable: true
+        businesses_count:
+          type: integer
+          description: Commerces actifs (ville + quartiers).
+        region:
+          allOf:
+          - $ref: '#/components/schemas/MapNode'
+          nullable: true
+        departement:
+          allOf:
+          - $ref: '#/components/schemas/MapNode'
+          nullable: true
+      required:
+      - businesses_count
+      - departement
+      - id
+      - latitude
+      - longitude
+      - name
+      - region
+    MapDepartement:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        explorable:
+          type: boolean
+      required:
+      - explorable
+      - id
+      - name
+    MapNode:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        explorable:
+          type: boolean
+          description: Vrai seulement si cette zone contient une ville avec un commerce
+            actif.
+      required:
+      - explorable
+      - id
+      - name
+    MapRegion:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        explorable:
+          type: boolean
+        departements:
+          type: array
+          items:
+            $ref: '#/components/schemas/MapDepartement'
+      required:
+      - departements
+      - explorable
+      - id
+      - name
+    MapZoneRef:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
     Me:
       type: object
       properties:
