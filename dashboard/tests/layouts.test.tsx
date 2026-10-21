@@ -24,13 +24,29 @@ const FULL = [
 ];
 const VALIDATEUR = ["peut_voir_demandes", "peut_voir_comptes", "peut_valider_demande"];
 
-function server(permissions: string[], stats: Reply = { status: 200, data: { pending_requests: 7 } }) {
+const STATS = {
+  accounts_total: 4812,
+  accounts_new_week: 96,
+  active_businesses: 612,
+  neighborhoods_covered: 9,
+  pending_requests: 7,
+  calls_week: 300,
+  searches_week: 900,
+  subscribers: 86,
+  subscription_threshold: 10,
+  high_traffic_count: 0,
+  high_traffic: [],
+  revenue_month: { amount: 0, currency: "XAF", unavailable: true },
+};
+
+function server(permissions: string[], stats: Reply = { status: 200, data: STATS }) {
   const me = { id: 1, name: "Awa Test", phone_masked: "+237 6•• •• •• 12", roles: ["x"], permissions };
   setHandler((c: Call): Reply => {
     if (c.url === "/api/auth/refresh/") return { status: 200, data: { access: "jeton-fictif" } };
     if (c.url === "/api/admin/me/") return { status: 200, data: me };
     if (c.url === "/api/admin/stats/") return stats;
     if (c.url === "/api/auth/logout/") return { status: 204 };
+    if (c.url === "/api/admin/requests/") return { status: 200, data: { count: 0, next: null, results: [] } };
     return { status: 404 };
   });
 }
@@ -111,7 +127,7 @@ test("sans aucune permission : aucune entrée et aucune requête de stats (refus
 });
 
 test("pastille masquée si 0", async () => {
-  server(FULL, { status: 200, data: { pending_requests: 0 } });
+  server(FULL, { status: 200, data: { ...STATS, pending_requests: 0 } });
   const div = await mount("/");
   expect(labels(div)[1]).toBe("Demandes");
 });
@@ -120,13 +136,24 @@ test("pastille masquée, sans message, si les stats échouent", async () => {
   server(FULL, { status: 500 });
   const div = await mount("/");
   expect(labels(div)[1]).toBe("Demandes");
-  expect(div.querySelector('[role="alert"]')).toBeNull();
+  expect(div.querySelector('aside [role="alert"]')).toBeNull(); // la pastille échoue en silence (la page affiche son propre message)
 });
 
 test("page protégée : un Validateur n'ouvre pas /equipe", async () => {
   server(VALIDATEUR);
   const div = await mount("/equipe");
   expect(div.querySelector('[role="alert"]')?.textContent).toContain("Accès refusé");
+});
+
+test("sans permission : /comptes, /demandes et / affichent « Accès refusé » sans aucune requête de données", async () => {
+  for (const path of ["/comptes", "/demandes", "/"]) {
+    resetServer();
+    server([]);
+    const div = await mount(path);
+    expect(div.querySelector('[role="alert"]')?.textContent).toContain("Accès refusé");
+    expect(calls.filter((c) => c.url.startsWith("/api/admin/") && c.url !== "/api/admin/me/")).toEqual([]);
+    await cleanup();
+  }
 });
 
 test("pages provisoires lisibles pour Demandes", async () => {

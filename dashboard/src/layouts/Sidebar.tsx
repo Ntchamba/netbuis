@@ -52,7 +52,7 @@ function Entry({ item, pending }: { item: NavItem; pending: number | null }) {
       {item.badge && pending !== null && pending > 0 && (
         <span
           aria-label={`${pending} en attente`}
-          className="rounded-full bg-on-accent px-[7px] py-0.5 text-[11px] font-extrabold text-[#FFD9A0]"
+          className="rounded-full bg-danger-bg px-[7px] py-0.5 text-[11px] font-extrabold text-danger"
         >
           {pending}
         </span>

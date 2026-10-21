@@ -13,6 +13,7 @@ export interface Call {
   auth: string | undefined;
   body: unknown;
   withCredentials: boolean;
+  params?: Record<string, unknown>;
 }
 
 export const calls: Call[] = [];
@@ -44,6 +45,7 @@ const adapter: AxiosAdapter = async (config: InternalAxiosRequestConfig) => {
     auth: config.headers.get("Authorization") as string | undefined,
     body,
     withCredentials: config.withCredentials === true,
+    params: config.params as Record<string, unknown> | undefined,
   };
   calls.push(call);
   await (gates.get(call.url) ?? Promise.resolve());

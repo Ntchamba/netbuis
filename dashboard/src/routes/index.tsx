@@ -1,9 +1,9 @@
 import { Route, Routes } from "react-router-dom";
-import App from "../App";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { AuthLayout } from "../layouts/AuthLayout";
 import { ComingSoonPage } from "../layouts/ComingSoonPage";
 import { LoginPage } from "../modules/auth";
+import { OverviewPage } from "../modules/overview";
 import { PATHS } from "./paths";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { RequirePermission } from "./RequirePermission";
@@ -16,8 +16,15 @@ export function AppRoutes() {
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
-          {/* Pages provisoires : remplies par T081 (Vue d'ensemble), T082 (Demandes), T083 (Comptes), T113 (Équipe). */}
-          <Route path={PATHS.home} element={<App />} />
+          {/* Pages provisoires : remplies par T082 (Demandes), T083 (Comptes), T113 (Équipe). */}
+          <Route
+            path={PATHS.home}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <OverviewPage />
+              </RequirePermission>
+            }
+          />
           <Route
             path={PATHS.demandes}
             element={
