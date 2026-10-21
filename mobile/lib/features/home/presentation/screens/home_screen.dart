@@ -245,7 +245,12 @@ class _Results extends ConsumerWidget {
           itemCount: state.items.length + extra,
           separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, i) {
-            if (i < state.items.length) return ResultCard(result: state.items[i]);
+            if (i < state.items.length) {
+              return ResultCard(
+                result: state.items[i],
+                onOpen: () => context.push(Routes.businessDetailPath(state.items[i].id)),
+              );
+            }
             if (state.loadMoreFailed) {
               return _Message(
                 text: l10n.t('home.results.loadMoreError'),

@@ -14,6 +14,9 @@ class Routes {
   static const map = '/map';
   /// Recherche écrite (T045), ouverte depuis l'Accueil.
   static const search = '/search';
+  /// Fiche publique d'un commerce (T047) ; modèle de chemin et chemin d'un commerce.
+  static const businessDetail = '/business/:id';
+  static String businessDetailPath(int id) => '/business/$id';
   static const forum = '/forum';
   static const profile = '/profile';
 

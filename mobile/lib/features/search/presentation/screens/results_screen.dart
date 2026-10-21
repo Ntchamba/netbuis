@@ -1,8 +1,10 @@
 // Résultats de la recherche écrite : chargement, erreur, « Aucun résultat » utile, liste de cartes
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/l10n.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/search_controller.dart';
 import '../widgets/result_card.dart';
@@ -89,6 +91,7 @@ class SearchResultsView extends ConsumerWidget {
               return ResultCard(
                 result: item,
                 onCall: onCall == null ? null : () => onCall!(item.id),
+                onOpen: () => context.push(Routes.businessDetailPath(item.id)),
               );
             }
             if (state.loadMoreFailed) {

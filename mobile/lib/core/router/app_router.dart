@@ -6,6 +6,7 @@ import '../../features/account/presentation/screens/edit_profile_screen.dart';
 import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
+import '../../features/business/presentation/screens/business_detail_screen.dart';
 import '../../features/business/presentation/screens/business_info_screen.dart';
 import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/district_screen.dart';
@@ -100,6 +101,15 @@ GoRouter buildRouter({
         builder: (context, state) => const DistrictScreen(),
       ),
       GoRoute(path: Routes.search, builder: (context, state) => const SearchScreen()),
+      GoRoute(
+        path: Routes.businessDetail,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          return id == null
+              ? const _TabScreen(titleKey: 'business.detail.notFound.title')
+              : BusinessDetailScreen(businessId: id);
+        },
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),
