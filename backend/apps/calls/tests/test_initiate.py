@@ -168,7 +168,7 @@ def test_channel_unavailable_when_whatsapp_disabled():
 
 
 @pytest.mark.parametrize("change", [
-    {"business_id": 0}, {"business_id": "x"}, {"channel": "sms"}, {"channel": "whatsapp"},
+    {"business_id": 0}, {"business_id": "x"}, {"channel": "sms"},
     {"platform": "windows"}, {"operator": "camtel"},
 ])
 def test_invalid_body_is_400(change):

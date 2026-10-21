@@ -1,7 +1,7 @@
 """Journal des appels : lecture seule, aucun numéro affiché."""
 from django.contrib import admin
 
-from .models import CallLog
+from .models import CallFeedback, CallLog, WhatsAppReport
 
 
 @admin.register(CallLog)
@@ -18,4 +18,36 @@ class CallLogAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.action(description="Marquer comme examinés (ne comptent plus pour le seuil)")
+def mark_reviewed(modeladmin, request, queryset):
+    queryset.update(reviewed=True)
+
+
+@admin.register(WhatsAppReport)
+class WhatsAppReportAdmin(admin.ModelAdmin):
+    """Revue par un admin. Pour réactiver WhatsApp : cocher « WhatsApp disponible » sur le
+    compte business, puis marquer les signalements comme examinés."""
+
+    list_display = ("id", "profile", "reporter", "reviewed", "created_at")
+    list_filter = ("reviewed",)
+    actions = [mark_reviewed]
+    readonly_fields = ("reporter", "profile", "created_at", "updated_at")
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(CallFeedback)
+class CallFeedbackAdmin(admin.ModelAdmin):
+    list_display = ("id", "call", "outcome", "updated_at")
+    list_filter = ("outcome",)
+    readonly_fields = [f.name for f in CallFeedback._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
         return False

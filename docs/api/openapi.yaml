@@ -598,6 +598,74 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: 'no_business : pas de compte business ; not_found : offre introuvable'
+  /api/calls/{id}/feedback/:
+    post:
+      operationId: calls_feedback
+      description: 'Résultat de l''appel (abouti, pas de réponse, mauvais numéro).
+        Réservé à l''appelant ; modifiable : le dernier choix est conservé.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+          description: ''
+        '400':
+          description: invalid
+        '401':
+          description: non connecté
+        '404':
+          description: 'not_found : appel d''un autre compte'
+  /api/calls/history/:
+    get:
+      operationId: calls_history
+      description: Mes appels et ouvertures WhatsApp, 20 par page, sans aucun numéro.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHistoryList'
+          description: ''
   /api/calls/initiate/:
     post:
       operationId: calls_initiate
@@ -660,6 +728,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorCode'
           description: RATE_LIMITED
+  /api/calls/whatsapp-report/:
+    post:
+      operationId: calls_whatsapp_report
+      description: Signale que le numéro n'a pas WhatsApp. Il faut avoir reçu le lien
+        WhatsApp de ce commerce. Un compte compte une fois ; à 3 comptes distincts,
+        WhatsApp est désactivé.
+      tags:
+      - calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhatsAppReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WhatsAppReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WhatsAppReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsAppReportResponse'
+          description: ''
+        '400':
+          description: invalid
+        '401':
+          description: non connecté
+        '404':
+          description: 'not_found : commerce inconnu ou lien WhatsApp jamais reçu'
   /api/catalog/products/:
     get:
       operationId: catalog_products_list
@@ -1542,8 +1645,11 @@ components:
     ChannelEnum:
       enum:
       - call
+      - whatsapp
       type: string
-      description: '* `call` - call'
+      description: |-
+        * `call` - call
+        * `whatsapp` - whatsapp
     CodeEnum:
       enum:
       - NOT_AUTHENTICATED
@@ -1606,6 +1712,23 @@ components:
       required:
       - code
       - message
+    Feedback:
+      type: object
+      properties:
+        outcome:
+          $ref: '#/components/schemas/OutcomeEnum'
+      required:
+      - outcome
+    FeedbackResponse:
+      type: object
+      properties:
+        call_id:
+          type: integer
+        outcome:
+          $ref: '#/components/schemas/OutcomeEnum'
+      required:
+      - call_id
+      - outcome
     FormeJuridiqueEnum:
       enum:
       - individuelle
@@ -1626,6 +1749,37 @@ components:
         * `association` - Association
         * `etablissement_public` - Établissement public
         * `autre` - Autre
+    History:
+      type: object
+      description: 'Aucun numéro ni lien : seulement ce que l''écran d''historique
+        affiche.'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        business_id:
+          type: integer
+        business_name:
+          type: string
+        zone:
+          type: string
+        date:
+          type: string
+          format: date-time
+        type:
+          type: string
+        feedback:
+          type: string
+          nullable: true
+          readOnly: true
+      required:
+      - business_id
+      - business_name
+      - date
+      - feedback
+      - id
+      - type
+      - zone
     Initiate:
       type: object
       properties:
@@ -1650,10 +1804,14 @@ components:
           type: integer
         phone:
           type: string
-          description: Numéro du commerçant (+2376XXXXXXXX), pour cet appel.
+          description: 'Canal call seulement : numéro du commerçant (+2376XXXXXXXX),
+            pour cet appel.'
+        wa_url:
+          type: string
+          description: 'Canal whatsapp seulement : lien https://wa.me/237… avec message
+            pré-rempli.'
       required:
       - call_id
-      - phone
     LanguageEnum:
       enum:
       - fr
@@ -1823,6 +1981,39 @@ components:
       - access
       - is_new
       - refresh
+    OutcomeEnum:
+      enum:
+      - answered
+      - no_answer
+      - wrong_number
+      type: string
+      description: |-
+        * `answered` - Appel abouti
+        * `no_answer` - Pas de réponse
+        * `wrong_number` - Mauvais numéro
+    PaginatedHistoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/History'
     PaginatedOfferList:
       type: object
       required:
@@ -2665,6 +2856,21 @@ components:
       - previous
       - q
       - results
+    WhatsAppReport:
+      type: object
+      properties:
+        business_id:
+          type: integer
+          minimum: 1
+      required:
+      - business_id
+    WhatsAppReportResponse:
+      type: object
+      properties:
+        recorded:
+          type: boolean
+      required:
+      - recorded
     Zone:
       type: object
       properties:

@@ -13,6 +13,7 @@ from apps.accounts.models import User
 from apps.business.models import BusinessProfile, BusinessStatus
 from apps.calls.models import BillingType, CallChannel, CallLog
 from apps.calls.services.rate_limit import is_rate_limited
+from apps.calls.services.whatsapp_service import build_wa_url, prefilled_message
 from apps.core.exceptions import ApiError
 
 # Valeur technique d'essai, active seulement si CREDITS_ENABLED (D-03). À fixer par Jeff avec
@@ -77,7 +78,8 @@ def _billing_type(user, channel: str, now) -> str:
 
 
 def initiate_call(user, business_id: int, channel: str, platform: str, operator: str = "") -> dict:
-    """Retourne {"call_id", "phone"} ou lève CallRefused."""
+    """Retourne {"call_id", "phone"} (canal call) ou {"call_id", "wa_url"} (whatsapp), ou lève
+    CallRefused."""
     if not (user and user.is_authenticated):
         raise not_authenticated()
     if not user.can_login():
@@ -115,4 +117,7 @@ def initiate_call(user, business_id: int, channel: str, platform: str, operator:
         )
         BusinessProfile.objects.filter(pk=profile.pk).update(calls_count=F("calls_count") + 1)
         phone = profile.phone_anchor
+        name = profile.name
+    if channel == CallChannel.WHATSAPP:
+        return {"call_id": log.pk, "wa_url": build_wa_url(phone, prefilled_message(name))}
     return {"call_id": log.pk, "phone": phone}

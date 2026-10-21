@@ -6,8 +6,7 @@ from apps.calls.models import Operator, Platform
 
 class InitiateSerializer(serializers.Serializer):
     business_id = serializers.IntegerField(min_value=1)
-    # T050 : appel seulement. Le canal WhatsApp est ajouté par T051.
-    channel = serializers.ChoiceField(choices=["call"])
+    channel = serializers.ChoiceField(choices=["call", "whatsapp"])
     platform = serializers.ChoiceField(choices=Platform.choices)
     operator = serializers.ChoiceField(choices=Operator.choices, required=False)
 
@@ -16,7 +15,14 @@ class InitiateResponseSerializer(serializers.Serializer):
     """Seul endroit de l'API qui renvoie le numéro d'un commerçant."""
 
     call_id = serializers.IntegerField()
-    phone = serializers.CharField(help_text="Numéro du commerçant (+2376XXXXXXXX), pour cet appel.")
+    phone = serializers.CharField(
+        required=False,
+        help_text="Canal call seulement : numéro du commerçant (+2376XXXXXXXX), pour cet appel.",
+    )
+    wa_url = serializers.CharField(
+        required=False,
+        help_text="Canal whatsapp seulement : lien https://wa.me/237… avec message pré-rempli.",
+    )
 
 
 class ErrorCodeSerializer(serializers.Serializer):
