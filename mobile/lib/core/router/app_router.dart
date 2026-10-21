@@ -17,6 +17,7 @@ import '../../features/business/presentation/screens/sent_screen.dart';
 import '../../features/business/presentation/screens/service_category_screen.dart';
 import '../../features/business/presentation/screens/structure_details_screen.dart';
 import '../../features/business/presentation/screens/structure_type_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
@@ -101,7 +102,7 @@ GoRouter buildRouter({
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [tab(Routes.home, const _TabScreen())]),
+          StatefulShellBranch(routes: [tab(Routes.home, const HomeScreen())]),
           StatefulShellBranch(routes: [tab(Routes.map, const _TabScreen(titleKey: 'map.title'))]),
           StatefulShellBranch(
             routes: [tab(Routes.forum, const _TabScreen(titleKey: 'forum.title'))],
