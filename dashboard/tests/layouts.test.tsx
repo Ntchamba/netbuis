@@ -6,6 +6,7 @@ import { afterEach, beforeEach, expect, test } from "vitest";
 import { AuthProvider } from "../src/auth/AuthProvider";
 import { clearAccessToken } from "../src/auth/tokenStorage";
 import { ThemeProvider } from "../src/components/theme/ThemeProvider";
+import { ToastProvider } from "../src/components/ui/Toast";
 import { AppRoutes } from "../src/routes";
 import { byText, cleanup, click, render } from "./components/helpers";
 import { calls, resetServer, setHandler, type Call, type Reply } from "./auth/fakeServer";
@@ -56,11 +57,13 @@ async function mount(path = "/") {
   const div = await render(
     <QueryClientProvider client={qc}>
       <ThemeProvider>
-        <MemoryRouter initialEntries={[path]}>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </MemoryRouter>
+        <ToastProvider>
+          <MemoryRouter initialEntries={[path]}>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </MemoryRouter>
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>,
   );
@@ -156,11 +159,12 @@ test("sans permission : /comptes, /demandes et / affichent « Accès refusé » 
   }
 });
 
-test("pages provisoires lisibles pour Comptes (Demandes a sa vraie page depuis T082)", async () => {
+test("Comptes a sa vraie page depuis T083 (plus de page provisoire)", async () => {
   server(FULL);
   const div = await mount("/comptes");
-  expect(div.textContent).toContain("Cette page arrive bientôt.");
+  expect(div.textContent).not.toContain("Cette page arrive bientôt.");
   expect(div.querySelector("header h2")?.textContent).toBe("Comptes");
+  expect(div.querySelector("main")?.textContent).toContain("Impossible de charger les comptes.");
 });
 
 test("Déconnexion appelle le serveur et ramène à la connexion", async () => {

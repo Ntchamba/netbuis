@@ -47,3 +47,7 @@ Cette tâche a demandé trois tours de vérification (course entre renouvellemen
 ## T082 — Demandes du dashboard (pièces d'identité)
 Fichiers à relire ligne par ligne : dashboard/src/modules/businesses/api.ts (privateFilePath, fetchPrivateFile : le jeton admin n'est envoyé qu'à /api/admin/private-files/<jeton>/), hooks.ts (useIdDocument : blob en mémoire seulement, révoqué à la fermeture, réponses tardives ignorées), components/ValidationPanel.tsx (IdDocumentModal), tests/modules/demandes.test.tsx (bloc CNI et tests de sécurité des URL).
 À valider : la confirmation de validation/rejet est un toast (la maquette montre une pastille sur la carte) ; la modale de pièce est étroite pour une CNI.
+
+## T083 — Comptes du dashboard (numéro complet, blocage, suppression)
+Fichiers à relire ligne par ligne : dashboard/src/modules/users/pages/UserDetailPage.tsx (fonction phoneText : seul endroit où le numéro complet est affiché, uniquement si le serveur l'envoie), hooks.ts (useAccount, ACCOUNT_DETAIL_GC_MS = 30 s), components/AccountActions.tsx (droits Can, motifs obligatoires, verrou anti double envoi, messages d'erreur), src/routes/index.tsx.
+À noter : chaque affichage du détail est audité côté serveur, et le détail est rechargé après une action (une consultation de plus dans l'audit) ; une recherche par numéro tapée par l'administrateur part dans le paramètre q de l'API (vérifier côté serveur que q n'est pas journalisé) ; pas de test du non-rechargement au focus.

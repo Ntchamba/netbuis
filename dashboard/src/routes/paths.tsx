@@ -3,5 +3,6 @@ export const PATHS = {
   login: "/connexion",
   demandes: "/demandes",
   comptes: "/comptes",
+  compte: "/comptes/:id",
   equipe: "/equipe",
 } as const;

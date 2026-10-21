@@ -6,6 +6,8 @@ export const ENDPOINTS = {
   me: "/api/admin/me/",
   stats: "/api/admin/stats/",
   requests: "/api/admin/requests/",
+  accounts: "/api/admin/accounts/",
+  zones: "/api/zones/",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */
   privateFilesPrefix: "/api/admin/private-files/",
 } as const;

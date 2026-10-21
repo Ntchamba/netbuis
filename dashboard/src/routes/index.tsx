@@ -5,6 +5,7 @@ import { ComingSoonPage } from "../layouts/ComingSoonPage";
 import { LoginPage } from "../modules/auth";
 import { BusinessesPage } from "../modules/businesses";
 import { OverviewPage } from "../modules/overview";
+import { UserDetailPage, UsersPage } from "../modules/users";
 import { PATHS } from "./paths";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { RequirePermission } from "./RequirePermission";
@@ -17,7 +18,7 @@ export function AppRoutes() {
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
-          {/* Pages provisoires : remplies par T083 (Comptes), T113 (Équipe). */}
+          {/* Page provisoire : remplie par T113 (Équipe). */}
           <Route
             path={PATHS.home}
             element={
@@ -38,7 +39,15 @@ export function AppRoutes() {
             path={PATHS.comptes}
             element={
               <RequirePermission permission="peut_voir_comptes">
-                <ComingSoonPage title="Comptes" />
+                <UsersPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.compte}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <UserDetailPage />
               </RequirePermission>
             }
           />
