@@ -277,6 +277,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: 'business_exists : ce compte a déjà un compte business'
+  /api/business/{id}/:
+    get:
+      operationId: business_public_detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - business
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicBusiness'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : profil absent ou non actif'
   /api/business/me/:
     get:
       operationId: business_me_retrieve
@@ -1969,6 +2007,134 @@ components:
           type: string
           format: date-time
           readOnly: true
+    PublicBusiness:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom affiché
+          maxLength: 150
+        type_compte:
+          allOf:
+          - $ref: '#/components/schemas/TypeCompteEnum'
+          title: Type de compte
+        kind:
+          type: string
+          readOnly: true
+          description: « produit » ou « service ».
+        secteur:
+          type: string
+          readOnly: true
+          description: Nom du secteur (ou catégorie de service / type d'établissement).
+        secteur_code:
+          type: string
+          nullable: true
+          readOnly: true
+        zone:
+          allOf:
+          - $ref: '#/components/schemas/ZoneSummary'
+          readOnly: true
+        repere:
+          type: string
+          title: Repère
+          description: Ex. « À côté du Grand Manguier ».
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        description_activite:
+          type: string
+          title: Description de l'activité
+          maxLength: 500
+        photos:
+          type: array
+          items:
+            type: string
+          readOnly: true
+          description: Adresses des photos du commerce.
+        verifie:
+          type: boolean
+          readOnly: true
+          description: Badge « ✓ Identité vérifiée ».
+        whatsapp_available:
+          type: boolean
+          title: WhatsApp disponible
+        forme_juridique:
+          type: string
+          readOnly: true
+          description: Entreprise seulement.
+        diplome_fourni:
+          type: boolean
+          readOnly: true
+          description: 'Prestataire : vrai si un diplôme a été fourni (le fichier
+            n''est pas exposé).'
+        structure_type:
+          type: string
+          readOnly: true
+        details:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+          description: Détails de structure propres au type (cuisine, horaires, livraison,
+            standing, chambres, équipements, rayons, spécialités) ; vide sinon.
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicOffer'
+          readOnly: true
+          description: Produits/services actifs.
+      required:
+      - details
+      - diplome_fourni
+      - forme_juridique
+      - id
+      - kind
+      - name
+      - offers
+      - photos
+      - secteur
+      - secteur_code
+      - structure_type
+      - type_compte
+      - verifie
+      - zone
+    PublicOffer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        price_fcfa:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          title: Prix (FCFA)
+          description: Vide = sur demande.
+        on_request:
+          type: boolean
+          readOnly: true
+        photos:
+          type: array
+          items:
+            type: string
+          readOnly: true
+          description: Adresses des photos.
+      required:
+      - id
+      - name
+      - on_request
+      - photos
     RayonsEnum:
       enum:
       - alimentation_generale
