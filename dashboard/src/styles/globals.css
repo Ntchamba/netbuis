@@ -1,1 +1,74 @@
 @import "tailwindcss";
+
+/* Jetons issus des maquettes Dashboard-* (sombre par défaut, clair via data-theme="light"). */
+:root {
+  color-scheme: dark;
+  --nb-bg: #0d0d0f;
+  --nb-sidebar: #141417;
+  --nb-card: #1b1b1e;
+  --nb-border: #2a2a2e;
+  --nb-text: #ffffff;
+  --nb-text-2: #9a9a9e;
+  --nb-text-3: #7a7a7e;
+  --nb-accent: #f2942e;
+  --nb-accent-text: #f2942e;
+  --nb-on-accent: #1a1200;
+  --nb-success: #3ddc84;
+  --nb-success-bg: #16301f;
+  --nb-danger: #e87a6a;
+  --nb-danger-bg: #3a1f1c;
+  --nb-warn: #f2c94c;
+  --nb-warn-bg: #332b14;
+  --nb-overlay: rgb(0 0 0 / 0.6);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --nb-bg: #f7f7f8;
+  --nb-sidebar: #ffffff;
+  --nb-card: #ffffff;
+  --nb-border: #e3e3e7;
+  --nb-text: #18181b;
+  --nb-text-2: #63636a;
+  --nb-text-3: #8e8e93;
+  --nb-accent-text: #a85a00; /* D-20 : 4,75:1 sur fond clair */
+  --nb-success: #1e9e5a;
+  --nb-success-bg: #e3f7ec;
+  --nb-danger: #d1452f;
+  --nb-danger-bg: #fbeae7;
+  --nb-warn: #9c6b00;
+  --nb-warn-bg: #fbf1d9;
+  --nb-overlay: rgb(0 0 0 / 0.4);
+}
+
+@theme inline {
+  --color-bg: var(--nb-bg);
+  --color-sidebar: var(--nb-sidebar);
+  --color-card: var(--nb-card);
+  --color-line: var(--nb-border);
+  --color-ink: var(--nb-text);
+  --color-ink-2: var(--nb-text-2);
+  --color-ink-3: var(--nb-text-3);
+  --color-accent: var(--nb-accent);
+  --color-accent-ink: var(--nb-accent-text);
+  --color-on-accent: var(--nb-on-accent);
+  --color-success: var(--nb-success);
+  --color-success-bg: var(--nb-success-bg);
+  --color-danger: var(--nb-danger);
+  --color-danger-bg: var(--nb-danger-bg);
+  --color-warn: var(--nb-warn);
+  --color-warn-bg: var(--nb-warn-bg);
+  --color-overlay: var(--nb-overlay);
+}
+
+body {
+  margin: 0;
+  background: var(--nb-bg);
+  color: var(--nb-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--nb-accent);
+  outline-offset: 2px;
+}
