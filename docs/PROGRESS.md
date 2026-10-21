@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T061
-- **Prochaine tâche** : T062
+- **Tâche en cours** : T062
+- **Prochaine tâche** : T063
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -76,7 +76,7 @@
 | ✅ | T057 | Vérification de tranche CRITIQUE : de la recherche à l'appel | orchestrateur | 2026-10-21 | docs/verifications/T057.md ; vérificateur CONFORME |
 | | | **PHASE 7 — Explorer par quartier (Étape 4)** | | | |
 | ✅ | T060 | Backend : carte par zones | a2 | 2026-10-21 | docs/verifications/T060.md ; vérificateur CONFORME |
-| ☐ | T061 | Mobile : écran Carte | b2 | | |
+| ✅ | T061 | Mobile : écran Carte | b2 | 2026-10-21 | docs/verifications/T061.md ; vérificateur CONFORME |
 | ☐ | T062 | Mobile : détail d'un quartier | b2 | | |
 | ☐ | T063 | Vérification de tranche : carte | orchestrateur | | |
 | | | **PHASE 8 — Administration : API puis dashboard (Étape 5)** | | | |

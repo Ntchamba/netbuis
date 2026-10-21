@@ -12,6 +12,9 @@ class Routes {
   static const yourName = '/your-name';
   static const home = '/home';
   static const map = '/map';
+  /// Quartier ouvert depuis l'onglet Carte (T061 : point d'entrée, T062 : le détail).
+  static const mapArea = '/map/area/:id';
+  static String mapAreaPath(int id) => '/map/area/$id';
   /// Recherche écrite (T045), ouverte depuis l'Accueil.
   static const search = '/search';
   /// Fiche publique d'un commerce (T047) ; modèle de chemin et chemin d'un commerce.

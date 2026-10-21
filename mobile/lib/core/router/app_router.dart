@@ -20,6 +20,7 @@ import '../../features/business/presentation/screens/structure_details_screen.da
 import '../../features/business/presentation/screens/structure_type_screen.dart';
 import '../../features/call/presentation/screens/call_history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/maps/presentation/screens/map_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -128,7 +129,22 @@ GoRouter buildRouter({
               ),
             ],
           ),
-          StatefulShellBranch(routes: [tab(Routes.map, const _TabScreen(titleKey: 'map.title'))]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.map,
+                builder: (context, state) => const MapScreen(),
+                routes: [
+                  // Point d'entrée du détail d'un quartier : l'écran est rempli par T062.
+                  GoRoute(
+                    path: 'area/:id',
+                    builder: (context, state) =>
+                        const Scaffold(body: _TabScreen(titleKey: 'map.area.soon')),
+                  ),
+                ],
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [tab(Routes.forum, const _TabScreen(titleKey: 'forum.title'))],
           ),
