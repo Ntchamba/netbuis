@@ -12,6 +12,7 @@ import '../../application/map_controller.dart';
 import '../../application/map_layout.dart';
 import '../../data/models/map_models.dart';
 import '../widgets/map_canvas.dart';
+import 'area_screen.dart';
 
 String _fill(String text, Map<String, Object> values) {
   var out = text;
@@ -46,7 +47,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (open != null) {
       open(area);
     } else {
-      context.push(Routes.mapAreaPath(area.id));
+      context.push(
+        Routes.mapAreaPath(area.id),
+        extra: AreaArgs(
+          areaName: area.name,
+          cityId: ref.read(mapControllerProvider).activeCity?.id,
+          cityName: ref.read(mapControllerProvider).activeCity?.name,
+        ),
+      );
     }
   }
 

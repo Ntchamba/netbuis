@@ -51,7 +51,29 @@ class MapRepositoryFake implements MapRepository {
     );
   }
 
+  /// Quartiers de Maroua : 12 commerces fictifs (2 pages de 10 puis 2), sans numéro.
   @override
-  Future<SearchPage> areaBusinesses(int areaId, {int page = 1}) async =>
-      const SearchPage(count: 0, results: [], hasNext: false);
+  Future<SearchPage> areaBusinesses(int areaId, {int page = 1}) async {
+    final known = _marouaAreas.where((a) => a.id == areaId);
+    if (known.isEmpty) return const SearchPage(count: 0, results: [], hasNext: false);
+    final area = known.first;
+    const total = 12, size = 10;
+    final from = (page - 1) * size;
+    final to = from + size > total ? total : from + size;
+    return SearchPage(
+      count: total,
+      hasNext: to < total,
+      results: [
+        for (var i = from; i < to; i++)
+          SearchResult(
+            id: areaId * 100 + i,
+            name: 'Commerce ${i + 1} de ${area.name}',
+            kind: i.isEven ? 'produit' : 'service',
+            secteur: i.isEven ? 'Alimentation' : 'Artisanat',
+            zone: ResultZone(id: areaId, name: area.name),
+            descriptionActivite: i.isEven ? 'Riz, huile, condiments' : 'Couture sur mesure',
+          ),
+      ],
+    );
+  }
 }
