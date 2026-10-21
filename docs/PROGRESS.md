@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T074c
-- **Prochaine tâche** : T075
+- **Tâche en cours** : T075
+- **Prochaine tâche** : T076
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -86,7 +86,7 @@
 | ✅ | T073 | Backend : chiffres du tableau de bord | c2 | 2026-10-21 | docs/verifications/T073.md ; vérificateur CONFORME |
 | ✅ | T074 | Backend : réglages, administrateurs, export | c2 | 2026-10-21 | docs/verifications/T074.md ; vérificateur CONFORME |
 | ✅ | T074b | Backend : référentiels modifiables par l'administration | c2 | 2026-10-21 | docs/verifications/T074b.md ; vérificateur CONFORME |
-| ☐ | T074c | Backend : analyses, abonnements, lecture de l'audit | c2 | | |
+| ✅ | T074c | Backend : analyses, abonnements, lecture de l'audit | c2 | 2026-10-21 | docs/verifications/T074c.md ; vérificateur CONFORME |
 | ☐ | T075 | Backend : tests et contrat de l'administration | c2 | | |
 | ☐ | T076 | Dashboard : kit de composants et thème | c3 | | |
 | ☐ | T077 | 🔒 Dashboard : connexion de l'administrateur | c3 | | |

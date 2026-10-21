@@ -551,6 +551,176 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, ou sans peut_gerer_admins
+  /api/admin/analytics/calls/:
+    get:
+      operationId: admin_analytics_calls
+      description: 'Appels par jour (zéros compris), par opérateur (orange, mtn, unknown),
+        par plateforme et par canal. Agrégats seulement : ni appelant ni commerçant
+        identifiable.'
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+        description: 'Fenêtre en jours calendaires, aujourd''hui compris : 1 à 90,
+          7 par défaut'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallAnalytics'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_days
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/analytics/searches/:
+    get:
+      operationId: admin_analytics_searches
+      description: 'Termes de recherche les plus fréquents et recherches sans résultat
+        (50 termes au plus, par fréquence). Agrégats seulement : jamais de compte
+        ni de numéro ; un terme contenant 6 chiffres ou plus est écarté.'
+      parameters:
+      - in: query
+        name: days
+        schema:
+          type: integer
+        description: 'Fenêtre en jours calendaires, aujourd''hui compris : 1 à 90,
+          7 par défaut'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchAnalytics'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_days
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, sans la permission, ou compte
+            bloqué
+  /api/admin/audit/:
+    get:
+      operationId: admin_audit_list
+      description: Journal d'audit en lecture seule, du plus récent au plus ancien,
+        paginé. Le motif est affiché mais tout numéro, code, jeton ou lien y est masqué.
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+          enum:
+          - accord_abonnement
+          - attribution_role
+          - blocage_compte
+          - consultation_numero
+          - creation_referentiel
+          - deblocage_compte
+          - desactivation_referentiel
+          - export_comptes
+          - moderation_contenu
+          - modification_referentiel
+          - modification_reglage
+          - reactivation_referentiel
+          - rejet_business
+          - restauration_compte
+          - retrait_role
+          - suppression_compte
+          - validation_business
+      - in: query
+        name: admin
+        schema:
+          type: integer
+        description: Identifiant de l'administrateur
+      - in: query
+        name: from
+        schema:
+          type: string
+        description: Jour AAAA-MM-JJ, inclus (fuseau du projet)
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: to
+        schema:
+          type: string
+        description: Jour AAAA-MM-JJ, inclus (fuseau du projet)
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditEntryList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_filter
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Droit manquant
   /api/admin/export/accounts.csv:
     get:
       operationId: admin_export_accounts
@@ -3214,6 +3384,64 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, sans la permission, ou compte
             bloqué
+  /api/admin/subscriptions/:
+    get:
+      operationId: admin_subscriptions_list
+      description: Comptes business actifs, paginés, les plus sollicités d'abord.
+        Numéro toujours masqué.
+      parameters:
+      - in: query
+        name: filter
+        schema:
+          type: string
+          enum:
+          - all
+          - high_traffic
+          - subscribed
+          - unsubscribed
+        description: all (défaut), subscribed, unsubscribed, high_traffic (non abonnés
+          au-dessus du seuil `seuil_appels_abonnement` sur 24 h)
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubscriptionRowList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_filter
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Droit manquant
   /api/auth/admin/login/:
     post:
       operationId: auth_admin_login_create
@@ -5647,6 +5875,35 @@ components:
       - type_compte
       - zone
       - zone_name
+    CallAnalytics:
+      type: object
+      properties:
+        days:
+          type: integer
+        since:
+          type: string
+          format: date
+        total_calls:
+          type: integer
+        by_day:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayCount'
+          description: Un élément par jour, zéros compris
+        by_operator:
+          $ref: '#/components/schemas/OperatorCounts'
+        by_platform:
+          $ref: '#/components/schemas/PlatformCounts'
+        by_channel:
+          $ref: '#/components/schemas/ChannelCounts'
+      required:
+      - by_channel
+      - by_day
+      - by_operator
+      - by_platform
+      - days
+      - since
+      - total_calls
     CatalogProduct:
       type: object
       properties:
@@ -5672,6 +5929,16 @@ components:
       - name
       - sector
       - subcategory
+    ChannelCounts:
+      type: object
+      properties:
+        call:
+          type: integer
+        whatsapp:
+          type: integer
+      required:
+      - call
+      - whatsapp
     ChannelEnum:
       enum:
       - call
@@ -5710,6 +5977,17 @@ components:
         * `fast_food` - Fast-food
         * `pizzeria_occidentale` - Pizzeria/Occidentale
         * `autre` - Autre
+    DayCount:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        count:
+          type: integer
+      required:
+      - count
+      - date
     EquipementsEnum:
       enum:
       - petit_dejeuner
@@ -6167,6 +6445,19 @@ components:
       - name
       - on_request
       - updated_at
+    OperatorCounts:
+      type: object
+      properties:
+        orange:
+          type: integer
+        mtn:
+          type: integer
+        unknown:
+          type: integer
+      required:
+      - mtn
+      - orange
+      - unknown
     OperatorEnum:
       enum:
       - orange
@@ -6414,6 +6705,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AdminZone'
+    PaginatedAuditEntryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEntry'
     PaginatedBusinessRequestList:
       type: object
       required:
@@ -6506,6 +6820,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SearchResult'
+    PaginatedSubscriptionRowList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionRow'
     PaginatedZoneList:
       type: object
       required:
@@ -6841,6 +7178,16 @@ components:
           maximum: 180
           minimum: -180
           nullable: true
+    PlatformCounts:
+      type: object
+      properties:
+        android:
+          type: integer
+        ios:
+          type: integer
+      required:
+      - android
+      - ios
     PlatformEnum:
       enum:
       - android
@@ -7082,6 +7429,36 @@ components:
       description: |-
         * `Validateur` - Validateur
         * `Administrateur complet` - Administrateur complet
+    SearchAnalytics:
+      type: object
+      properties:
+        days:
+          type: integer
+        since:
+          type: string
+          format: date
+          description: Premier jour de la fenêtre (aujourd'hui compris)
+        total_searches:
+          type: integer
+        total_without_results:
+          type: integer
+        top_terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/TermCount'
+          description: 50 au plus, par fréquence décroissante
+        no_result_terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/TermCount'
+          description: Termes sans résultat, 50 au plus, par fréquence décroissante
+      required:
+      - days
+      - no_result_terms
+      - since
+      - top_terms
+      - total_searches
+      - total_without_results
     SearchResult:
       type: object
       description: 'Lit un `BusinessProfile` ; le contexte peut contenir `prices`
@@ -7358,6 +7735,56 @@ components:
       - code
       - name
       - sector
+    SubscriptionRow:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant du compte business
+        name:
+          type: string
+        owner_id:
+          type: integer
+        phone_masked:
+          type: string
+          readOnly: true
+          description: Ex. « +237 6•• •• •• 41 »
+        zone_id:
+          type: integer
+          nullable: true
+        zone_name:
+          type: string
+          nullable: true
+          readOnly: true
+        is_subscribed:
+          type: boolean
+        subscription_end:
+          type: string
+          format: date-time
+          nullable: true
+          description: Fin de l'abonnement en cours, null si non abonné
+        calls_last_day:
+          type: integer
+          description: Appels reçus sur les dernières 24 h
+        calls_count:
+          type: integer
+          description: Appels lancés depuis l'ouverture
+        high_traffic:
+          type: boolean
+          readOnly: true
+          description: Non abonné et au-dessus du seuil sur 24 h
+      required:
+      - calls_count
+      - calls_last_day
+      - high_traffic
+      - id
+      - is_subscribed
+      - name
+      - owner_id
+      - phone_masked
+      - subscription_end
+      - zone_id
+      - zone_name
     Suggestion:
       type: object
       properties:
@@ -7385,6 +7812,17 @@ components:
           type: integer
       required:
       - product
+      - term
+    TermCount:
+      type: object
+      properties:
+        term:
+          type: string
+          description: Terme normalisé
+        count:
+          type: integer
+      required:
+      - count
       - term
     TypeCompteEnum:
       enum:

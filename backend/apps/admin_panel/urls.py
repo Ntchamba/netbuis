@@ -2,12 +2,15 @@
 from django.urls import path
 
 from .views.admins import AdminDetailView, AdminListCreateView
+from .views.analytics import CallAnalyticsView, SearchAnalyticsView
+from .views.audit import AuditListView
 from .views.businesses import ApproveView, BusinessRequestListView, PrivateFileView, RejectView
 from .views.export import AccountsCsvView
 from .views.me import AdminMeView
 from .views.referentials import FreeValuesView, build_views
 from .views.settings import SettingDetailView, SettingListView
 from .views.stats import AdminStatsView
+from .views.subscriptions import SubscriptionListView
 from .views.users import (
     AccountDetailView,
     AccountListView,
@@ -51,6 +54,10 @@ urlpatterns = [
     path("settings/<str:key>/", SettingDetailView.as_view(), name="setting-detail"),
     path("admins/", AdminListCreateView.as_view(), name="admins"),
     path("admins/<int:pk>/", AdminDetailView.as_view(), name="admin-detail"),
+    path("analytics/searches/", SearchAnalyticsView.as_view(), name="analytics-searches"),
+    path("analytics/calls/", CallAnalyticsView.as_view(), name="analytics-calls"),
+    path("subscriptions/", SubscriptionListView.as_view(), name="subscriptions"),
+    path("audit/", AuditListView.as_view(), name="audit"),
     path("export/accounts.csv", AccountsCsvView.as_view(), name="export-accounts"),
     path("referentials/free-values/", FreeValuesView.as_view(), name="ref-free-values"),
     *_REF_PATHS,
