@@ -22,3 +22,6 @@ Note : le contrat de recherche n'a pas whatsapp_available ; les cartes sont gris
 ## T057 — vérification de tranche critique (recherche → appel) : CONFORME sur le vrai backend
 Le BACKLOG demandait « Jeff relit 🔒 appel et valide avant T060 » : non fait, passé sans arrêt sur ta décision. À relire en priorité : T050, T051, T052, T054 ci-dessus. Tests sur téléphone réel : docs/TESTS_JEFF.md (appel Orange T052-2, MTN T052-3, une seule SIM T052-7, permission refusée T052-10, WhatsApp absent T054-5).
 Observation : clé de signature des jetons de 31 octets (PyJWT demande ≥ 32) : à renforcer avant la mise en service.
+
+## Décision produit à prendre : la recherche ne trouve pas un commerce par son nom
+Constaté en T040 et T063 : taper « Pharmacie du Marché » ne trouve pas le commerce par son nom seul (le critère de T040 ne cite que offres, sous-catégories, produits, secteur, catégories de service). Facile à ajouter (index trigramme sur le nom). À trancher avant la mise en service.
