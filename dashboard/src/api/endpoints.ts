@@ -4,6 +4,7 @@ export const ENDPOINTS = {
   refresh: "/api/auth/refresh/",
   logout: "/api/auth/logout/",
   me: "/api/admin/me/",
+  stats: "/api/admin/stats/",
 } as const;
 
 /** Routes d'authentification : un 401 n'y déclenche jamais de rafraîchissement. */

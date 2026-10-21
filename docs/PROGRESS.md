@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T078
-- **Prochaine tâche** : T081
+- **Tâche en cours** : T081
+- **Prochaine tâche** : T082
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -90,7 +90,7 @@
 | ✅ | T075 | Backend : tests et contrat de l'administration | c2 | 2026-10-21 | docs/verifications/T075.md ; vérificateur CONFORME ; contrat admin T070-T074c relu par le vérificateur (70 routes) |
 | ✅ | T076 | Dashboard : kit de composants et thème | c3 | 2026-10-21 | docs/verifications/T076.md ; vérificateur CONFORME |
 | ✅ | T077 | 🔒 Dashboard : connexion de l'administrateur | c3 | 2026-10-21 | docs/verifications/T077.md ; vérificateur CONFORME |
-| ☐ | T078 | Dashboard : mise en page | c3 | | |
+| ✅ | T078 | Dashboard : mise en page | c3 | 2026-10-21 | docs/verifications/T078.md ; vérificateur CONFORME |
 | ☐ | T081 | Dashboard : Vue d'ensemble | c3 | | |
 | ☐ | T082 | Dashboard : Demandes | c3 | | |
 | ☐ | T083 | Dashboard : Comptes | c3 | | |
