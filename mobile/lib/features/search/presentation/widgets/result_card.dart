@@ -3,17 +3,21 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../call/presentation/widgets/whatsapp_button.dart';
 import '../../data/models/search_result.dart';
 
 /// Aucun numéro ici : il ne sort que de POST /api/calls/initiate/ (T052).
 /// Le bouton « Appeler » n'a pas de prix tant que `CREDITS_ENABLED=False` (D-19).
 class ResultCard extends StatelessWidget {
-  const ResultCard({super.key, required this.result, this.onCall, this.onOpen});
+  const ResultCard({super.key, required this.result, this.onCall, this.onWhatsapp, this.onOpen});
 
   final SearchResult result;
 
   /// Ouvre la feuille d'appel (T052) ; null = bouton visible mais inactif.
   final VoidCallback? onCall;
+
+  /// Ouvre WhatsApp (T054) ; null = bouton visible mais inactif.
+  final VoidCallback? onWhatsapp;
 
   /// Ouvre la fiche publique du commerce (tap sur la carte).
   final VoidCallback? onOpen;
@@ -95,8 +99,11 @@ class ResultCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: SizedBox(
                 height: 48,
                 child: FilledButton.icon(
                   onPressed: onCall,
@@ -117,6 +124,19 @@ class ResultCard extends StatelessWidget {
                             fontSize: 14, fontWeight: FontWeight.w700)),
                   ),
                 ),
+              ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 4,
+                    child: WhatsappButton(
+                      key: const Key('card-whatsapp'),
+                      businessName: result.name,
+                      available: result.whatsappAvailable,
+                      onPressed: onWhatsapp,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

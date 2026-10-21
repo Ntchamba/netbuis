@@ -8,9 +8,13 @@ import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
 import 'package:netbuis/features/call/application/call_controller.dart';
 import 'package:netbuis/features/call/data/call_channel.dart';
+import 'package:netbuis/features/call/data/models/call_feedback.dart';
 import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/call/data/repositories/call_repository.dart';
 import 'package:netbuis/features/call/presentation/widgets/call_button.dart';
+
+/// Lien WhatsApp FICTIF de test : il contient le numéro fictif, donc il ne doit apparaître nulle part.
+const String kFakeWaUrl = 'https://wa.me/237600000042?text=Bonjour%20NetBuis';
 
 /// Numéro FICTIF de test (D-18). Il ne doit apparaître nulle part dans l'arbre de widgets.
 const String kFakePhone = '+237600000042';
@@ -31,10 +35,13 @@ class FakeCallChannel implements CallChannel {
   bool dialResult = true;
   bool throwOnPermissions = false;
   bool throwOnPlace = false;
+  WhatsappOpenResult whatsappResult = WhatsappOpenResult.opened;
+  bool throwOnWhatsapp = false;
 
   int requestCount = 0;
   final List<({String phone, String? accountId})> placed = [];
   final List<String> dialed = [];
+  final List<String> whatsappOpened = [];
 
   @override
   Future<CallPermissions> permissions() async {
@@ -64,12 +71,24 @@ class FakeCallChannel implements CallChannel {
     dialed.add(phone);
     return dialResult;
   }
+
+  @override
+  Future<WhatsappOpenResult> openWhatsapp(String url) async {
+    if (throwOnWhatsapp) throw const CallChannelException();
+    whatsappOpened.add(url);
+    return whatsappResult;
+  }
 }
 
 /// Faux dépôt : garde seulement l'opérateur demandé ; peut refuser comme le serveur.
 class FakeCallRepository implements CallRepository {
   ApiException? error;
+  ApiException? feedbackError;
+  ApiException? reportError;
   final List<({int businessId, CallLine? line})> requests = [];
+  final List<int> whatsappRequests = [];
+  final List<({int callId, CallOutcome outcome})> feedbacks = [];
+  final List<int> reports = [];
 
   @override
   Future<CallSession> initiate({required int businessId, CallLine? line}) async {
@@ -77,6 +96,28 @@ class FakeCallRepository implements CallRepository {
     final e = error;
     if (e != null) throw e;
     return const CallSession(callId: 7, phone: kFakePhone);
+  }
+
+  @override
+  Future<WhatsappLink> initiateWhatsapp({required int businessId}) async {
+    whatsappRequests.add(businessId);
+    final e = error;
+    if (e != null) throw e;
+    return const WhatsappLink(callId: 8, url: kFakeWaUrl);
+  }
+
+  @override
+  Future<void> sendFeedback({required int callId, required CallOutcome outcome}) async {
+    final e = feedbackError;
+    if (e != null) throw e;
+    feedbacks.add((callId: callId, outcome: outcome));
+  }
+
+  @override
+  Future<void> reportNoWhatsapp({required int businessId}) async {
+    final e = reportError;
+    if (e != null) throw e;
+    reports.add(businessId);
   }
 }
 
@@ -150,11 +191,24 @@ Future<void> closeSheet(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 500));
 }
 
+/// Ferme la feuille facultative « ça a abouti ? » sans répondre.
+Future<void> dismissFeedback(WidgetTester tester) async {
+  expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
+  await tester.tap(find.byKey(const Key('feedback-later')));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+  expect(find.byKey(const Key('feedback-sheet')), findsNothing);
+}
+
 /// Aucun texte de l'arbre de widgets (Text, RichText, étiquettes d'accessibilité,
 /// info-bulles, champs) ne contient le numéro, sous aucune des écritures courantes.
 void expectNoPhoneOnScreen(WidgetTester tester) {
   bool leaks(String? s) =>
-      s != null && (s.contains(kFakeDigits) || s.contains('+237') || s.contains('237 6'));
+      s != null &&
+      (s.contains(kFakeDigits) ||
+          s.contains('+237') ||
+          s.contains('237 6') ||
+          s.contains('wa.me'));
   for (final w in tester.allWidgets) {
     if (w is Text) {
       expect(leaks(w.data) || leaks(w.textSpan?.toPlainText()) || leaks(w.semanticsLabel), isFalse,

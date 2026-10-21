@@ -74,6 +74,9 @@ enum CallError {
 
   /// Le téléphone n'a pas pu lancer l'appel.
   placeFailed,
+
+  /// Le téléphone n'a pas pu ouvrir WhatsApp.
+  whatsappFailed,
 }
 
 class CallFlowState {
@@ -86,6 +89,7 @@ class CallFlowState {
     this.absentLine,
     this.sims = const [],
     this.error,
+    this.placedCallId,
   });
 
   final CallPhase phase;
@@ -103,6 +107,9 @@ class CallFlowState {
   final List<SimAccount> sims;
   final CallError? error;
 
+  /// Numéro (identifiant, pas le téléphone) de l'appel lancé : sert au retour « ça a abouti ? ».
+  final int? placedCallId;
+
   CallFlowState copyWith({
     CallPhase? phase,
     CallLine? line,
@@ -110,6 +117,7 @@ class CallFlowState {
     CallLine? absentLine,
     List<SimAccount>? sims,
     CallError? error,
+    int? placedCallId,
   }) =>
       CallFlowState(
         phase: phase ?? this.phase,
@@ -120,6 +128,7 @@ class CallFlowState {
         absentLine: absentLine ?? this.absentLine,
         sims: sims ?? this.sims,
         error: error ?? this.error,
+        placedCallId: placedCallId ?? this.placedCallId,
       );
 
   /// Vrai quand un appel est déjà en cours de traitement (protection du double clic).
@@ -330,7 +339,169 @@ class CallFlow extends Notifier<CallFlowState> {
       _set(state.copyWith(phase: CallPhase.error, error: CallError.placeFailed));
       return;
     }
+    _set(state.copyWith(placedCallId: session.callId));
     await Future<void>.delayed(ref.read(callCloseDelayProvider));
     _set(state.copyWith(phase: CallPhase.done));
   }
 }
+
+// ---------------------------------------------------------------------------------------------
+// WhatsApp : POST /calls/initiate/ (canal whatsapp) -> ouverture du lien wa.me par le code natif.
+// ZONE SENSIBLE : le lien reçu contient le numéro. Il passe de [CallRepository] à [CallChannel]
+// dans [WhatsappFlow._open] et nulle part ailleurs : jamais dans l'état, affiché, journalisé.
+// ---------------------------------------------------------------------------------------------
+
+enum WhatsappPhase {
+  idle,
+
+  /// Demande au serveur, puis ouverture de WhatsApp.
+  opening,
+
+  /// WhatsApp est absent du téléphone : message + possibilité de signaler « pas de WhatsApp ».
+  notInstalled,
+
+  /// Envoi du signalement.
+  reporting,
+
+  /// Signalement enregistré.
+  reported,
+
+  /// Refus ou panne : voir [WhatsappFlowState.error].
+  error,
+
+  /// iPhone / autre plateforme : pas disponible dans cette version.
+  unsupported,
+
+  /// Terminé : la feuille se ferme.
+  done,
+}
+
+class WhatsappFlowState {
+  const WhatsappFlowState({
+    this.phase = WhatsappPhase.idle,
+    this.businessId = 0,
+    this.businessName = '',
+    this.error,
+    this.reportFailed = false,
+  });
+
+  final WhatsappPhase phase;
+  final int businessId;
+  final String businessName;
+  final CallError? error;
+
+  /// Le dernier envoi du signalement a échoué (on peut réessayer).
+  final bool reportFailed;
+
+  WhatsappFlowState copyWith(
+          {WhatsappPhase? phase, CallError? error, bool? reportFailed}) =>
+      WhatsappFlowState(
+        phase: phase ?? this.phase,
+        businessId: businessId,
+        businessName: businessName,
+        error: error ?? this.error,
+        reportFailed: reportFailed ?? this.reportFailed,
+      );
+
+  /// Vrai quand une ouverture est déjà en cours (protection du double clic).
+  bool get busy => phase != WhatsappPhase.idle;
+
+  @override
+  String toString() => 'WhatsappFlowState($phase)';
+}
+
+final whatsappFlowProvider =
+    NotifierProvider<WhatsappFlow, WhatsappFlowState>(WhatsappFlow.new);
+
+class WhatsappFlow extends Notifier<WhatsappFlowState> {
+  bool _disposed = false;
+
+  @override
+  WhatsappFlowState build() {
+    _disposed = false;
+    ref.onDispose(() => _disposed = true);
+    return const WhatsappFlowState();
+  }
+
+  void _set(WhatsappFlowState s) {
+    if (!_disposed) state = s;
+  }
+
+  /// Démarre l'ouverture de WhatsApp. Faux (et rien ne se passe) si une est déjà en cours.
+  bool begin(int businessId, String businessName) {
+    if (state.busy) return false;
+    _set(WhatsappFlowState(
+        phase: WhatsappPhase.opening,
+        businessId: businessId,
+        businessName: businessName));
+    unawaited(_open());
+    return true;
+  }
+
+  /// Après la fermeture de la feuille : prêt pour une nouvelle ouverture.
+  void reset() => _set(const WhatsappFlowState());
+
+  Future<void> _open() async {
+    if (ref.read(callPlatformProvider) != TargetPlatform.android) {
+      _set(state.copyWith(phase: WhatsappPhase.unsupported));
+      return;
+    }
+    final WhatsappLink link;
+    try {
+      link = await ref
+          .read(callRepositoryProvider)
+          .initiateWhatsapp(businessId: state.businessId);
+    } on Object catch (e) {
+      _set(state.copyWith(phase: WhatsappPhase.error, error: callErrorFor(e)));
+      return;
+    }
+    WhatsappOpenResult result;
+    try {
+      result = await ref.read(callChannelProvider).openWhatsapp(link.url);
+    } on Object {
+      result = WhatsappOpenResult.failed;
+    }
+    switch (result) {
+      case WhatsappOpenResult.opened:
+        _set(state.copyWith(phase: WhatsappPhase.done));
+      case WhatsappOpenResult.notInstalled:
+        _set(state.copyWith(phase: WhatsappPhase.notInstalled));
+      case WhatsappOpenResult.failed:
+        _set(state.copyWith(
+            phase: WhatsappPhase.error, error: CallError.whatsappFailed));
+    }
+  }
+
+  /// « Ce commerce n'a pas WhatsApp » : possible seulement après une tentative (le serveur exige
+  /// d'avoir reçu le lien).
+  Future<void> report() async {
+    if (state.phase != WhatsappPhase.notInstalled) return;
+    _set(state.copyWith(phase: WhatsappPhase.reporting, reportFailed: false));
+    try {
+      await ref
+          .read(callRepositoryProvider)
+          .reportNoWhatsapp(businessId: state.businessId);
+      _set(state.copyWith(phase: WhatsappPhase.reported));
+    } on Object {
+      _set(state.copyWith(
+          phase: WhatsappPhase.notInstalled, reportFailed: true));
+    }
+  }
+
+  /// Fermer. Sans effet pendant l'ouverture ou l'envoi.
+  void cancel() {
+    switch (state.phase) {
+      case WhatsappPhase.notInstalled:
+      case WhatsappPhase.reported:
+      case WhatsappPhase.error:
+      case WhatsappPhase.unsupported:
+        _set(state.copyWith(phase: WhatsappPhase.done));
+      case WhatsappPhase.idle:
+      case WhatsappPhase.opening:
+      case WhatsappPhase.reporting:
+      case WhatsappPhase.done:
+        break;
+    }
+  }
+}
+

@@ -30,23 +30,12 @@ class CallSheet extends ConsumerWidget {
         Navigator.of(context).pop();
       }
     });
-    final c = AppColors.of(context);
     final locked = s.phase == CallPhase.preparing || s.phase == CallPhase.running;
     return PopScope(
       canPop: !locked,
-      child: Container(
+      child: SheetFrame(
         key: const Key('call-sheet'),
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: c.card,
-          border: Border(top: BorderSide(color: c.border)),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
-        child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(child: _body(context, ref, s)),
-        ),
+        child: _body(context, ref, s),
       ),
     );
   }
@@ -127,7 +116,7 @@ class CallSheet extends ConsumerWidget {
           ],
         );
       case CallPhase.rationale:
-        return _Message(
+        return SheetMessage(
           key: const Key('call-rationale'),
           title: l10n.t('call.rationale.title'),
           body: l10n.t('call.rationale.body'),
@@ -141,7 +130,7 @@ class CallSheet extends ConsumerWidget {
       case CallPhase.lineAbsent:
         final absent = s.absentLine ?? CallLine.orange;
         final other = absent.other;
-        return _Message(
+        return SheetMessage(
           key: const Key('call-absent'),
           title: l10n
               .t('call.absent.title')
@@ -180,7 +169,7 @@ class CallSheet extends ConsumerWidget {
           ],
         );
       case CallPhase.dialWarning:
-        return _Message(
+        return SheetMessage(
           key: const Key('call-dial-warning'),
           title: l10n.t('call.dial.title'),
           body: l10n.t('call.dial.body'),
@@ -192,7 +181,7 @@ class CallSheet extends ConsumerWidget {
           onSecondary: flow.cancel,
         );
       case CallPhase.unsupported:
-        return _Message(
+        return SheetMessage(
           key: const Key('call-unsupported'),
           title: l10n.t('call.unsupported'),
           body: l10n.t('call.honest'),
@@ -201,7 +190,7 @@ class CallSheet extends ConsumerWidget {
           onSecondary: flow.cancel,
         );
       case CallPhase.error:
-        return _Message(
+        return SheetMessage(
           key: const Key('call-error'),
           title: l10n.t('call.error.${(s.error ?? CallError.generic).name}'),
           secondaryKey: const Key('call-close'),
@@ -209,6 +198,27 @@ class CallSheet extends ConsumerWidget {
           onSecondary: flow.cancel,
         );
     }
+  }
+}
+
+/// Cadre commun des feuilles d'appel, de WhatsApp et de retour d'appel.
+class SheetFrame extends StatelessWidget {
+  const SheetFrame({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: c.card,
+        border: Border(top: BorderSide(color: c.border)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+      child: SafeArea(top: false, child: SingleChildScrollView(child: child)),
+    );
   }
 }
 
@@ -340,8 +350,9 @@ class _HonestNote extends StatelessWidget {
       );
 }
 
-class _Message extends StatelessWidget {
-  const _Message({
+/// Message avec un bouton principal et un bouton secondaire facultatifs.
+class SheetMessage extends StatelessWidget {
+  const SheetMessage({
     super.key,
     required this.title,
     this.body,

@@ -13,3 +13,8 @@ Décisions à valider : message WhatsApp pré-rempli « Bonjour, je vous contact
 Fichiers à relire ligne par ligne : mobile/android/app/src/main/kotlin/cm/netbuis/netbuis/CallChannel.kt (NON compilé ici : à compiler et essayer sur téléphone), MainActivity.kt, AndroidManifest.xml, mobile/lib/features/call/application/call_controller.dart (_run : seul endroit où passe le numéro), data/call_channel.dart, data/models/call_session.dart, data/repositories/call_repository_api.dart.
 À confirmer sur téléphone (docs/TESTS_JEFF.md, 14 étapes) : détection des SIM, simOperatorName = « Orange » / « MTN », clé de compte createForPhoneAccountHandle (API 26), demande de permission, repli composeur.
 Décisions à valider : le numéro n'est pas affiché dans l'appli, même dans le repli ACTION_DIAL (visible seulement dans le composeur du système, avec avertissement) ; « Plus tard » sur l'explication annule l'appel.
+
+## T054 — WhatsApp et retour d'appel (mobile)
+Fichiers : CallChannel.kt (openWhatsapp : seul https://wa.me accepté, setPackage com.whatsapp / com.whatsapp.w4b, aucun repli navigateur), AndroidManifest.xml (<queries>), mobile/lib/features/call/data/models/call_session.dart (WhatsappLink), application/call_controller.dart (WhatsappFlow._open : seul endroit où le lien passe du dépôt au natif), data/repositories/call_repository_api.dart (initiateWhatsapp), data/call_channel.dart.
+À confirmer sur téléphone (docs/TESTS_JEFF.md, 12 points) : WhatsApp installé / Business seul / absent ; moment d'apparition de la feuille « ça a abouti ? ».
+Note : le contrat de recherche n'a pas whatsapp_available ; les cartes sont grisées seulement si le serveur l'envoie (sinon CHANNEL_UNAVAILABLE au clic).

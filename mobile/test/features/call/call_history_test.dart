@@ -255,6 +255,7 @@ void main() {
       expect(calls.requests.single.line?.value, 'mtn');
       expect(channel.placed, hasLength(1));
       await closeSheet(tester);
+      await dismissFeedback(tester);
 
       // Second rappel : la feuille revient (D-22), le choix n'est pas gardé.
       await tester.tap(find.byKey(const ValueKey('history-recall-1')));
@@ -263,6 +264,36 @@ void main() {
       expect(calls.requests, hasLength(1));
       expectNoPhoneOnScreen(tester);
     });
+  });
+
+  testWidgets('ligne WhatsApp : garde « Rappeler » (appel) et gagne un bouton WhatsApp (T054)',
+      (tester) async {
+    final repo = _ScriptedHistory([
+      CallHistoryPage(
+          count: 1, hasNext: false, results: [_entry(2, type: HistoryType.whatsapp)]),
+    ]);
+    final calls = FakeCallRepository();
+    final channel = FakeCallChannel();
+    await _pump(tester, repo, calls, channel);
+
+    // « Rappeler » reste un appel : feuille Orange / MTN, rien d'envoyé avant le choix.
+    expect(find.byKey(const ValueKey('history-recall-2')), findsOneWidget);
+    expect(find.byKey(const ValueKey('history-whatsapp-2')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('history-recall-2')));
+    await settleSheet(tester);
+    expect(find.byKey(const Key('call-choose')), findsOneWidget);
+    expect(calls.whatsappRequests, isEmpty);
+    await tester.tap(find.byKey(const Key('call-cancel')));
+    await settleSheet(tester);
+
+    // Le bouton WhatsApp ouvre WhatsApp pour ce commerce, sans rien afficher du lien.
+    await tester.tap(find.byKey(const ValueKey('history-whatsapp-2')));
+    await settleSheet(tester);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(calls.whatsappRequests, [5]);
+    expect(calls.requests, isEmpty);
+    expect(channel.whatsappOpened, [kFakeWaUrl]);
+    expectNoPhoneOnScreen(tester);
   });
 
   testWidgets('Profil : « Historique de mes appels » ouvre l\'écran, Profil ramène en arrière',

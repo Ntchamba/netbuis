@@ -25,7 +25,11 @@ import io.flutter.plugin.common.MethodChannel
  *    variable locale le temps de l'appel ;
  *  - les réponses vers Dart sont des mots simples ("placed", "no_account"…), jamais le numéro.
  *
- * Méthodes : permissions, requestPermissions, listSims, placeCall, dial.
+ * [openWhatsapp] reçoit le lien wa.me, qui CONTIENT le numéro : mêmes règles (ni journal, ni
+ * stockage, ni message d'erreur). Seul un lien https://wa.me/… est ouvert, et seulement dans
+ * l'application WhatsApp (jamais dans un navigateur).
+ *
+ * Méthodes : permissions, requestPermissions, listSims, placeCall, dial, openWhatsapp.
  */
 class CallChannel(private val activity: Activity) : MethodChannel.MethodCallHandler {
 
@@ -34,6 +38,8 @@ class CallChannel(private val activity: Activity) : MethodChannel.MethodCallHand
         const val REQUEST_CODE = 5201
         private const val PREFS = "netbuis_call"
         private const val KEY_ASKED = "permissions_asked"
+        /** WhatsApp, puis WhatsApp Business. */
+        private val WHATSAPP_PACKAGES = arrayOf("com.whatsapp", "com.whatsapp.w4b")
         private val PERMISSIONS = arrayOf(
             Manifest.permission.CALL_PHONE,
             Manifest.permission.READ_PHONE_STATE,
@@ -56,6 +62,7 @@ class CallChannel(private val activity: Activity) : MethodChannel.MethodCallHand
                 result,
             )
             "dial" -> dial(call.argument<String>("phone"), result)
+            "openWhatsapp" -> openWhatsapp(call.argument<String>("url"), result)
             else -> result.notImplemented()
         }
     }
@@ -189,5 +196,37 @@ class CallChannel(private val activity: Activity) : MethodChannel.MethodCallHand
         } catch (e: ActivityNotFoundException) {
             result.success(false)
         }
+    }
+
+    /**
+     * Ouvre le lien dans WhatsApp. Réponses : "opened", "not_installed", "failed" (jamais le lien).
+     * L'intention vise explicitement le paquet de WhatsApp : sans WhatsApp, rien ne s'ouvre (pas de
+     * repli navigateur, qui afficherait une page contenant le numéro).
+     */
+    private fun openWhatsapp(url: String?, result: MethodChannel.Result) {
+        val uri = try {
+            if (url.isNullOrBlank()) null else Uri.parse(url)
+        } catch (e: RuntimeException) {
+            null
+        }
+        if (uri == null || uri.scheme != "https" || uri.host != "wa.me") {
+            result.success("failed")
+            return
+        }
+        for (pkg in WHATSAPP_PACKAGES) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, uri).setPackage(pkg)
+                activity.startActivity(intent)
+                result.success("opened")
+                return
+            } catch (e: ActivityNotFoundException) {
+                // Ce paquet n'est pas installé : on essaie le suivant.
+            } catch (e: RuntimeException) {
+                // Message de l'exception volontairement ignoré : il pourrait contenir le lien.
+                result.success("failed")
+                return
+            }
+        }
+        result.success("not_installed")
     }
 }

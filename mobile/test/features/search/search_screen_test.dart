@@ -170,6 +170,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
   });
 
+  testWidgets('le bouton WhatsApp (T054) de la carte ouvre WhatsApp pour ce commerce', (tester) async {
+    final call = FakeCallRepository();
+    await _pump(tester, call: call);
+    expect(find.text('WhatsApp'), findsNWidgets(3));
+    await tester.tap(find.byKey(const Key('card-whatsapp')).first);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(call.whatsappRequests, [1]);
+    expect(call.requests, isEmpty);
+    expect(find.byKey(const Key('whatsapp-sheet')), findsNothing);
+    expectNoPhoneOnScreen(tester);
+  });
+
   testWidgets('filtre par secteur dans la feuille', (tester) async {
     await _pump(tester);
     await tester.tap(find.byKey(const Key('search-filters')));

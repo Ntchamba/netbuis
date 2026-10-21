@@ -7,6 +7,7 @@ import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../call/presentation/widgets/call_button.dart';
+import '../../../call/presentation/widgets/whatsapp_button.dart';
 import '../../application/search_controller.dart';
 import '../widgets/result_card.dart';
 
@@ -88,6 +89,8 @@ class SearchResultsView extends ConsumerWidget {
               return ResultCard(
                 result: item,
                 onCall: () => startCall(context, businessId: item.id, businessName: item.name),
+                onWhatsapp: () =>
+                    startWhatsapp(context, businessId: item.id, businessName: item.name),
                 onOpen: () => context.push(Routes.businessDetailPath(item.id)),
               );
             }

@@ -81,4 +81,33 @@ void main() {
     expectNoPhoneOnScreen(tester);
     await closeSheet(tester);
   });
+
+  testWidgets('Accueil : le bouton WhatsApp de la carte ouvre WhatsApp pour le bon commerce',
+      (tester) async {
+    final channel = FakeCallChannel();
+    final repo = FakeCallRepository();
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        appPrefsProvider.overrideWithValue(MemoryPrefs()),
+        accountRepositoryProvider.overrideWithValue(AccountRepositoryFake()),
+        searchRepositoryProvider.overrideWithValue(SearchRepositoryFake(data: const [
+          SearchResult(
+              id: 4, name: 'Pharmacie du Centre', kind: 'produit', zone: ResultZone(id: 19, name: 'Domayo')),
+        ])),
+        referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
+        ...callOverrides(channel, repo),
+      ],
+      child: testApp(const Scaffold(body: HomeScreen())),
+    ));
+    await tester.pumpAndSettle();
+    await tapAndSettle(tester, find.byKey(const Key('card-whatsapp')));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(repo.whatsappRequests, [4]);
+    expect(channel.whatsappOpened, [kFakeWaUrl]);
+    expect(repo.requests, isEmpty);
+    expectNoPhoneOnScreen(tester);
+  });
 }

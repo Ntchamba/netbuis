@@ -93,6 +93,7 @@ void main() {
       await tapAndSettle(tester, find.byKey(const Key('call-orange')));
       await closeSheet(tester);
       expect(find.byKey(const Key('call-sheet')), findsNothing);
+      await dismissFeedback(tester);
       await tapAndSettle(tester, find.byKey(kOpenCall));
       expect(find.byKey(const Key('call-choose')), findsOneWidget);
       await tapAndSettle(tester, find.byKey(const Key('call-mtn')));

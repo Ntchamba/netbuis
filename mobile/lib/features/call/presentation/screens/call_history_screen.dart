@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../application/call_history_controller.dart';
 import '../../data/models/call_history_entry.dart';
 import '../widgets/call_button.dart';
+import '../widgets/whatsapp_button.dart';
 
 class CallHistoryScreen extends ConsumerStatefulWidget {
   const CallHistoryScreen({super.key});
@@ -298,6 +299,17 @@ class _HistoryCard extends ConsumerWidget {
               ),
               style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: Icon(Icons.phone, color: c.accentText),
+            ),
+            IconButton(
+              key: ValueKey('history-whatsapp-${entry.id}'),
+              tooltip: l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName),
+              onPressed: () => startWhatsapp(
+                context,
+                businessId: entry.businessId,
+                businessName: entry.businessName,
+              ),
+              style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
+              icon: Icon(Icons.chat_outlined, color: c.accentText),
             ),
           ],
         ),

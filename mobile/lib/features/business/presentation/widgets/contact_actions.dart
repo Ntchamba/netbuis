@@ -1,5 +1,5 @@
-// Appeler (T052) ; WhatsApp et Signaler présents mais désactivés (« Bientôt »).
-// T054 branche WhatsApp, T093 Signaler. Aucun numéro ici.
+// Appeler (T052) et WhatsApp (T054) branchés ; Signaler présent mais désactivé (« Bientôt »).
+// T093 branche Signaler. Aucun numéro ici.
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/l10n.dart';

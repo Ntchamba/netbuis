@@ -27,6 +27,7 @@ class SearchResult {
     this.photo,
     this.prixIndicatif,
     this.verifie = false,
+    this.whatsappAvailable = true,
   });
 
   /// Identifiant du compte business (fiche publique).
@@ -51,6 +52,10 @@ class SearchResult {
 
   /// Badge « ✓ Identité vérifiée ».
   final bool verifie;
+
+  /// Faux : le bouton WhatsApp est grisé (« Non disponible »). Absent de la réponse = vrai ;
+  /// dans ce cas le serveur refuse lui-même avec CHANNEL_UNAVAILABLE si WhatsApp est coupé.
+  final bool whatsappAvailable;
 
   /// Lève [FormatException] si la réponse n'a pas la forme du contrat.
   factory SearchResult.fromJson(Map<String, dynamic> json) {
@@ -92,6 +97,7 @@ class SearchResult {
       photo: photo as String?,
       prixIndicatif: price as int?,
       verifie: json['verifie'] == true,
+      whatsappAvailable: json['whatsapp_available'] != false,
     );
   }
 }

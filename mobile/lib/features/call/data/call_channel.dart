@@ -1,5 +1,6 @@
 // Pont vers le code Android (CallChannel.kt) : permissions, lignes (SIM) et appel.
-// ZONE SENSIBLE : [CallChannel.placeCall] et [CallChannel.dial] reçoivent le numéro du
+// ZONE SENSIBLE : [CallChannel.placeCall], [CallChannel.dial] et [CallChannel.openWhatsapp] (lien
+// wa.me qui contient le numéro) reçoivent le numéro du
 // commerçant. Rien ici ne l'affiche, ne le journalise, ne le garde, ni ne le met dans une erreur.
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,6 +42,9 @@ class CallPermissions {
 /// Résultat de [CallChannel.placeCall].
 enum PlaceCallResult { placed, permissionDenied, accountMissing, failed }
 
+/// Résultat de [CallChannel.openWhatsapp].
+enum WhatsappOpenResult { opened, notInstalled, failed }
+
 /// Le code natif a échoué ou n'existe pas (autre plateforme). Aucun détail : il pourrait
 /// contenir le numéro.
 class CallChannelException implements Exception {
@@ -65,6 +69,10 @@ abstract class CallChannel {
   /// Repli : ouvre le composeur du téléphone (ACTION_DIAL) ; le numéro y est visible.
   /// Faux si aucune application ne peut l'ouvrir.
   Future<bool> dial(String phone);
+
+  /// Ouvre le lien WhatsApp [url] (`https://wa.me/…`, qui CONTIENT le numéro) directement dans
+  /// l'application WhatsApp. [WhatsappOpenResult.notInstalled] si WhatsApp est absent du téléphone.
+  Future<WhatsappOpenResult> openWhatsapp(String url);
 }
 
 class PlatformCallChannel implements CallChannel {
@@ -125,6 +133,19 @@ class PlatformCallChannel implements CallChannel {
 
   @override
   Future<bool> dial(String phone) async => (await _invoke<bool>('dial', {'phone': phone})) == true;
+
+  @override
+  Future<WhatsappOpenResult> openWhatsapp(String url) async {
+    final r = await _invoke<String>('openWhatsapp', {'url': url});
+    switch (r) {
+      case 'opened':
+        return WhatsappOpenResult.opened;
+      case 'not_installed':
+        return WhatsappOpenResult.notInstalled;
+      default:
+        return WhatsappOpenResult.failed;
+    }
+  }
 }
 
 /// Remplaçable dans les tests par un faux canal.
