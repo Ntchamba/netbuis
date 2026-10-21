@@ -18,3 +18,7 @@ Décisions à valider : le numéro n'est pas affiché dans l'appli, même dans l
 Fichiers : CallChannel.kt (openWhatsapp : seul https://wa.me accepté, setPackage com.whatsapp / com.whatsapp.w4b, aucun repli navigateur), AndroidManifest.xml (<queries>), mobile/lib/features/call/data/models/call_session.dart (WhatsappLink), application/call_controller.dart (WhatsappFlow._open : seul endroit où le lien passe du dépôt au natif), data/repositories/call_repository_api.dart (initiateWhatsapp), data/call_channel.dart.
 À confirmer sur téléphone (docs/TESTS_JEFF.md, 12 points) : WhatsApp installé / Business seul / absent ; moment d'apparition de la feuille « ça a abouti ? ».
 Note : le contrat de recherche n'a pas whatsapp_available ; les cartes sont grisées seulement si le serveur l'envoie (sinon CHANNEL_UNAVAILABLE au clic).
+
+## T057 — vérification de tranche critique (recherche → appel) : CONFORME sur le vrai backend
+Le BACKLOG demandait « Jeff relit 🔒 appel et valide avant T060 » : non fait, passé sans arrêt sur ta décision. À relire en priorité : T050, T051, T052, T054 ci-dessus. Tests sur téléphone réel : docs/TESTS_JEFF.md (appel Orange T052-2, MTN T052-3, une seule SIM T052-7, permission refusée T052-10, WhatsApp absent T054-5).
+Observation : clé de signature des jetons de 31 octets (PyJWT demande ≥ 32) : à renforcer avant la mise en service.
