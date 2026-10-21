@@ -19,6 +19,7 @@ import '../../features/business/presentation/screens/structure_details_screen.da
 import '../../features/business/presentation/screens/structure_type_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
+import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../l10n/l10n.dart';
@@ -98,11 +99,20 @@ GoRouter buildRouter({
         path: Routes.createBusinessDistrict,
         builder: (context, state) => const DistrictScreen(),
       ),
+      GoRoute(path: Routes.search, builder: (context, state) => const SearchScreen()),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppScaffold(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(routes: [tab(Routes.home, const HomeScreen())]),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: Routes.home,
+                builder: (context, state) =>
+                    HomeScreen(onOpenSearch: () => context.push(Routes.search)),
+              ),
+            ],
+          ),
           StatefulShellBranch(routes: [tab(Routes.map, const _TabScreen(titleKey: 'map.title'))]),
           StatefulShellBranch(
             routes: [tab(Routes.forum, const _TabScreen(titleKey: 'forum.title'))],

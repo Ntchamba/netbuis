@@ -12,6 +12,8 @@ class Routes {
   static const yourName = '/your-name';
   static const home = '/home';
   static const map = '/map';
+  /// Recherche écrite (T045), ouverte depuis l'Accueil.
+  static const search = '/search';
   static const forum = '/forum';
   static const profile = '/profile';
 
