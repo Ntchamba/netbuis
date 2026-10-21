@@ -884,6 +884,150 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/search/:
+    get:
+      operationId: search_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Texte cherché ; vide = commerces de la zone.
+      - in: query
+        name: sector
+        schema:
+          type: string
+        description: Code stable du secteur.
+      - in: query
+        name: zone
+        schema:
+          type: integer
+        description: Identifiant de la zone (ville, quartier…).
+      tags:
+      - search
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSearchResultList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : zone inconnue…'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
+  /api/search/suggestions/:
+    get:
+      operationId: search_suggestions
+      parameters:
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Début de mot (2 caractères au moins).
+      tags:
+      - search
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Suggestion'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Compte bloqué ou supprimé.
+  /api/search/voice/:
+    post:
+      operationId: search_voice
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page (20 résultats par page).
+      tags:
+      - search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceQuery'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VoiceQuery'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VoiceQuery'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceSearchPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : zone inconnue…'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: account_blocked / account_deleted
   /api/uploads/local/{token}/:
     put:
       operationId: uploads_local_put
@@ -1535,6 +1679,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Offer'
+    PaginatedSearchResultList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
     PaginatedZoneList:
       type: object
       required:
@@ -1841,6 +2008,65 @@ components:
             plus valable. Absent pour le dashboard : il est reposé dans le cookie.'
       required:
       - access
+    SearchResult:
+      type: object
+      description: 'Lit un `BusinessProfile` ; le contexte peut contenir `prices`
+        = {id du profil: prix}.'
+      properties:
+        id:
+          type: integer
+          description: Identifiant du compte business (fiche publique).
+        name:
+          type: string
+        kind:
+          type: string
+          readOnly: true
+          description: « produit » ou « service ».
+        secteur:
+          type: string
+          readOnly: true
+          description: Nom du secteur (ou catégorie de service / type d'établissement).
+        secteur_code:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Code stable du secteur ; null pour un prestataire ou une structure.
+        zone:
+          allOf:
+          - $ref: '#/components/schemas/ZoneSummary'
+          readOnly: true
+        repere:
+          type: string
+        description_activite:
+          type: string
+          description: Sous-titre de la carte.
+        photo:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Adresse de la photo, ou null.
+        prix_indicatif:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: Plus petit prix (FCFA) parmi les offres actives ; null = sur
+            demande.
+        verifie:
+          type: boolean
+          readOnly: true
+          description: Badge « ✓ Identité vérifiée ».
+      required:
+      - description_activite
+      - id
+      - kind
+      - name
+      - photo
+      - prix_indicatif
+      - repere
+      - secteur
+      - secteur_code
+      - verifie
+      - zone
     Sector:
       type: object
       properties:
@@ -2005,6 +2231,23 @@ components:
       - id
       - name
       - order
+    Suggestion:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Texte à proposer (et à chercher si on le choisit).
+        type:
+          allOf:
+          - $ref: '#/components/schemas/TypeEnum'
+          description: |-
+            « produit » : du catalogue ; « recherche » : terme souvent cherché.
+
+            * `produit` - produit
+            * `recherche` - recherche
+      required:
+      - text
+      - type
     TypeCompteEnum:
       enum:
       - boutique
@@ -2019,6 +2262,14 @@ components:
         * `particulier_vendeur` - Particulier vendeur
         * `prestataire_service` - Prestataire de service
         * `structure` - Structure
+    TypeEnum:
+      enum:
+      - produit
+      - recherche
+      type: string
+      description: |-
+        * `produit` - produit
+        * `recherche` - recherche
     UploadSignRequest:
       type: object
       properties:
@@ -2067,6 +2318,50 @@ components:
       - key
       - method
       - upload_url
+    VoiceQuery:
+      type: object
+      description: 'Recherche vocale : `text` = phrase reconnue par le téléphone (`q`
+        n''est pas utilisé).'
+      properties:
+        zone:
+          type: integer
+          nullable: true
+          description: Identifiant de la ville, du quartier… (inclut ce qu'elle contient).
+        sector:
+          type: string
+          default: ''
+          description: Code stable du secteur (ex. alimentation).
+        text:
+          type: string
+          description: Texte reconnu par le téléphone, ex. « je cherche du riz à Akwa
+            ».
+          maxLength: 300
+      required:
+      - text
+    VoiceSearchPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+        previous:
+          type: string
+          nullable: true
+        q:
+          type: string
+          description: Le terme cherché après nettoyage.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+      required:
+      - count
+      - next
+      - previous
+      - q
+      - results
     Zone:
       type: object
       properties:
@@ -2167,6 +2462,16 @@ components:
       - order
       - parent
       - path
+    ZoneSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
   securitySchemes:
     jwtAuth:
       type: http

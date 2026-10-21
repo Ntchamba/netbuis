@@ -56,7 +56,8 @@ class SearchOutcome:
         ids = [hit.profile_id for hit in window]
         loaded = (
             BusinessProfile.objects.visible().filter(pk__in=ids)
-            .select_related("zone", "zone__parent", "secteur", "categorie_service")
+            .select_related("zone", "zone__parent", "secteur", "categorie_service",
+                            "structure_type")
             .defer(*SENSITIVE_FIELDS)
             .in_bulk()
         )
