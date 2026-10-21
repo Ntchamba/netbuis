@@ -368,6 +368,198 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: 'account_blocked / account_deleted : « Contactez le support
             »'
+  /api/business/me/offers/:
+    get:
+      operationId: business_me_offers_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - business
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOfferList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'business_not_active : compte business en attente ou rejeté
+            ; account_blocked / account_deleted'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : pas de compte business ; not_found : offre introuvable'
+    post:
+      operationId: business_me_offers_create
+      tags:
+      - business
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Offer'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Offer'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Offer'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ (prix négatif,
+            5 photos…)'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'business_not_active : compte business en attente ou rejeté
+            ; account_blocked / account_deleted'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : pas de compte business ; not_found : offre introuvable'
+  /api/business/me/offers/{id}/:
+    patch:
+      operationId: business_me_offers_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - business
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOffer'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOffer'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOffer'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ (prix négatif,
+            5 photos…)'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'business_not_active : compte business en attente ou rejeté
+            ; account_blocked / account_deleted'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : pas de compte business ; not_found : offre introuvable'
+    delete:
+      operationId: business_me_offers_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - business
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_authenticated / token_not_valid : jeton d''accès absent,
+            faux ou expiré'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'business_not_active : compte business en attente ou rejeté
+            ; account_blocked / account_deleted'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'no_business : pas de compte business ; not_found : offre introuvable'
   /api/catalog/products/:
     get:
       operationId: catalog_products_list
@@ -1225,6 +1417,56 @@ components:
       - has_business
       - id
       - phone_masked
+    Offer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        price_fcfa:
+          type: integer
+          maximum: 2000000000
+          minimum: 0
+          nullable: true
+          description: Prix en FCFA (entier ≥ 0) ; null = sur demande.
+        on_request:
+          type: boolean
+          readOnly: true
+        photos:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+          description: Clés de stockage des photos (4 au plus).
+          maxItems: 4
+        catalog_product:
+          type: integer
+          nullable: true
+          description: Identifiant d'un produit du catalogue (facultatif).
+        is_active:
+          type: boolean
+          title: Actif
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - on_request
+      - updated_at
     OtpRequest:
       type: object
       properties:
@@ -1270,6 +1512,29 @@ components:
       - access
       - is_new
       - refresh
+    PaginatedOfferList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
     PaginatedZoneList:
       type: object
       required:
@@ -1493,6 +1758,50 @@ components:
           nullable: true
           readOnly: true
           description: Solde de crédits en FCFA ; null tant que CREDITS_ENABLED=False
+    PatchedOffer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Nom
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 1000
+        price_fcfa:
+          type: integer
+          maximum: 2000000000
+          minimum: 0
+          nullable: true
+          description: Prix en FCFA (entier ≥ 0) ; null = sur demande.
+        on_request:
+          type: boolean
+          readOnly: true
+        photos:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+          description: Clés de stockage des photos (4 au plus).
+          maxItems: 4
+        catalog_product:
+          type: integer
+          nullable: true
+          description: Identifiant d'un produit du catalogue (facultatif).
+        is_active:
+          type: boolean
+          title: Actif
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
     RayonsEnum:
       enum:
       - alimentation_generale
