@@ -5,8 +5,8 @@
   ou supprimé : user.can_login() est revérifié à chaque requête.
 - IsActiveBusinessOwner : en plus, le compte possède un BusinessProfile au statut
   « actif » (docs/spec/MODELE_DONNEES.md).
-- IsAdminRole : PROVISOIRE (User.is_admin) ; la version définitive avec les groupes
-  « Validateur » / « Administrateur complet » est faite en T070.
+- IsAdminRole : définitive (T070) = is_admin ET groupe « Validateur » ou
+  « Administrateur complet » (apps/admin_panel/services/rights_service.py).
 """
 from rest_framework.permissions import BasePermission
 
@@ -41,7 +41,13 @@ class IsActiveBusinessOwner(IsAuthenticatedNotBlocked):
 
 
 class IsAdminRole(IsAuthenticatedNotBlocked):
-    """Provisoire : administrateur = User.is_admin (groupes en T070)."""
+    """Version définitive (T070) : is_admin ET appartenance à un groupe d'administration
+    (« Validateur » ou « Administrateur complet »). Droits relus en base à chaque requête."""
 
     def has_permission(self, request, view):
-        return super().has_permission(request, view) and bool(request.user.is_admin)
+        if not super().has_permission(request, view):
+            return False
+        # Import à l'appel : évite une dépendance circulaire accounts <-> admin_panel.
+        from apps.admin_panel.services.rights_service import has_dashboard_access
+
+        return has_dashboard_access(request.user)

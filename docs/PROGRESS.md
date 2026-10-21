@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T070
-- **Prochaine tâche** : T071
+- **Tâche en cours** : T071
+- **Prochaine tâche** : T072
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -80,7 +80,7 @@
 | ✅ | T062 | Mobile : détail d'un quartier | b2 | 2026-10-21 | docs/verifications/T062.md ; vérificateur CONFORME |
 | ✅ | T063 | Vérification de tranche : carte | orchestrateur | 2026-10-21 | docs/verifications/T063.md ; vérificateur CONFORME |
 | | | **PHASE 8 — Administration : API puis dashboard (Étape 5)** | | | |
-| ☐ | T070 | 🔒 Backend : droits d'administration et journal d'audit | c2 | | |
+| ✅ | T070 | 🔒 Backend : droits d'administration et journal d'audit | c2 | 2026-10-21 | docs/verifications/T070.md ; vérificateur CONFORME |
 | ☐ | T071 | 🔒 Backend : demandes de compte business (validation) | c2 + a2 | | |
 | ☐ | T072 | Backend : comptes (liste, blocage, suppression douce, restauration) | c2 | | |
 | ☐ | T073 | Backend : chiffres du tableau de bord | c2 | | |

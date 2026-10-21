@@ -25,3 +25,7 @@ Observation : clé de signature des jetons de 31 octets (PyJWT demande ≥ 32) :
 
 ## Décision produit à prendre : la recherche ne trouve pas un commerce par son nom
 Constaté en T040 et T063 : taper « Pharmacie du Marché » ne trouve pas le commerce par son nom seul (le critère de T040 ne cite que offres, sous-catégories, produits, secteur, catégories de service). Facile à ajouter (index trigramme sur le nom). À trancher avant la mise en service.
+
+## T070 — droits d'administration et journal d'audit
+Fichiers à relire ligne par ligne : backend/apps/admin_panel/services/rights_service.py, permissions.py, migrations/0002_groupes_administration.py, services/audit_service.py, models/audit_log.py, views/me.py, tests/test_permissions.py ; backend/apps/accounts/permissions.py (IsAdminRole, version définitive) ; deux tests réécrits : accounts/tests/test_me.py (fin de fichier) et core/tests/test_bricks.py.
+Décisions à valider : les droits viennent uniquement des groupes (is_superuser / is_staff ne donnent rien sous /api/admin/) ; droits relus en base à chaque requête (un admin retiré du groupe est refusé tout de suite) ; permissions ajoutées : peut_voir_demandes, peut_voir_comptes, peut_supprimer_compte, peut_exporter, peut_accorder_abonnement. Pas de test de l'idempotence de la migration ni de la lecture seule de l'AuditLog dans l'admin Django.

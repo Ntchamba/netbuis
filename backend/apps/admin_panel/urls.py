@@ -1,14 +1,10 @@
-"""Routes de l'app admin_panel (à remplir pendant l'implémentation).
+"""Routes de l'app admin_panel, montées sous /api/admin/."""
+from django.urls import path
 
-Routes prévues (voir docs/api/openapi.yaml) :
-#   stats/
-#   businesses/<id>/
-#   posts/<id>/
-#   users/
-#   audit/
-"""
-from django.urls import path  # noqa: F401
+from .views.me import AdminMeView
 
 app_name = "admin_panel"
 
-urlpatterns = []
+urlpatterns = [
+    path("me/", AdminMeView.as_view(), name="me"),
+]

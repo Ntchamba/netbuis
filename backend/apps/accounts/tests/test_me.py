@@ -308,8 +308,15 @@ def test_is_active_business_owner_refuse_un_compte_simple():
     assert not IsActiveBusinessOwner().has_permission(_request(UserFactory()), None)
 
 
-def test_is_admin_role_provisoire_depend_de_is_admin():
-    assert IsAdminRole().has_permission(_request(AdminFactory()), None)
-    assert not IsAdminRole().has_permission(_request(UserFactory()), None)
-    # is_staff (admin Django) ne suffit pas.
+def test_is_admin_role_exige_is_admin_et_un_groupe():
+    from django.contrib.auth.models import Group
+
+    admin = AdminFactory()
+    assert not IsAdminRole().has_permission(_request(admin), None)  # is_admin sans groupe
+    admin.groups.add(Group.objects.get(name="Validateur"))
+    assert IsAdminRole().has_permission(_request(admin), None)
+    # Un groupe sans is_admin ne suffit pas ; is_staff (admin Django) non plus.
+    simple = UserFactory()
+    simple.groups.add(Group.objects.get(name="Administrateur complet"))
+    assert not IsAdminRole().has_permission(_request(simple), None)
     assert not IsAdminRole().has_permission(_request(UserFactory(is_staff=True)), None)

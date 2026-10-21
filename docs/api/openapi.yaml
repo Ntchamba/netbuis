@@ -4,6 +4,32 @@ info:
   version: 0.1.0
   description: 'Contrat d''API NetBuis (source de vérité : docs/api/openapi.yaml)'
 paths:
+  /api/admin/me/:
+    get:
+      operationId: admin_me_retrieve
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminMe'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou compte bloqué/supprimé
   /api/auth/admin/login/:
     post:
       operationId: auth_admin_login_create
@@ -1553,6 +1579,32 @@ components:
       required:
       - password
       - phone
+    AdminMe:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone_masked:
+          type: string
+          description: Ex. « +237 6•• •• •• 12 »
+        roles:
+          type: array
+          items:
+            type: string
+          description: 'Groupes : Validateur, Administrateur complet'
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Codes peut_… accordés par les groupes
+      required:
+      - id
+      - name
+      - permissions
+      - phone_masked
+      - roles
     BlankEnum:
       enum:
       - ''
