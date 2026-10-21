@@ -23,6 +23,7 @@ class AuditAction(models.TextChoices):
     ACCORD_ABONNEMENT = "accord_abonnement", "Accord d'un abonnement"
     MODERATION_CONTENU = "moderation_contenu", "Modération d'un contenu"
     CONSULTATION_NUMERO = "consultation_numero", "Consultation du numéro complet d'un compte"
+    EXPORT_COMPTES = "export_comptes", "Export CSV des comptes"
 
 
 # Un motif est OBLIGATOIRE pour ces actions (spec : rejet, blocage, suppression).

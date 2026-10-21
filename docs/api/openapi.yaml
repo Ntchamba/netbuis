@@ -342,6 +342,242 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, sans la permission, ou compte
             bloqué
+  /api/admin/admins/:
+    get:
+      operationId: admin_admins_list
+      description: Comptes ayant un rôle d'administration, numéros masqués, paginés.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_admins
+    post:
+      operationId: admin_admins_create
+      description: Crée un compte Validateur ou Administrateur complet (jamais d'auto-inscription).
+        Un mot de passe temporaire est généré et renvoyé UNE SEULE FOIS (`temporary_password`)
+        ; il n'est ni stocké en clair ni journalisé. Le changement de ce mot de passe
+        n'est pas imposé à la première connexion. Un numéro déjà utilisé est refusé
+        (409 `phone_exists`). Audit `attribution_role`.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreated'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_phone / invalid_role / reason_required / self_action_forbidden
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: phone_exists / invalid_state / last_full_admin
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_admins
+  /api/admin/admins/{id}/:
+    patch:
+      operationId: admin_admins_update_role
+      description: Change le rôle d'un administrateur. Pas sur soi-même ; le dernier
+        Administrateur complet actif ne peut pas être rétrogradé. Audit `attribution_role`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminRole'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_phone / invalid_role / reason_required / self_action_forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: phone_exists / invalid_state / last_full_admin
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_admins
+    delete:
+      operationId: admin_admins_remove
+      description: Retire tout rôle d'administration (le compte n'est pas supprimé),
+        motif obligatoire ; jetons de rafraîchissement invalidés. Pas sur soi-même
+        ; pas sur le dernier Administrateur complet actif. Audit `retrait_role`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_phone / invalid_role / reason_required / self_action_forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: phone_exists / invalid_state / last_full_admin
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_gerer_admins
+  /api/admin/export/accounts.csv:
+    get:
+      operationId: admin_export_accounts
+      description: 'Export CSV (UTF-8) de tous les comptes : id, nom, téléphone MASQUÉ,
+        type, statut, langue, administrateur, commerce, statut du dossier, zone, date
+        de création. Sans numéro complet, CNI, pièces, jetons ni mot de passe. Cellules
+        neutralisées contre l''injection de formule. Chaque export est audité (`export_comptes`).
+        `Cache-Control: no-store`.'
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: Fichier CSV
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_exporter
   /api/admin/me/:
     get:
       operationId: admin_me_retrieve
@@ -564,6 +800,87 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, sans la permission, ou compte
             bloqué
+  /api/admin/settings/:
+    get:
+      operationId: admin_settings_list
+      description: Les réglages de la plateforme avec valeur, défaut et bornes.
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Setting'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_modifier_reglages
+  /api/admin/settings/{key}/:
+    patch:
+      operationId: admin_settings_update
+      description: 'Modifie un réglage (entier entre `min` et `max`). Clé inconnue
+        : 400 `unknown_setting` ; valeur hors bornes ou non entière : 400 `invalid_value`.
+        Audit `modification_reglage` (clé, ancienne et nouvelle valeur).'
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSettingUpdate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Setting'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unknown_setting / invalid_value
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas administrateur, sans groupe, ou sans peut_modifier_reglages
   /api/admin/stats/:
     get:
       operationId: admin_stats_retrieve
@@ -2325,6 +2642,86 @@ components:
       - is_blocked
       - is_deleted
       - status
+    Admin:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone_masked:
+          type: string
+          readOnly: true
+        roles:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+          description: actif, bloque ou supprime
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - created_at
+      - id
+      - name
+      - phone_masked
+      - roles
+      - status
+    AdminCreate:
+      type: object
+      properties:
+        phone:
+          type: string
+          description: Numéro camerounais (6XXXXXXXX…)
+          maxLength: 32
+        name:
+          type: string
+          maxLength: 120
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - name
+      - phone
+      - role
+    AdminCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone_masked:
+          type: string
+          readOnly: true
+        roles:
+          type: array
+          items:
+            type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+          description: actif, bloque ou supprime
+        created_at:
+          type: string
+          format: date-time
+        temporary_password:
+          type: string
+          readOnly: true
+          description: 'Mot de passe temporaire : montré UNE SEULE FOIS, à transmettre
+            à la personne par un canal sûr. Jamais relisible ensuite.'
+      required:
+      - created_at
+      - id
+      - name
+      - phone_masked
+      - roles
+      - status
+      - temporary_password
     AdminLogin:
       type: object
       properties:
@@ -3303,6 +3700,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccountList'
+    PaginatedAdminList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Admin'
     PaginatedBusinessRequestList:
       type: object
       required:
@@ -3418,6 +3838,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Zone'
+    PatchedAdminRole:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleEnum'
     PatchedBusinessProfile:
       type: object
       properties:
@@ -3662,6 +4087,14 @@ components:
           type: string
           format: date-time
           readOnly: true
+    PatchedSettingUpdate:
+      type: object
+      properties:
+        value: {}
+        reason:
+          type: string
+          description: Commentaire facultatif, ajouté au journal d'audit.
+          maxLength: 500
     PlatformEnum:
       enum:
       - android
@@ -3877,6 +4310,14 @@ components:
       - amount
       - currency
       - unavailable
+    RoleEnum:
+      enum:
+      - Validateur
+      - Administrateur complet
+      type: string
+      description: |-
+        * `Validateur` - Validateur
+        * `Administrateur complet` - Administrateur complet
     SearchResult:
       type: object
       description: 'Lit un `BusinessProfile` ; le contexte peut contenir `prices`
@@ -4002,6 +4443,37 @@ components:
       - id
       - name
       - order
+    Setting:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        value:
+          type: integer
+        default:
+          type: integer
+        min:
+          type: integer
+        max:
+          type: integer
+        modified_by:
+          type: integer
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - default
+      - key
+      - label
+      - max
+      - min
+      - modified_by
+      - updated_at
+      - value
     SpecialitesEnum:
       enum:
       - medecine_generale

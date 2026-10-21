@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T074
-- **Prochaine tâche** : T074b
+- **Tâche en cours** : T074b
+- **Prochaine tâche** : T074c
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -84,7 +84,7 @@
 | ✅ | T071 | 🔒 Backend : demandes de compte business (validation) | c2 + a2 | 2026-10-21 | docs/verifications/T071.md ; vérificateur CONFORME |
 | ✅ | T072 | Backend : comptes (liste, blocage, suppression douce, restauration) | c2 | 2026-10-21 | docs/verifications/T072.md ; vérificateur CONFORME |
 | ✅ | T073 | Backend : chiffres du tableau de bord | c2 | 2026-10-21 | docs/verifications/T073.md ; vérificateur CONFORME |
-| ☐ | T074 | Backend : réglages, administrateurs, export | c2 | | |
+| ✅ | T074 | Backend : réglages, administrateurs, export | c2 | 2026-10-21 | docs/verifications/T074.md ; vérificateur CONFORME |
 | ☐ | T074b | Backend : référentiels modifiables par l'administration | c2 | | |
 | ☐ | T074c | Backend : analyses, abonnements, lecture de l'audit | c2 | | |
 | ☐ | T075 | Backend : tests et contrat de l'administration | c2 | | |
