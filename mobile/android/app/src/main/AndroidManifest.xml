@@ -1,6 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Recherche vocale (T046) : micro, demandé avec une explication avant -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <!-- Appel direct (T052) : CALL_PHONE demandée une fois avec explication ;
+         READ_PHONE_STATE pour lister les lignes (SIM). Le journal d'appels n'est jamais lu. -->
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
     <application
         android:label="netbuis"
         android:name="${applicationName}"

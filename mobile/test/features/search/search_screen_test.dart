@@ -8,6 +8,7 @@ import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/l10n/l10n.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
+import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/data/models/search_query.dart';
@@ -17,6 +18,7 @@ import 'package:netbuis/features/search/data/repositories/search_repository_fake
 import 'package:netbuis/features/search/presentation/screens/search_screen.dart';
 
 import '../auth/login_test_helpers.dart' show MemoryPrefs;
+import '../call/call_test_helpers.dart';
 
 const _data = [
   SearchResult(
@@ -51,7 +53,7 @@ class _Search extends SearchRepositoryFake {
   }
 }
 
-Future<_Search> _pump(WidgetTester tester, {_Search? repo}) async {
+Future<_Search> _pump(WidgetTester tester, {_Search? repo, FakeCallRepository? call}) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -75,6 +77,7 @@ Future<_Search> _pump(WidgetTester tester, {_Search? repo}) async {
       appPrefsProvider.overrideWithValue(MemoryPrefs()),
       searchRepositoryProvider.overrideWithValue(search),
       referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
+      ...callOverrides(FakeCallChannel(), call ?? FakeCallRepository()),
     ],
     child: MaterialApp.router(
       theme: AppTheme.light,
@@ -144,10 +147,27 @@ void main() {
     expect(find.textContaining('+237'), findsNothing);
   });
 
-  testWidgets('le bouton Appeler ne fait rien (T052)', (tester) async {
-    await _pump(tester);
+  testWidgets('le bouton Appeler est activé (T052) : ouvre la feuille Orange / MTN du commerce',
+      (tester) async {
+    final call = FakeCallRepository();
+    await _pump(tester, call: call);
     final button = tester.widget<FilledButton>(find.byType(FilledButton).first);
-    expect(button.onPressed, isNull);
+    expect(button.onPressed, isNotNull);
+    await tester.tap(find.byType(FilledButton).first);
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('call-choose')), findsOneWidget);
+    expect(find.text('Boutique Aminatou'), findsWidgets);
+    expect(find.text('Orange'), findsOneWidget);
+    expect(find.text('MTN'), findsOneWidget);
+    expect(call.requests, isEmpty, reason: 'rien n\'est demandé avant le choix de la ligne');
+    await tester.tap(find.byKey(const Key('call-mtn')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(call.requests, [(businessId: 1, line: CallLine.mtn)]);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(milliseconds: 500));
   });
 
   testWidgets('filtre par secteur dans la feuille', (tester) async {

@@ -1,5 +1,5 @@
 // Fiche publique d'un commerce (T047). Écran non maquetté : éléments de Main/Quartier
-// (cartes, badges, bouton d'accent). Aucun numéro : il ne sort que de POST /api/calls/initiate/.
+// (cartes, badges, bouton d'accent). Appeler : T052. Aucun numéro : il ne sort que de POST /api/calls/initiate/.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../call/presentation/widgets/call_button.dart';
 import '../../application/public_business_controller.dart';
 import '../../data/models/public_business.dart';
 import '../widgets/contact_actions.dart';
@@ -125,7 +126,11 @@ class _Content extends StatelessWidget {
         else
           for (final o in b.offers) ...[OfferTile(offer: o), const SizedBox(height: 10)],
         const SizedBox(height: 12),
-        ContactActions(businessName: b.name, whatsappAvailable: b.whatsappAvailable),
+        ContactActions(
+          businessName: b.name,
+          whatsappAvailable: b.whatsappAvailable,
+          onCall: () => startCall(context, businessId: b.id, businessName: b.name),
+        ),
       ],
     );
   }

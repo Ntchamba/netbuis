@@ -8,3 +8,8 @@ Décision à valider : FREE_CALLS_PER_DAY = 3 (valeur d'essai, active seulement 
 ## T051 — WhatsApp, retour d'appel, historique
 Fichiers : backend/apps/calls/services/{whatsapp_service,feedback_service,call_service}.py, views/{feedback,whatsapp_report}.py, tests/e2e/test_flow_search_call.py.
 Décisions à valider : message WhatsApp pré-rempli « Bonjour, je vous contacte depuis NetBuis au sujet de « {nom} ». » (prefilled_message) ; seuil de 3 signalements en constante ; le signalement « pas de WhatsApp » exige d'avoir reçu un lien ; « mauvais numéro » n'a pas encore d'effet de masquage (champ needs_fix absent).
+
+## T052 — bouton Appeler, feuille Orange / MTN, appel direct Android
+Fichiers à relire ligne par ligne : mobile/android/app/src/main/kotlin/cm/netbuis/netbuis/CallChannel.kt (NON compilé ici : à compiler et essayer sur téléphone), MainActivity.kt, AndroidManifest.xml, mobile/lib/features/call/application/call_controller.dart (_run : seul endroit où passe le numéro), data/call_channel.dart, data/models/call_session.dart, data/repositories/call_repository_api.dart.
+À confirmer sur téléphone (docs/TESTS_JEFF.md, 14 étapes) : détection des SIM, simOperatorName = « Orange » / « MTN », clé de compte createForPhoneAccountHandle (API 26), demande de permission, repli composeur.
+Décisions à valider : le numéro n'est pas affiché dans l'appli, même dans le repli ACTION_DIAL (visible seulement dans le composeur du système, avec avertissement) ; « Plus tard » sur l'explication annule l'appel.

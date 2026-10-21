@@ -12,7 +12,7 @@ class ResultCard extends StatelessWidget {
 
   final SearchResult result;
 
-  /// Null : bouton visible mais inactif (l'appel est branché par T052).
+  /// Ouvre la feuille d'appel (T052) ; null = bouton visible mais inactif.
   final VoidCallback? onCall;
 
   /// Ouvre la fiche publique du commerce (tap sur la carte).

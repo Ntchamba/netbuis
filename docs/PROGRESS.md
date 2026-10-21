@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T052
-- **Prochaine tâche** : T053
+- **Tâche en cours** : T053
+- **Prochaine tâche** : T054
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -68,7 +68,7 @@
 | | | **PHASE 6 — Appeler et écrire sur WhatsApp (Étape 4, zone la plus sensible)** | | | |
 | ✅ | T050 | 🔒 Backend : lancer un appel | a3 | 2026-10-21 | docs/verifications/T050.md ; vérificateur CONFORME |
 | ✅ | T051 | Backend : WhatsApp, retour d'appel, historique | a3 | 2026-10-21 | docs/verifications/T051.md ; vérificateur CONFORME |
-| ☐ | T052 | 🔒 Mobile : bouton Appeler, feuille Orange / MTN, appel direct Android | b2 | | |
+| ✅ | T052 | 🔒 Mobile : bouton Appeler, feuille Orange / MTN, appel direct Android | b2 | 2026-10-21 | docs/verifications/T052.md ; vérificateur CONFORME |
 | ☐ | T053 | Mobile : historique des appels | b2 | | |
 | ☐ | T054 | Mobile : WhatsApp et retour d'appel | b2 | | |
 | ☐ | T055 | Mobile : dernier résultat hors connexion | b2 | | |

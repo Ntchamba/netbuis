@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../call/presentation/widgets/call_button.dart';
 import '../../application/search_controller.dart';
 import '../widgets/result_card.dart';
 
@@ -16,14 +17,10 @@ class SearchResultsView extends ConsumerWidget {
     super.key,
     required this.scroll,
     required this.onChangeCity,
-    this.onCall,
   });
 
   final ScrollController scroll;
   final VoidCallback onChangeCity;
-
-  /// Branché par T052 ; null = bouton visible sans action.
-  final ValueChanged<int>? onCall;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,7 +87,7 @@ class SearchResultsView extends ConsumerWidget {
               final item = state.items[i];
               return ResultCard(
                 result: item,
-                onCall: onCall == null ? null : () => onCall!(item.id),
+                onCall: () => startCall(context, businessId: item.id, businessName: item.name),
                 onOpen: () => context.push(Routes.businessDetailPath(item.id)),
               );
             }

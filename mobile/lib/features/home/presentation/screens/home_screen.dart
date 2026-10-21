@@ -9,6 +9,7 @@ import '../../../../core/l10n/l10n.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/netbuis_logo.dart';
+import '../../../call/presentation/widgets/call_button.dart';
 import '../../../account/application/account_controller.dart';
 import '../../../search/application/search_controller.dart';
 import '../../../search/voice_search/application/voice_search_controller.dart';
@@ -248,6 +249,8 @@ class _Results extends ConsumerWidget {
             if (i < state.items.length) {
               return ResultCard(
                 result: state.items[i],
+                onCall: () => startCall(context,
+                    businessId: state.items[i].id, businessName: state.items[i].name),
                 onOpen: () => context.push(Routes.businessDetailPath(state.items[i].id)),
               );
             }
