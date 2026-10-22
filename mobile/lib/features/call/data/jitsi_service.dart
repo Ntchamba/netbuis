@@ -88,6 +88,8 @@ class JitsiMeetService implements JitsiService {
 
   @override
   Future<bool> join(JitsiAccess access) async {
+    // Domaine donné par l'API : refusé s'il n'est pas un nom d'hôte valide, rien n'est ouvert.
+    if (!access.hasValidDomain) return false;
     final options = JitsiMeetConferenceOptions(
       serverURL: access.serverUrl,
       room: access.room,

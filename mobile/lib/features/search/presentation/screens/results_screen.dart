@@ -10,6 +10,7 @@ import '../../../call/presentation/widgets/call_button.dart';
 import '../../../call/presentation/widgets/whatsapp_button.dart';
 import '../../application/offline_controller.dart';
 import '../../application/search_controller.dart';
+import '../../application/suggestions_controller.dart' show isThrottledError;
 import '../widgets/offline_banner.dart';
 import '../widgets/result_card.dart';
 
@@ -43,7 +44,9 @@ class SearchResultsView extends ConsumerWidget {
         );
       case SearchStatus.error:
         return _Message(
-          title: l10n.t('home.results.error'),
+          title: isThrottledError(state.error)
+              ? l10n.t('search.error.throttled')
+              : l10n.t('home.results.error'),
           actions: [
             OutlinedButton(
               key: const Key('search-retry'),

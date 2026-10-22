@@ -483,6 +483,7 @@
   "home.sectors.error": "Les secteurs ne se chargent pas.",
   "home.results.loading": "Chargement des commerces...",
   "home.results.error": "Les commerces ne se chargent pas. Vérifiez votre connexion.",
+  "search.error.throttled": "Trop de recherches, réessayez dans un instant",
   "home.results.retry": "Réessayer",
   "home.results.empty": "Aucun commerce pour le moment.",
   "home.results.loadMoreError": "La suite ne s'est pas chargée.",

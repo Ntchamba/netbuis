@@ -67,6 +67,24 @@ class JitsiAccess {
   /// À passer au service Jitsi uniquement.
   String get jwt => _jwt;
 
+  // Même règle que le tableau de bord (jitsi.ts) : nom d'hôte, port éventuel, jamais une adresse.
+  static final RegExp _domainPattern = RegExp(
+      r'^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*(:\d{1,5})?$',
+      caseSensitive: false);
+  static final RegExp _ipv4Pattern = RegExp(r'^\d{1,3}(\.\d{1,3}){3}(:\d{1,5})?$');
+
+  /// Vrai si [domain] est un nom d'hôte (https seulement, sans identifiants, chemin ni schéma),
+  /// avec au moins un point, et pas une adresse IP.
+  static bool isValidDomain(String domain) {
+    if (!_domainPattern.hasMatch(domain) || _ipv4Pattern.hasMatch(domain)) {
+      return false;
+    }
+    return domain.replaceFirst(RegExp(r':\d+$'), '').contains('.');
+  }
+
+  /// Faux : on ne se connecte pas à ce serveur.
+  bool get hasValidDomain => isValidDomain(domain);
+
   /// Adresse du serveur pour le SDK.
   String get serverUrl => 'https://$domain';
 

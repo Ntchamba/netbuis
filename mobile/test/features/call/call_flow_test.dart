@@ -235,6 +235,19 @@ void main() {
       expect(repo.cancels, [kSessionId]);
     });
 
+    testWidgets('domaine Jitsi invalide : salle injoignable, rien d\'ouvert', (tester) async {
+      repo.start = const CallStart(
+        sessionId: kSessionId,
+        state: CallState.ringing,
+        ringSeconds: 30,
+        jitsi: JitsiAccess(domain: '10.0.0.1', room: 'salle-secrete-de-test', jwt: 'jeton-secret-de-test'),
+      );
+      await open(tester);
+      expect(find.text("La liaison audio n'a pas pu s'établir. Réessayez."), findsOneWidget);
+      expect(jitsi.joinedDomains, isEmpty);
+      expect(find.textContaining('jeton-secret-de-test'), findsNothing);
+    });
+
     testWidgets('Jitsi perd la liaison pendant l\'appel', (tester) async {
       await open(tester);
       jitsi.emit(JitsiEvent.failed);

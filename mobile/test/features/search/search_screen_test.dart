@@ -40,10 +40,17 @@ const _data = [
 class _Search extends SearchRepositoryFake {
   _Search() : super(data: _data);
   bool fail = false;
+  bool throttle = false;
+  int searchCalls = 0;
   final List<String> suggestionCalls = [];
 
   @override
   Future<SearchPage> search(SearchQuery query, {int page = 1}) async {
+    searchCalls++;
+    if (throttle) {
+      throw const ApiException(ApiErrorCode.unknown,
+          statusCode: 429, serverCode: 'throttled', retryAfter: Duration(seconds: 3));
+    }
     if (fail) throw const ApiException(ApiErrorCode.network);
     return super.search(query, page: page);
   }
@@ -51,6 +58,10 @@ class _Search extends SearchRepositoryFake {
   @override
   Future<List<Suggestion>> suggestions(String q) {
     suggestionCalls.add(q);
+    if (throttle) {
+      throw const ApiException(ApiErrorCode.unknown,
+          statusCode: 429, serverCode: 'throttled', retryAfter: Duration(seconds: 3));
+    }
     return super.suggestions(q);
   }
 }
@@ -109,6 +120,46 @@ Future<void> _type(WidgetTester tester, String text) async {
 }
 
 void main() {
+  testWidgets('429 throttled sur la recherche : message dédié, pas de relance automatique',
+      (tester) async {
+    final repo = _Search()..throttle = true;
+    await _pump(tester, repo: repo);
+    await tester.enterText(find.byKey(const Key('search-field')), 'riz');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('search-retry')), findsOneWidget);
+    expect(find.text('Trop de recherches, réessayez dans un instant'), findsWidgets);
+    expect(find.text('Les commerces ne se chargent pas. Vérifiez votre connexion.'), findsNothing);
+    final before = repo.searchCalls;
+    await tester.pump(const Duration(seconds: 30));
+    expect(repo.searchCalls, before);
+  });
+
+  testWidgets('erreur réseau simple : le message générique reste', (tester) async {
+    final repo = _Search()..fail = true;
+    await _pump(tester, repo: repo);
+    await tester.enterText(find.byKey(const Key('search-field')), 'riz');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    expect(find.text('Les commerces ne se chargent pas. Vérifiez votre connexion.'), findsOneWidget);
+    expect(find.text('Trop de recherches, réessayez dans un instant'), findsNothing);
+  });
+
+  testWidgets('429 sur les suggestions : message dédié, aucune requête pendant l\'attente',
+      (tester) async {
+    final repo = _Search();
+    await _pump(tester, repo: repo);
+    repo.throttle = true;
+    await _type(tester, 'ri');
+    expect(find.byKey(const Key('search-throttled')), findsOneWidget);
+    expect(repo.suggestionCalls, ['ri']);
+    await tester.enterText(find.byKey(const Key('search-field')), 'riz');
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(repo.suggestionCalls, ['ri']);
+    await tester.pump(const Duration(seconds: 4));
+    expect(find.byKey(const Key('search-throttled')), findsNothing);
+  });
+
   testWidgets("l'Accueil ouvre la recherche : champ, filtres, commerces de la ville", (tester) async {
     await _pump(tester);
     expect(find.byKey(const Key('search-field')), findsOneWidget);

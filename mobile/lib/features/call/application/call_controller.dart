@@ -297,7 +297,7 @@ class CallFlow extends Notifier<CallFlowState> {
     _listen(start.sessionId);
     _jitsiEvents?.cancel();
     _jitsiEvents = _jitsi.events.listen(_onJitsi);
-    final joined = await _jitsi.join(access);
+    final joined = access.hasValidDomain && await _jitsi.join(access);
     if (!joined && state.live) {
       await _fail(CallError.joinFailed);
     }

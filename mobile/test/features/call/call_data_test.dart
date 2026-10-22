@@ -329,4 +329,33 @@ void main() {
       expect(code, contains("'startWithAudioMuted': false"));
     });
   });
+
+  group('domaine Jitsi (même règle que le tableau de bord)', () {
+    const valides = ['jitsi.netbuis.example', 'meet.exemple.test', 'a-b.c-d.org', 'JITSI.Example.COM', 'jitsi.exemple.test:8443'];
+    const invalides = [
+      '',
+      'localhost',
+      'intranet',
+      '10.0.0.1',
+      '192.168.1.5:8443',
+      'https://jitsi.exemple.test',
+      'http://jitsi.exemple.test',
+      'user:pass@jitsi.exemple.test',
+      'jitsi.exemple.test/salle',
+      'jitsi.exemple.test?x=1',
+      'jitsi.exemple.test:99999999',
+      '-jitsi.exemple.test',
+      'jitsi..exemple.test',
+      'jitsi exemple.test',
+    ];
+    for (final d in valides) {
+      test('accepte "$d"', () => expect(JitsiAccess.isValidDomain(d), isTrue));
+    }
+    for (final d in invalides) {
+      test('refuse "$d"', () {
+        expect(JitsiAccess.isValidDomain(d), isFalse);
+        expect(JitsiAccess(domain: d, room: 'r', jwt: 'j').hasValidDomain, isFalse);
+      });
+    }
+  });
 }

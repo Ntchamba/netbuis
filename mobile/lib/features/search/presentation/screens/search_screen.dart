@@ -89,6 +89,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       }
     });
     final suggestions = ref.watch(suggestionsControllerProvider);
+    final throttled = ref.watch(suggestionsThrottledProvider);
     final query = ref.watch(searchControllerProvider.select((s) => s.query));
     final filtered = query.sector != null || query.zone != null;
     return Scaffold(
@@ -132,6 +133,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ],
               ),
             ),
+            if (throttled)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Text(
+                  l10n.t('search.error.throttled'),
+                  key: const Key('search-throttled'),
+                  style: TextStyle(color: c.textSecondary),
+                ),
+              ),
             Expanded(
               child: suggestions.isNotEmpty
                   ? SuggestionsList(suggestions: suggestions, onSelect: _pick)

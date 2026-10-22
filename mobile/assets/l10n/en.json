@@ -483,6 +483,7 @@
   "home.sectors.error": "Sectors could not be loaded.",
   "home.results.loading": "Loading businesses...",
   "home.results.error": "Businesses could not be loaded. Check your connection.",
+  "search.error.throttled": "Too many searches, try again in a moment",
   "home.results.retry": "Try again",
   "home.results.empty": "No businesses yet.",
   "home.results.loadMoreError": "The rest did not load.",
