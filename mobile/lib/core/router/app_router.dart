@@ -19,6 +19,8 @@ import '../../features/business/presentation/screens/service_category_screen.dar
 import '../../features/business/presentation/screens/structure_details_screen.dart';
 import '../../features/business/presentation/screens/structure_type_screen.dart';
 import '../../features/call/presentation/screens/call_history_screen.dart';
+import '../../features/forum/presentation/screens/my_posts_screen.dart';
+import '../../features/forum/presentation/screens/publish_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/maps/presentation/screens/area_screen.dart';
 import '../../features/maps/presentation/screens/map_screen.dart';
@@ -107,6 +109,8 @@ GoRouter buildRouter({
         path: Routes.callHistory,
         builder: (context, state) => const CallHistoryScreen(),
       ),
+      GoRoute(path: Routes.publish, builder: (context, state) => const PublishScreen()),
+      GoRoute(path: Routes.myPosts, builder: (context, state) => const MyPostsScreen()),
       GoRoute(path: Routes.search, builder: (context, state) => const SearchScreen()),
       GoRoute(
         path: Routes.businessDetail,

@@ -6,6 +6,7 @@ import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../business/application/business_controller.dart';
 import '../../../business/data/models/business.dart';
+import '../../../forum/presentation/widgets/my_posts_entry.dart';
 import '../../application/offers_controller.dart';
 import '../../data/repositories/merchant_repository.dart';
 import 'edit_offer_screen.dart';
@@ -29,7 +30,7 @@ class MyProductsEntry extends ConsumerWidget {
     void open() => Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute<void>(builder: (_) => const OffersScreen()),
         );
-    return DecoratedBox(
+    final products = DecoratedBox(
       decoration: BoxDecoration(
         color: c.card,
         border: Border.all(color: c.border),
@@ -63,6 +64,11 @@ class MyProductsEntry extends ConsumerWidget {
           ),
         ),
       ),
+    );
+    // Sous « Mes produits » : « Mes publications » (T091), même bloc COMPTE BUSINESS du Profil.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [products, const SizedBox(height: 10), const MyPostsEntry()],
     );
   }
 }

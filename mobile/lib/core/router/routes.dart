@@ -21,6 +21,9 @@ class Routes {
   static const businessDetail = '/business/:id';
   static String businessDetailPath(int id) => '/business/$id';
   static const forum = '/forum';
+  /// Publier (T091) et Mes publications (T091), ouverts depuis Profil.
+  static const publish = '/publish';
+  static const myPosts = '/my-posts';
   static const profile = '/profile';
   /// Historique de mes appels (T053), ouvert depuis Profil.
   static const callHistory = '/history';
