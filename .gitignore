@@ -32,3 +32,5 @@ mobile/build/
 
 # Pièces privées (CNI, diplômes) : jamais versionnées, jamais servies publiquement
 backend/private_media/
+backend/.coverage
+mobile/coverage/

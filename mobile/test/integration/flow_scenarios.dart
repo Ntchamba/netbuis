@@ -1,4 +1,7 @@
-// T056 : parcours de bout en bout Accueil → recherche → fiche → appel → retour → historique.
+// T056 / T123 : parcours de bout en bout Accueil → recherche → fiche → appel → retour → historique.
+// L'appel est un appel Jitsi vers l'équipe NetBuis (D-25, T133) : session créée, salle rejointe
+// (FakeJitsiService), « Appel en cours », l'équipe répond, on raccroche. Il n'y a plus d'appel
+// téléphonique, ni de feuille Orange/MTN, ni de question « ça a abouti ? ».
 // Ces scénarios montent l'application COMPLÈTE (routeur, onglets) avec des faux services
 // (aucun réseau, aucun téléphone). Ils sont partagés par :
 //  - test/integration/search_call_flow_test.dart  (lancé par `flutter test`) ;
@@ -18,6 +21,7 @@ import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/router/routes.dart';
 import 'package:netbuis/features/account/data/models/me.dart';
 import 'package:netbuis/features/business/application/public_business_controller.dart';
+import 'package:netbuis/features/business/data/repositories/public_business_repository.dart';
 import 'package:netbuis/features/business/data/repositories/public_business_repository_fake.dart';
 import 'package:netbuis/features/business/presentation/screens/business_detail_screen.dart';
 import 'package:netbuis/features/call/application/call_history_controller.dart';
@@ -141,7 +145,13 @@ class FlowEnv {
 }
 
 /// Monte l'application complète à 360 px, connectée, sur l'Accueil.
-Future<void> pumpFlowApp(WidgetTester tester, FlowEnv env) async {
+Future<void> pumpFlowApp(
+  WidgetTester tester,
+  FlowEnv env, {
+  List<Override> extra = const [],
+  PublicBusinessRepository? publicBusiness,
+  String initialLocation = Routes.home,
+}) async {
   tester.view.physicalSize = const Size(360, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -157,14 +167,15 @@ Future<void> pumpFlowApp(WidgetTester tester, FlowEnv env) async {
     trendsRepositoryProvider.overrideWithValue(const NoTrendsRepository()),
     speechServiceProvider.overrideWithValue(env.speech),
     shareServiceProvider.overrideWithValue(_NoShare()),
-    publicBusinessRepositoryProvider.overrideWithValue(PublicBusinessRepositoryFake()),
+    publicBusinessRepositoryProvider.overrideWithValue(publicBusiness ?? PublicBusinessRepositoryFake()),
     callHistoryRepositoryProvider.overrideWithValue(env.history),
     historyNowProvider.overrideWithValue(() => DateTime(2026, 10, 21, 12)),
     ...callOverrides(env.channel, env.calls, jitsi: env.jitsi),
+    ...extra,
   ];
   await tester.pumpWidget(ProviderScope(
     overrides: overrides,
-    child: const NetBuisApp(themeMode: ThemeMode.light, initialLocation: Routes.home),
+    child: NetBuisApp(themeMode: ThemeMode.light, initialLocation: initialLocation),
   ));
   await tester.pumpAndSettle();
 }
@@ -176,24 +187,24 @@ class _NoShare implements ShareService {
 
 // ---------------------------------------------------------------- petites étapes
 
-Future<void> _settle(WidgetTester tester) async {
+Future<void> settleAll(WidgetTester tester) async {
   await tester.pumpAndSettle();
 }
 
 /// Revient d'un écran poussé (fiche, recherche, historique).
-Future<void> _back(WidgetTester tester, Finder screen) async {
+Future<void> backFrom(WidgetTester tester, Finder screen) async {
   GoRouter.of(tester.element(screen)).pop();
-  await _settle(tester);
+  await settleAll(tester);
 }
 
-Future<void> _openTab(WidgetTester tester, int index) async {
+Future<void> openTab(WidgetTester tester, int index) async {
   await tester.tap(find.byType(NavigationDestination).at(index));
-  await _settle(tester);
+  await settleAll(tester);
 }
 
-Future<void> _openDetailFromCard(WidgetTester tester, String name) async {
+Future<void> openDetailFromCard(WidgetTester tester, String name) async {
   await tester.tap(find.text(name).first);
-  await _settle(tester);
+  await settleAll(tester);
   expect(find.byType(BusinessDetailScreen), findsOneWidget);
   expectNoPhoneOnScreen(tester);
 }
@@ -203,10 +214,10 @@ Future<void> _callFromDetail(WidgetTester tester, FlowEnv env) async {
   await tester.scrollUntilVisible(find.byKey(const Key('detail-call')), 300,
       scrollable: find.byType(Scrollable).first);
   await tapAndSettle(tester, find.byKey(const Key('detail-call')));
-  await _talkAndHangUp(tester, env);
+  await talkAndHangUp(tester, env);
 }
 
-Future<void> _talkAndHangUp(WidgetTester tester, FlowEnv env, {int businessId = 1}) async {
+Future<void> talkAndHangUp(WidgetTester tester, FlowEnv env, {int businessId = 1}) async {
   expect(find.byKey(const Key('call-running')), findsOneWidget);
   expect(find.text('Appel en cours...'), findsOneWidget);
   expect(find.byKey(const Key('call-notice')), findsOneWidget);
@@ -226,17 +237,18 @@ Future<void> _talkAndHangUp(WidgetTester tester, FlowEnv env, {int businessId = 
   expect(find.byKey(const Key('call-screen')), findsNothing);
 }
 
-Future<void> _openHistory(WidgetTester tester) async {
-  await _openTab(tester, 3);
+Future<void> openHistory(WidgetTester tester) async {
+  await openTab(tester, 3);
   await tester.tap(find.byKey(const ValueKey('profile-history')));
-  await _settle(tester);
+  await settleAll(tester);
   expect(find.byKey(const Key('history-list')), findsOneWidget);
   expectNoPhoneOnScreen(tester);
 }
 
 // ---------------------------------------------------------------- scénarios
 
-/// Écrit : Accueil → recherche « riz » → fiche → Appeler l'équipe → réponse → raccrocher → historique.
+/// Écrit : Accueil → recherche « riz » → fiche → Appeler (Jitsi) → « Appel en cours » → l'équipe répond →
+/// raccrocher → historique.
 Future<void> scenarioWrittenSearchCall(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
@@ -244,24 +256,24 @@ Future<void> scenarioWrittenSearchCall(WidgetTester tester) async {
   expectNoPhoneOnScreen(tester);
 
   await tester.tap(find.byKey(const Key('home-search')));
-  await _settle(tester);
+  await settleAll(tester);
   expect(find.byKey(const Key('search-field')), findsOneWidget);
   await tester.enterText(find.byKey(const Key('search-field')), 'riz');
   await tester.pump(const Duration(milliseconds: 450));
-  await _settle(tester);
+  await settleAll(tester);
   await tester.testTextInput.receiveAction(TextInputAction.search);
-  await _settle(tester);
+  await settleAll(tester);
   expect(find.text('Boutique Aminatou'), findsWidgets);
   expect(find.text('Chez Mama Riz'), findsWidgets);
   expectNoPhoneOnScreen(tester);
 
-  await _openDetailFromCard(tester, 'Boutique Aminatou');
+  await openDetailFromCard(tester, 'Boutique Aminatou');
   await _callFromDetail(tester, env);
   expectNoPhoneOnScreen(tester);
 
-  await _back(tester, find.byType(BusinessDetailScreen));
-  await _back(tester, find.byKey(const Key('search-field')));
-  await _openHistory(tester);
+  await backFrom(tester, find.byType(BusinessDetailScreen));
+  await backFrom(tester, find.byKey(const Key('search-field')));
+  await openHistory(tester);
   expect(find.byKey(const ValueKey('history-name-ssession-0')), findsOneWidget);
   expect(find.text('Boutique Aminatou'), findsOneWidget);
   expect(env.calls.whatsappRequests, isEmpty);
@@ -273,22 +285,22 @@ Future<void> scenarioVoiceSearchCall(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
   await tester.tap(find.byKey(const Key('home-voice')));
-  await _settle(tester);
+  await settleAll(tester);
   await tester.tap(find.byKey(const Key('voice-rationale-ok')));
-  await _settle(tester);
+  await settleAll(tester);
   expect(env.speech.listening, isTrue);
   expectNoPhoneOnScreen(tester);
   env.speech.say('je cherche du riz');
-  await _settle(tester);
+  await settleAll(tester);
   expect(env.search.voiceCalls, ['je cherche du riz']);
   expect(find.byKey(const Key('voice-banner')), findsNothing);
   expect(find.text('Boutique Aminatou'), findsOneWidget);
   expectNoPhoneOnScreen(tester);
 
   await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
-  await _talkAndHangUp(tester, env);
+  await talkAndHangUp(tester, env);
 
-  await _openHistory(tester);
+  await openHistory(tester);
   expect(find.byKey(const ValueKey('history-name-ssession-0')), findsOneWidget);
   expect(find.byKey(const ValueKey('history-badge-ssession-0')), findsOneWidget);
 }
@@ -297,7 +309,7 @@ Future<void> scenarioVoiceSearchCall(WidgetTester tester) async {
 Future<void> scenarioWhatsappFlow(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
-  await _openDetailFromCard(tester, 'Boutique Aminatou');
+  await openDetailFromCard(tester, 'Boutique Aminatou');
   await tester.scrollUntilVisible(find.byKey(const Key('detail-whatsapp')), 300,
       scrollable: find.byType(Scrollable).first);
   await tapAndSettle(tester, find.byKey(const Key('detail-whatsapp')));
@@ -313,8 +325,8 @@ Future<void> scenarioWhatsappFlow(WidgetTester tester) async {
   expect(find.byKey(const Key('feedback-sheet')), findsNothing);
   expectNoPhoneOnScreen(tester);
 
-  await _back(tester, find.byType(BusinessDetailScreen));
-  await _openHistory(tester);
+  await backFrom(tester, find.byType(BusinessDetailScreen));
+  await openHistory(tester);
   expect(find.byKey(const ValueKey('history-name-w501')), findsOneWidget);
   expect(find.byKey(const ValueKey('history-whatsapp-w501')), findsOneWidget);
 }
@@ -323,7 +335,7 @@ Future<void> scenarioWhatsappFlow(WidgetTester tester) async {
 Future<void> scenarioWhatsappAbsent(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
-  await _openDetailFromCard(tester, 'Chez Mama Riz');
+  await openDetailFromCard(tester, 'Chez Mama Riz');
   await tester.scrollUntilVisible(find.byKey(const Key('detail-whatsapp')), 300,
       scrollable: find.byType(Scrollable).first);
   expect(find.text('WhatsApp · Non disponible'), findsOneWidget);
@@ -356,13 +368,13 @@ Future<void> scenarioOffline(WidgetTester tester) async {
   // La fiche est lisible, ses boutons sont désactivés avec un message.
   // (L'encart « Aidez NetBuis à grandir » couvre le bas de l'écran : on le ferme.)
   await tester.tap(find.byKey(const Key('home-promo-close')));
-  await _settle(tester);
-  await _openDetailFromCard(tester, 'Boutique Aminatou');
+  await settleAll(tester);
+  await openDetailFromCard(tester, 'Boutique Aminatou');
   // Charger la fiche réussit (le faux dépôt répond) : le réseau retombe ensuite.
   ProviderScope.containerOf(tester.element(find.byType(BusinessDetailScreen)))
       .read(offlineProvider.notifier)
       .set(true);
-  await _settle(tester);
+  await settleAll(tester);
   await tester.scrollUntilVisible(find.byKey(const Key('detail-call')), 300,
       scrollable: find.byType(Scrollable).first);
   expect(find.byKey(const Key('detail-offline')), findsOneWidget);
@@ -374,21 +386,21 @@ Future<void> scenarioOffline(WidgetTester tester) async {
   expect(detailWa.onPressed, isNull);
   expect(env.calls.whatsappRequests, isEmpty);
   expectNoPhoneOnScreen(tester);
-  await _back(tester, find.byType(BusinessDetailScreen));
+  await backFrom(tester, find.byType(BusinessDetailScreen));
 
   // Le réseau revient.
   env.search.error = null;
   await tester.tap(find.byKey(const Key('offline-retry')));
-  await _settle(tester);
+  await settleAll(tester);
   expect(find.byKey(const Key('offline-banner')), findsNothing);
   final back = tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Appeler').first);
   expect(back.onPressed, isNotNull);
   await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
-  await _talkAndHangUp(tester, env);
+  await talkAndHangUp(tester, env);
 }
 
-/// Cas d'échec : le serveur ne donne pas la ligne (réseau perdu au moment d'appeler) ->
-/// message simple, aucune salle rejointe, aucun numéro.
+/// Cas d'échec : la session ne peut pas être créée (réseau perdu au moment d'appeler) ->
+/// message simple, aucune salle Jitsi rejointe, aucun numéro, aucune question de suivi.
 Future<void> scenarioCallRefused(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
@@ -404,3 +416,59 @@ Future<void> scenarioCallRefused(WidgetTester tester) async {
   await tester.pump(const Duration(seconds: 1));
   expect(find.byKey(const Key('feedback-sheet')), findsNothing);
 }
+
+/// Équipe indisponible : le serveur répond « unavailable » tout de suite -> message exact,
+/// aucune salle rejointe ; l'historique ne garde pas de fausse conversation.
+Future<void> scenarioTeamUnavailable(WidgetTester tester) async {
+  final env = FlowEnv();
+  env.calls.start = const CallStart(
+      sessionId: kSessionId, state: CallState.unavailable, ringSeconds: 0, code: 'no_agent_available');
+  await pumpFlowApp(tester, env);
+  await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
+  expect(env.calls.requests, hasLength(1));
+  expect(find.text("Personne n'est disponible, réessayez plus tard"), findsOneWidget);
+  expect(env.jitsi.joinedDomains, isEmpty, reason: 'aucune salle sans agent disponible');
+  expect(find.byKey(const Key('call-connected')), findsNothing);
+  expectNoPhoneOnScreen(tester);
+  await tester.tap(find.byKey(const Key('call-close')));
+  await tester.pumpAndSettle();
+  expect(find.byKey(const Key('call-screen')), findsNothing);
+  expect(onHomeTabs(), isTrue, reason: 'retour sur l\'Accueil');
+}
+
+/// Sonnerie sans réponse : l'équipe ne décroche pas (30 s) -> « Personne n'a répondu »,
+/// la salle est quittée.
+Future<void> scenarioTeamMissed(WidgetTester tester) async {
+  final env = FlowEnv();
+  await pumpFlowApp(tester, env);
+  await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
+  expect(find.byKey(const Key('call-running')), findsOneWidget);
+  env.calls.push(CallState.missed, reason: 'timeout');
+  await tester.pump(const Duration(seconds: 1));
+  expect(find.byKey(const Key('call-missed')), findsOneWidget);
+  expect(find.text("Personne n'a répondu"), findsOneWidget);
+  expect(env.jitsi.hangUps, 1, reason: 'la salle est quittée');
+  expectNoPhoneOnScreen(tester);
+}
+
+/// Annulation : l'appelant raccroche pendant la sonnerie -> cancel envoyé au serveur, salle
+/// quittée, écran fermé, pas de « connecté ».
+Future<void> scenarioCallCancelled(WidgetTester tester) async {
+  final env = FlowEnv();
+  await pumpFlowApp(tester, env);
+  await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
+  expect(find.byKey(const Key('call-running')), findsOneWidget);
+  expect(env.jitsi.joinedDomains, hasLength(1));
+  await tester.tap(find.byKey(const Key('call-cancel')));
+  await tester.pump();
+  await tester.pump();
+  await tester.pumpAndSettle();
+  expect(env.calls.cancels, [kSessionId]);
+  expect(env.calls.ends, isEmpty, reason: 'annuler n\'est pas terminer');
+  expect(env.jitsi.hangUps, 1);
+  expect(find.byKey(const Key('call-screen')), findsNothing);
+  expectNoPhoneOnScreen(tester);
+}
+
+/// Vrai quand la barre des quatre onglets est affichée.
+bool onHomeTabs() => find.byType(NavigationDestination).evaluate().length == 4;

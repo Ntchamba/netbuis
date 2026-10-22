@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T123
-- **Prochaine tâche** : T123
+- **Tâche en cours** : T124
+- **Prochaine tâche** : T124
 - **Dernière mise à jour** : 2026-10-22
 - **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
@@ -136,7 +136,7 @@
 | ✅ | T121 | Revue de sécurité (backend 23 ✔ 7 ⚠ ; dashboard 16 ✔ 3 ⚠ ; mobile 23 ✔ 10 ⚠ ; aucun ✘ : docs/verifications/T121-*.md) | a1 (backend), c3 (dashboard), b1 (mobile) | 2026-10-22 | 1 651 serveur, 312 dashboard, 1 702 mobile. Points ⚠ pour Jeff dans A_RELIRE_PAR_JEFF.md |
 | ✅ | T121b | Mobile : valider le domaine Jitsi (comme le dashboard), traiter le code `throttled` (429) de la recherche | b3 / b2 | 2026-10-22 | 1 725 tests, analyse 0. Voir docs/verifications/T121b.md |
 | ✅ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | 2026-10-22 | Serveur : 1 678 tests, 2 index, flux SSE corrigé ; mobile : 1 730 tests, 5 tests de liste. À mesurer sur téléphone : TESTS_JEFF.md. Voir T122-backend.md et T122-mobile.md |
-| ☐ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | | |
+| ✅ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | 2026-10-22 | Serveur 1 699 tests (couverture 99 %), tableau de bord 347 tests + 2 essais navigateur, mobile 1 743 tests (couverture 95,4 %) ; workflow .github/workflows/ci.yml (non exécuté sur GitHub). Voir T123-*.md |
 | ☐ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | |
 | ☐ | T125 | Recette finale contre le cahier de charge | orchestrateur seul | | |
 

@@ -85,3 +85,9 @@ Pour atteindre le contraste 4,5:1 en thème clair, trois couleurs ont été ajou
 - Signature de release : clé de débogage pour l'instant → créer une vraie clé hors dépôt (T124).
 - Une erreur serveur (5xx) lors du rafraîchissement déconnecte l'utilisateur : à décider (attendre plutôt que déconnecter ?).
 - `has_diplome` côté serveur (dette) ; `geolocator` inutilisé dans pubspec ; `Retry-After` à exposer en CORS ; cookie de rafraîchissement si domaines différents.
+
+## T123 — petites dettes relevées
+- `forum_repository_api.dart` (mobile) n'a aucun test de dépôt API (agent b3) ; vocal sans résultat : l'Accueil dit « Aucun commerce pour le moment » au lieu de « Aucun résultat pour … ».
+- Serveur : `GET /api/admin/me/` plante (500) si un numéro stocké est invalide (fabrique de test `make_admin` à corriger ; garde à ajouter) ; fabriques de numéros à unifier ; `apps/core/utils/time.py` inutilisé.
+- Dashboard : un rechargement de la fiche d'un compte peut créer plusieurs lignes d'audit « consultation du numéro » (à vérifier sur le vrai serveur).
+- Couverture du tableau de bord non mesurée (paquet @vitest/coverage-v8 absent, non ajouté).

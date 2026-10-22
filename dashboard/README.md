@@ -9,6 +9,22 @@ npm run typecheck
 npm run build
 ```
 
+## Tests (T123)
+
+```
+npm test           # Vitest : tests unitaires par module + parcours de bout en bout dans tests/parcours/
+npm run test:e2e   # construit le dashboard, puis rejoue deux essais dans un vrai Chromium
+```
+
+- `tests/parcours/` : une API simulée **à état** (`world.ts`) branche l'application entière (routes, session, menus).
+  Un fichier par domaine : accès, demandes, comptes, modération, appels de l'équipe, référentiels et réglages, audit et export.
+- `npm run test:e2e` lance `e2e/appel-entrant.mjs` (délai « événement serveur → fenêtre d'appel », salle, fiche, reconnexion)
+  puis `e2e/parcours-admin.mjs` (connexion → demandes → valider → déconnexion). Chacun démarre un faux serveur local qui sert
+  aussi le dossier `dist/` ; toute erreur de console ou de page fait échouer le second.
+- **Playwright n'est pas une dépendance du projet.** Il est pris dans l'installation globale (`NODE_PATH`) ou à l'endroit donné par
+  `PLAYWRIGHT_MODULE=/chemin/vers/playwright`. Chromium est cherché dans `PLAYWRIGHT_BROWSERS_PATH` (ex. `/opt/pw-browsers`)
+  ou donné par `CHROMIUM_PATH=/chemin/vers/chrome`.
+
 Le module `payments/` reste vide jusqu'à l'étape É6.
 
 ## Sécurité : en-têtes à poser sur l'hébergement statique (T121)
