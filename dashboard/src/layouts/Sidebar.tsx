@@ -39,6 +39,19 @@ function Icon({ name }: { name: NavIcon }) {
         <circle cx="19" cy="18" r="2" />
       </>
     ),
+    settings: (
+      <>
+        <path d="M4 8h10M18 8h2M4 16h2M10 16h10" />
+        <circle cx="16" cy="8" r="2" />
+        <circle cx="8" cy="16" r="2" />
+      </>
+    ),
+    admins: (
+      <>
+        <path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6l8-3z" />
+        <path d="M9 12l2 2 4-4" />
+      </>
+    ),
     team: <path d="M12 2l2.6 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.4-.4z" />,
   };
   return (

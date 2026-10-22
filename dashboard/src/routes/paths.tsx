@@ -5,6 +5,8 @@ export const PATHS = {
   comptes: "/comptes",
   compte: "/comptes/:id",
   equipe: "/equipe",
+  reglages: "/reglages",
+  administrateurs: "/administrateurs",
   referentiels: "/referentiels",
   referentielsAExaminer: "/referentiels/a-examiner",
   referentiel: "/referentiels/:type",

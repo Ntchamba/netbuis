@@ -5,6 +5,8 @@ import { ComingSoonPage } from "../layouts/ComingSoonPage";
 import { LoginPage } from "../modules/auth";
 import { BusinessesPage } from "../modules/businesses";
 import { FreeValuesPage, ReferentialsIndexPage, ReferentialTypePage } from "../modules/referentials";
+import { AdminsPage } from "../modules/admins";
+import { SettingsPage } from "../modules/settings";
 import { OverviewPage } from "../modules/overview";
 import { UserDetailPage, UsersPage } from "../modules/users";
 import { PATHS } from "./paths";
@@ -73,6 +75,22 @@ export function AppRoutes() {
             element={
               <RequirePermission permission="peut_gerer_referentiels">
                 <ReferentialTypePage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.reglages}
+            element={
+              <RequirePermission permission="peut_modifier_reglages">
+                <SettingsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.administrateurs}
+            element={
+              <RequirePermission permission="peut_gerer_admins">
+                <AdminsPage />
               </RequirePermission>
             }
           />
