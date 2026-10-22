@@ -1,4 +1,5 @@
-"""T121 — le numéro d'un commerçant ne sort que de POST /api/calls/initiate/.
+"""T121 / T131 — plus aucune route ne délivre le numéro d'un commerçant (D-25), sauf le lien
+WhatsApp (`wa_url` de POST /api/calls/whatsapp/, inchangé).
 
 Jeu de données : `seed_demo` (20 commerces fictifs, publications, commentaires) + un appel
 réel + les tendances. On parcourt TOUTES les routes GET de l'API (identifiants réels
@@ -7,9 +8,12 @@ cherche dans le corps ET les en-têtes chaque numéro (forme nationale à 9 chif
 +237, espaces, points, tirets). Seule exception admin : le détail d'un compte (audité).
 """
 import re
+import secrets
 from io import StringIO
+from pathlib import Path
 
 import pytest
+import yaml
 from django.contrib.auth.models import Group
 from django.core.cache import cache
 from django.core.management import call_command
@@ -19,13 +23,15 @@ from rest_framework.test import APIClient
 from apps.accounts.models import User
 from apps.accounts.services.token_service import issue_tokens
 from apps.business.models import BusinessProfile, BusinessStatus
-from apps.calls.models import CallLog
+from apps.calls.models import CallLog, CallSession
+from apps.calls.tests.helpers import make_agent
 from apps.forum.models import Post
 from tests.factories.user_factory import AdminFactory
 from tests.test_security_routes import walk
 
 pytestmark = pytest.mark.django_db
 
+OPENAPI = Path(__file__).resolve().parents[2] / "docs" / "api" / "openapi.yaml"
 SEPARATORS = re.compile(r"[\s.\-  ]")
 ADMIN_PHONES = (f"+2376999999{n:02d}" for n in range(10, 99))  # hors des numéros de seed_demo
 TERMS = ["", "riz", "démo", "pharmacie", "6", "coiffure", "boutique"]
@@ -72,6 +78,10 @@ def world(settings):
             "ids": ids}
 
 
+# Flux SSE (T131) : réponse sans fin, couverte par apps/calls/tests/test_streams.py.
+STREAM_ROUTES = {"api/admin/calls/stream/"}
+
+
 def get_routes(prefix_in=None, prefix_out=()):
     routes = []
     for route, cb in walk(get_resolver().url_patterns):
@@ -80,7 +90,7 @@ def get_routes(prefix_in=None, prefix_out=()):
             continue
         if route.startswith(("django-admin/", "api/schema/", "api/docs/", "media/")):
             continue
-        if route.startswith(prefix_out):
+        if route.startswith(prefix_out) or route in STREAM_ROUTES:
             continue
         if prefix_in is None or route.startswith(prefix_in):
             routes.append(route)
@@ -89,6 +99,7 @@ def get_routes(prefix_in=None, prefix_out=()):
 
 def fill(route: str, pk: int) -> str:
     path = re.sub(r"<int:\w+>", str(pk), route)
+    path = re.sub(r"<uuid:\w+>", "00000000-0000-0000-0000-000000000000", path)
     return "/" + re.sub(r"<\w+:\w+>|<\w+>", "x", path)
 
 
@@ -120,17 +131,28 @@ def test_le_detecteur_voit_les_formes_courantes_du_numero():
     assert not leaks("+237 6•• •• •• 01", {"600000001"})  # forme masquée : autorisée
 
 
-def test_appel_est_la_seule_route_qui_donne_le_numero_puis_aucune_route_ne_le_repete(world):
+def test_aucune_route_ne_donne_le_numero_avant_pendant_ni_apres_un_appel_a_l_equipe(
+        world, settings):
+    settings.JITSI_DOMAIN, settings.JITSI_APP_ID = "jitsi.example.test", "netbuis-test"
+    settings.JITSI_JWT_SECRET = secrets.token_urlsafe(48)
     viewer = client_of(world["viewer"])
     shop = world["active"][0]
-    initiate = viewer.post(
-        "/api/calls/initiate/",
-        {"business_id": shop.pk, "channel": "call", "platform": "android"}, format="json",
-    )
-    assert initiate.status_code == 200 and initiate.json()["phone"] == shop.phone_anchor
-    assert national(shop.phone_anchor) in SEPARATORS.sub("", initiate.content.decode())
-    assert initiate["Cache-Control"] == "no-store"
-    assert CallLog.objects.filter(caller=world["viewer"], profile=shop).count() == 1
+    # L'ancienne route qui livrait le numéro n'existe plus.
+    gone = viewer.post("/api/calls/initiate/", {
+        "business_id": shop.pk, "channel": "call", "platform": "android"}, format="json")
+    assert gone.status_code == 404
+    assert national(shop.phone_anchor) not in SEPARATORS.sub("", gone.content.decode())
+    # Un agent disponible, un appel qui sonne, une réponse : aucun numéro nulle part.
+    agent = make_agent()
+    started = viewer.post("/api/calls/sessions/", {"business_id": shop.pk}, format="json")
+    assert started.status_code == 200 and started.json()["state"] == "ringing"
+    accepted = client_of(agent).post(
+        f"/api/admin/calls/sessions/{started.json()['session_id']}/accept/")
+    assert accepted.status_code == 200
+    for response in (started, accepted):
+        assert not leaks(response.content.decode(), world["numbers"])
+    assert CallSession.objects.filter(business=shop).count() == 1
+    assert not CallLog.objects.exists()  # plus de numéro délivré, donc plus de journal « appel »
     call_command("compute_trends", stdout=StringIO())
 
     found, calls, ok = crawl(
@@ -138,6 +160,28 @@ def test_appel_est_la_seule_route_qui_donne_le_numero_puis_aucune_route_ne_le_re
     )
     assert calls > 150 and ok > 50  # le parcours touche vraiment des réponses 200
     assert not found, found[:5]
+
+
+def test_le_contrat_ne_decrit_aucune_route_qui_livre_le_numero_d_un_commercant():
+    spec = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    assert "/api/calls/initiate/" not in spec["paths"]
+    names = set()
+
+    def collect(node):
+        if isinstance(node, dict):
+            names.update(node.get("properties", {}))
+            for value in node.values():
+                collect(value)
+        elif isinstance(node, list):
+            for value in node:
+                collect(value)
+
+    collect(spec)
+    assert "phone_anchor" not in names
+    assert "phone" not in spec["components"]["schemas"].get("WhatsAppResponse", {}).get(
+        "properties", {})
+    assert set(spec["components"]["schemas"]["WhatsAppResponse"]["properties"]) == {
+        "call_id", "wa_url"}
 
 
 def test_aucune_route_n_expose_le_numero_a_un_commercant(world):

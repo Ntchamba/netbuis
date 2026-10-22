@@ -4,13 +4,13 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.calls.models import CallLog
 from apps.calls.serializers.feedback import (
     FeedbackResponseSerializer,
     FeedbackSerializer,
     HistorySerializer,
 )
 from apps.calls.services.feedback_service import save_feedback
+from apps.calls.services.history_service import caller_history
 from apps.calls.views.mixins import NoStoreMixin
 
 
@@ -36,16 +36,15 @@ class HistoryView(NoStoreMixin, ListAPIView):
     serializer_class = HistorySerializer
 
     def get_queryset(self):
-        return (
-            CallLog.objects.filter(caller=self.request.user)
-            .select_related("profile__zone", "feedback")
-            .order_by("-created_at", "-id")
-        )
+        return caller_history(self.request.user)
 
     @extend_schema(
         operation_id="calls_history", tags=["calls"],
         responses={200: HistorySerializer(many=True)},
-        description="Mes appels et ouvertures WhatsApp, 20 par page, sans aucun numéro.",
+        description=(
+            "Mes appels à l'équipe NetBuis (sessions) et mes liens WhatsApp, 20 par page, "
+            "sans aucun numéro."
+        ),
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)

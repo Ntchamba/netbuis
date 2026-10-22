@@ -1,4 +1,5 @@
-"""Canal WhatsApp (T051) : lien wa.me côté serveur, mêmes contrôles que l'appel, signalements."""
+"""Canal WhatsApp (T051, route POST /api/calls/whatsapp/ depuis T131) : lien wa.me côté serveur,
+contrôles, limite, signalements."""
 import logging
 
 import pytest
@@ -12,7 +13,7 @@ from tests.factories.business_factory import make_owner, make_profile
 
 pytestmark = pytest.mark.django_db
 
-INITIATE = "/api/calls/initiate/"
+WHATSAPP = "/api/calls/whatsapp/"
 REPORT = "/api/calls/whatsapp-report/"
 
 
@@ -31,8 +32,7 @@ def shop(**extra):
 
 def wa(client, profile):
     return client.post(
-        INITIATE, {"business_id": profile.pk, "channel": "whatsapp", "platform": "android"},
-        format="json",
+        WHATSAPP, {"business_id": profile.pk, "platform": "android"}, format="json",
     )
 
 
@@ -66,7 +66,7 @@ def test_whatsapp_refused_when_unavailable_and_nothing_leaks():
     assert not CallLog.objects.exists()
 
 
-def test_whatsapp_same_refusals_as_call():
+def test_whatsapp_refusals():
     own = shop()
     assert wa(connected(own.owner), own).json()["code"] == "OWN_BUSINESS"
     pending = shop(status=BusinessStatus.PENDING)
@@ -148,10 +148,9 @@ def test_report_requires_a_received_whatsapp_link():
     profile = shop()
     stranger = connected()
     assert report(stranger, profile).status_code == 404
-    # un appel simple ne suffit pas
-    stranger.post(INITIATE, {"business_id": profile.pk, "channel": "call",
-                             "platform": "android"}, format="json")
-    assert CallLog.objects.filter(channel=CallChannel.CALL).count() == 1
+    # un ancien appel (journal « call ») ne suffit pas
+    CallLog.objects.create(caller=stranger.user, profile=profile, channel=CallChannel.CALL,
+                           platform="android")
     assert report(stranger, profile).status_code == 404
     assert not WhatsAppReport.objects.exists()
 
@@ -162,3 +161,61 @@ def test_report_requires_login_and_valid_body():
     assert connected().post(REPORT, {}, format="json").status_code == 400
     unknown = connected().post(REPORT, {"business_id": 999999}, format="json")
     assert unknown.status_code == 404
+
+
+# --- Anciennes règles de l'appel, reprises pour WhatsApp (test_initiate.py supprimé, T131) -----
+
+
+def test_whatsapp_bad_token_is_not_authenticated():
+    client = APIClient()
+    client.credentials(HTTP_AUTHORIZATION="Bearer pas.un.jeton")
+    assert wa(client, shop()).json()["code"] == "NOT_AUTHENTICATED"
+
+
+def test_whatsapp_business_owner_blocked_and_unknown_business():
+    profile = shop()
+    profile.owner.is_blocked = True
+    profile.owner.save()
+    assert wa(connected(), profile).json()["code"] == "ACCOUNT_BLOCKED"
+    unknown = connected().post(WHATSAPP, {"business_id": 999999, "platform": "ios"},
+                               format="json")
+    assert unknown.status_code == 404 and unknown.json()["code"] == "BUSINESS_NOT_ACTIVE"
+    assert not CallLog.objects.exists()
+
+
+@pytest.mark.parametrize("change", [
+    {"business_id": 0}, {"business_id": "x"}, {"platform": "windows"},
+])
+def test_whatsapp_invalid_body_is_400(change):
+    body = {"business_id": shop().pk, "platform": "android", **change}
+    response = connected().post(WHATSAPP, body, format="json")
+    assert response.status_code == 400 and response.json()["code"] == "invalid"
+    assert not CallLog.objects.exists()
+
+
+def test_whatsapp_get_not_allowed():
+    assert connected().get(WHATSAPP).status_code == 405
+
+
+def test_whatsapp_log_failure_returns_no_link():
+    from unittest import mock
+
+    profile = shop()
+    client = APIClient(raise_request_exception=False)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {issue_tokens(make_owner())['access']}")
+    with mock.patch.object(CallLog.objects, "create", side_effect=RuntimeError("boom")):
+        response = client.post(WHATSAPP, {"business_id": profile.pk, "platform": "android"},
+                               format="json")
+    assert response.status_code == 500
+    assert "wa.me" not in response.content.decode()
+    profile.refresh_from_db()
+    assert profile.calls_count == 0
+
+
+def test_whatsapp_never_uses_a_quota_even_with_credits(settings):
+    settings.CREDITS_ENABLED = True
+    profile = shop()
+    client = connected()
+    for _ in range(4):
+        assert wa(client, profile).status_code == 200
+    assert set(CallLog.objects.values_list("billing_type", flat=True)) == {"none"}

@@ -15,7 +15,7 @@ PREFIX = "api/admin/"
 OPENAPI_METHODS = ("get", "post", "put", "patch", "delete")
 
 # Droits du Validateur d'après docs/spec/DASHBOARD_ADMIN.md (écrits en dur, indépendants du code).
-VALIDATEUR_PEUT = {r.VOIR_DEMANDES, r.VOIR_COMPTES, r.VALIDER_DEMANDE}
+VALIDATEUR_PEUT = {r.VOIR_DEMANDES, r.VOIR_COMPTES, r.VALIDER_DEMANDE, r.REPONDRE_APPELS}
 
 REF_SLUGS = ("zones", "sectors", "subcategories", "service-categories", "structure-types",
              "products", "synonyms")
@@ -53,6 +53,12 @@ ROUTES: dict[tuple[str, str], str | None] = {
     ("post", "reports/<str:target_type>/<int:pk>/hide/"): r.MODERER_CONTENU,
     ("post", "reports/<str:target_type>/<int:pk>/restore/"): r.MODERER_CONTENU,
     ("post", "reports/<str:target_type>/<int:pk>/delete/"): r.MODERER_CONTENU,
+    ("get", "calls/"): r.REPONDRE_APPELS,
+    ("get", "calls/stream/"): r.REPONDRE_APPELS,
+    ("post", "calls/presence/"): r.REPONDRE_APPELS,
+    ("post", "calls/sessions/<uuid:pk>/accept/"): r.REPONDRE_APPELS,
+    ("post", "calls/sessions/<uuid:pk>/decline/"): r.REPONDRE_APPELS,
+    ("post", "calls/sessions/<uuid:pk>/end/"): r.REPONDRE_APPELS,
     ("get", "forbidden-words/"): r.MODERER_CONTENU,
     ("post", "forbidden-words/"): r.MODERER_CONTENU,
     ("delete", "forbidden-words/<int:pk>/"): r.MODERER_CONTENU,
@@ -66,12 +72,15 @@ for _slug in REF_SLUGS:
         ROUTES[("post", f"referentials/{_slug}/<int:pk>/deactivate/")] = r.GERER_REFERENTIELS
         ROUTES[("post", f"referentials/{_slug}/<int:pk>/reactivate/")] = r.GERER_REFERENTIELS
 
+# Flux SSE (T131) : réponse sans fin, jamais lue en entier par les parcours « toutes les GET ».
+STREAMS = {"calls/stream/"}
+
 # Seule route admin autorisée à renvoyer un numéro complet (Administrateur complet seulement).
 FULL_NUMBER_EXCEPTIONS = {"accounts/<int:pk>/"}
 
 # Routes dont la réponse DOIT porter `Cache-Control: no-store` (route GET -> peut être complétée).
 NO_STORE = {
-    "me/", "accounts/<int:pk>/", "export/accounts.csv", "settings/", "admins/",
+    "calls/", "me/", "accounts/<int:pk>/", "export/accounts.csv", "settings/", "admins/",
     "private-files/<str:token>/", "reports/", "forbidden-words/",
 }
 
@@ -101,6 +110,7 @@ def discovered() -> dict[tuple[str, str], str]:
 
 def concrete(route: str, pk=999999, key="inconnu", piece="piece-inconnue") -> str:
     route = route.replace("<int:pk>", str(pk)).replace("<str:key>", key)
+    route = route.replace("<uuid:pk>", "00000000-0000-0000-0000-000000000000")
     route = route.replace("<str:target_type>", "post")
     return "/" + PREFIX + route.replace("<str:token>", piece)
 

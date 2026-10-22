@@ -70,3 +70,7 @@ Fichiers à relire : dashboard/src/routes/index.tsx (route gardée par peut_mode
 
 ## T120 — Accessibilité : couleurs ajoutées (extension de D-20, à valider)
 Pour atteindre le contraste 4,5:1 en thème clair, trois couleurs ont été ajoutées ou modifiées par rapport aux maquettes : rouge d'erreur `#C93E28` (au lieu de `#D1452F`, 4,26:1), fond des badges orange `#FEF3E2` avec texte `#A85A00` (4,64:1), vert du badge WhatsApp de l'Historique `#1A7A34` (4,93:1). À confirmer ou à refuser. Propositions non réalisées (hors maquette) : raccourci « parler à quelqu'un » sur l'Accueil, dictée vocale des champs libres, « Écouter » sur les textes longs restants.
+
+## T131 — appels Jitsi (backend)
+- `apps/calls/services/session_service.py` (transitions atomiques, une session active par appelant), `jitsi.py` (jeton), droit `peut_repondre_aux_appels`, absence de numéro dans flux/liste/historique, route `POST /api/calls/whatsapp/`.
+- À trancher : JaaS signe en RS256 (pas HS256) — voir D-28.

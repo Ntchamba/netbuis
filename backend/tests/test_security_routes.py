@@ -60,6 +60,7 @@ def walk(patterns, prefix=""):
 def concrete(route: str) -> str:
     """Chemin d'essai avec identifiants factices."""
     route = re.sub(r"<int:\w+>", "999999", route)
+    route = re.sub(r"<uuid:\w+>", "00000000-0000-0000-0000-000000000000", route)
     route = re.sub(r"<\w+:\w+>|<\w+>", "x", route)
     route = re.sub(r"\(\?P<\w+>([^)|]+)[^)]*\)", r"\1", route)  # (?P<nom>a|b) -> a
     return "/" + route.replace("^", "").replace("$", "")
@@ -109,7 +110,7 @@ def test_le_resolveur_contient_bien_des_routes():
     routes = api_routes()
     assert len(routes) > 80  # garde-fou : l'énumération voit toute l'API
     assert any(r.startswith("api/admin/") for r, _ in routes)
-    assert any(r.startswith("api/calls/initiate") for r, _ in routes)
+    assert any(r.startswith("api/calls/sessions") for r, _ in routes)
 
 
 def test_sans_jeton_toute_route_est_refusee_sauf_la_liste_blanche():

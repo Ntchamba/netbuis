@@ -23,7 +23,9 @@ pytestmark = pytest.mark.django_db
 
 ME = "/api/admin/me/"
 ALL = list(rights.PERMISSION_LABELS)
-VALIDATEUR_PEUT = {rights.VOIR_DEMANDES, rights.VOIR_COMPTES, rights.VALIDER_DEMANDE}
+VALIDATEUR_PEUT = {
+    rights.VOIR_DEMANDES, rights.VOIR_COMPTES, rights.VALIDER_DEMANDE, rights.REPONDRE_APPELS,
+}
 
 
 @pytest.fixture(autouse=True)

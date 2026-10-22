@@ -721,6 +721,214 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Droit manquant
+  /api/admin/calls/:
+    get:
+      operationId: admin_calls_list
+      description: Appels vers l'équipe, du plus récent au plus ancien, 20 par page.
+        Sans numéro de l'appelant et sans nom de salle.
+      parameters:
+      - in: query
+        name: agent
+        schema:
+          type: integer
+        description: Identifiant de l'agent qui a répondu.
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: 'États séparés par des virgules (ringing, answered, ended, missed,
+          declined, unavailable, cancelled). Appels manqués : `missed,declined`.'
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAgentCallList'
+          description: ''
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
+  /api/admin/calls/presence/:
+    post:
+      operationId: admin_calls_presence
+      description: Choix Disponible / Indisponible (`available`) ou, sans corps, battement
+        de cœur (toutes les 10 s environ). Un agent n'est appelé que s'il est Disponible,
+        a un flux ouvert et une activité de moins de 25 s.
+      tags:
+      - admin-calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresenceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PresenceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PresenceRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceResponse'
+          description: ''
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
+  /api/admin/calls/sessions/{id}/accept/:
+    post:
+      operationId: admin_calls_accept
+      description: Répondre. Le premier agent gagne (mise à jour atomique) ; les autres
+        reçoivent 409 et l'événement `taken`. Renvoie la salle et un jeton modérateur.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptResponse'
+          description: ''
+        '404':
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_taken, call_not_ringing
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: jitsi_not_configured
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
+  /api/admin/calls/sessions/{id}/decline/:
+    post:
+      operationId: admin_calls_decline
+      description: Refuser. Quand plus aucun agent disponible n'a la main, la session
+        passe à `declined`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+        '404':
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_ringing
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
+  /api/admin/calls/sessions/{id}/end/:
+    post:
+      operationId: admin_calls_end
+      description: 'L''agent qui a répondu raccroche (répété : sans effet).'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+        '404':
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_answered
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
+  /api/admin/calls/stream/:
+    get:
+      operationId: admin_calls_stream
+      description: Flux temps réel des appels pour un agent (SSE sur ASGI, PostgreSQL
+        LISTEN/NOTIFY). Jeton administrateur dans l'en-tête Authorization ; le droit
+        est relu à la connexion puis toutes les 5 s. Ni numéro, ni salle, ni jeton
+        Jitsi.
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: 'Flux SSE. Événements : `presence` {available}, `ringing` {session_id,
+            state, caller_name, business, expires_at, ring_seconds_left}, `taken`,
+            `ended`, `missed`, `declined`, `cancelled` {session_id, state, reason},
+            `closed`. À la connexion, les sonneries en cours sont rejouées. Un commentaire
+            `: keepalive` toutes les 5 s.'
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
   /api/admin/export/accounts.csv:
     get:
       operationId: admin_export_accounts
@@ -4542,7 +4750,8 @@ paths:
   /api/calls/history/:
     get:
       operationId: calls_history
-      description: Mes appels et ouvertures WhatsApp, 20 par page, sans aucun numéro.
+      description: Mes appels à l'équipe NetBuis (sessions) et mes liens WhatsApp,
+        20 par page, sans aucun numéro.
       parameters:
       - name: page
         required: false
@@ -4567,25 +4776,205 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedHistoryList'
           description: ''
-  /api/calls/initiate/:
+  /api/calls/sessions/:
     post:
-      operationId: calls_initiate
-      description: 'Vérifie les droits et la limite anti-aspiration, enregistre l''appel,
-        puis renvoie le numéro du commerçant POUR CET APPEL SEULEMENT (Cache-Control:
-        no-store).'
+      operationId: calls_sessions_create
+      description: 'Appelle l''équipe NetBuis. Crée la session, fait sonner les tableaux
+        de bord des agents disponibles et renvoie de quoi rejoindre la salle Jitsi
+        dès maintenant (audio seul). Sans agent disponible : réponse immédiate `state=unavailable`,
+        `code=no_agent_available`, `jitsi=null`. Aucun numéro de commerçant n''est
+        transmis.'
       tags:
       - calls
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Initiate'
+              $ref: '#/components/schemas/SessionCreate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Initiate'
+              $ref: '#/components/schemas/SessionCreate'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Initiate'
+              $ref: '#/components/schemas/SessionCreate'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionStart'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: BUSINESS_NOT_ACTIVE
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_already_active (avec `session_id` de l'appel en cours)
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: RATE_LIMITED
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: jitsi_not_configured
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/sessions/{id}/:
+    get:
+      operationId: calls_sessions_read
+      description: Consultation courte de l'état de ma session (repli si le flux temps
+        réel est coupé). Ne renvoie ni la salle ni le jeton.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+        '404':
+          description: not_found
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/sessions/{id}/cancel/:
+    post:
+      operationId: calls_sessions_cancel
+      description: 'Annuler avant que l''équipe réponde (répété : sans effet).'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+        '404':
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_ringing
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/sessions/{id}/end/:
+    post:
+      operationId: calls_sessions_end
+      description: 'Raccrocher un appel en cours (répété : sans effet).'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionState'
+          description: ''
+        '404':
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_answered
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/sessions/{id}/events/:
+    get:
+      operationId: calls_sessions_events
+      description: Flux temps réel de l'état de ma session (SSE sur ASGI, LISTEN/NOTIFY).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: 'Flux SSE : événements `state` {session_id, state, reason}
+            ; se termine à l''état final. Repli : GET /api/calls/sessions/{id}/.'
+        '404':
+          description: not_found
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/whatsapp/:
+    post:
+      operationId: calls_whatsapp
+      description: 'Vérifie les droits et la limite anti-aspiration, enregistre l''ouverture,
+        puis renvoie le lien WhatsApp du commerce POUR CET USAGE SEULEMENT (Cache-Control:
+        no-store). Le numéro n''est jamais renvoyé sous une autre forme.'
+      tags:
+      - calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhatsApp'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WhatsApp'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WhatsApp'
         required: true
       security:
       - jwtAuth: []
@@ -4595,39 +4984,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InitiateResponse'
+                $ref: '#/components/schemas/WhatsAppResponse'
           description: ''
         '400':
           description: invalid
         '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorCode'
-          description: NOT_AUTHENTICATED
+          description: non connecté
         '403':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorCode'
+                $ref: '#/components/schemas/CallError'
           description: ACCOUNT_BLOCKED, OWN_BUSINESS
         '404':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorCode'
+                $ref: '#/components/schemas/CallError'
           description: BUSINESS_NOT_ACTIVE
         '409':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorCode'
+                $ref: '#/components/schemas/CallError'
           description: CHANNEL_UNAVAILABLE
         '429':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorCode'
+                $ref: '#/components/schemas/CallError'
           description: RATE_LIMITED
   /api/calls/whatsapp-report/:
     post:
@@ -5970,6 +6355,25 @@ paths:
           description: 'not_found : zone inconnue ou désactivée'
 components:
   schemas:
+    AcceptResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        caller_name:
+          type: string
+        business:
+          allOf:
+          - $ref: '#/components/schemas/BusinessContext'
+          nullable: true
+        jitsi:
+          $ref: '#/components/schemas/JitsiAccess'
+      required:
+      - business
+      - caller_name
+      - jitsi
+      - session_id
     AccessResponse:
       type: object
       properties:
@@ -6567,6 +6971,62 @@ components:
       - name
       - parent_name
       - updated_at
+    AgentCall:
+      type: object
+      description: 'Ligne de la liste « Appels » du tableau de bord : pas de numéro,
+        pas de salle.'
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateEnum'
+          title: État
+        end_reason:
+          title: Motif de fin
+          oneOf:
+          - $ref: '#/components/schemas/EndReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        caller_name:
+          type: string
+          readOnly: true
+        business:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        agent:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Création
+        answered_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: Réponse
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: Fin
+        duration_seconds:
+          type: integer
+          nullable: true
+          readOnly: true
+      required:
+      - agent
+      - business
+      - caller_name
+      - created_at
+      - duration_seconds
+      - session_id
     AuditEntry:
       type: object
       properties:
@@ -6603,6 +7063,16 @@ components:
     BlankEnum:
       enum:
       - ''
+    BusinessContext:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
     BusinessProfile:
       type: object
       properties:
@@ -6946,6 +7416,19 @@ components:
       - days
       - since
       - total_calls
+    CallError:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        session_id:
+          type: string
+          format: uuid
+      required:
+      - code
+      - message
     CatalogProduct:
       type: object
       properties:
@@ -6981,30 +7464,6 @@ components:
       required:
       - call
       - whatsapp
-    ChannelEnum:
-      enum:
-      - call
-      - whatsapp
-      type: string
-      description: |-
-        * `call` - call
-        * `whatsapp` - whatsapp
-    CodeEnum:
-      enum:
-      - NOT_AUTHENTICATED
-      - ACCOUNT_BLOCKED
-      - BUSINESS_NOT_ACTIVE
-      - OWN_BUSINESS
-      - RATE_LIMITED
-      - CHANNEL_UNAVAILABLE
-      type: string
-      description: |-
-        * `NOT_AUTHENTICATED` - NOT_AUTHENTICATED
-        * `ACCOUNT_BLOCKED` - ACCOUNT_BLOCKED
-        * `BUSINESS_NOT_ACTIVE` - BUSINESS_NOT_ACTIVE
-        * `OWN_BUSINESS` - OWN_BUSINESS
-        * `RATE_LIMITED` - RATE_LIMITED
-        * `CHANNEL_UNAVAILABLE` - CHANNEL_UNAVAILABLE
     Comment:
       type: object
       properties:
@@ -7085,6 +7544,24 @@ components:
       required:
       - count
       - date
+    EndReasonEnum:
+      enum:
+      - caller_hangup
+      - agent_hangup
+      - caller_cancel
+      - timeout
+      - all_declined
+      - no_agent
+      - too_long
+      type: string
+      description: |-
+        * `caller_hangup` - L'appelant a raccroché
+        * `agent_hangup` - L'agent a raccroché
+        * `caller_cancel` - L'appelant a annulé
+        * `timeout` - Sonnerie expirée
+        * `all_declined` - Tous les agents ont refusé
+        * `no_agent` - Aucun agent disponible
+        * `too_long` - Durée maximale atteinte
     EquipementsEnum:
       enum:
       - petit_dejeuner
@@ -7102,16 +7579,6 @@ components:
       properties:
         code:
           type: string
-        message:
-          type: string
-      required:
-      - code
-      - message
-    ErrorCode:
-      type: object
-      properties:
-        code:
-          $ref: '#/components/schemas/CodeEnum'
         message:
           type: string
       required:
@@ -7234,67 +7701,52 @@ components:
       - name
     History:
       type: object
-      description: 'Aucun numéro ni lien : seulement ce que l''écran d''historique
-        affiche.'
+      description: |-
+        Aucun numéro ni lien : seulement ce que l'écran d'historique affiche.
+
+        `type` = `call` (appel à l'équipe, ou ancien appel) ou `whatsapp`. `state` : état de la
+        session d'appel (null pour un lien WhatsApp). `session_id` : identifiant de la session
+        (null pour un lien WhatsApp ou un ancien appel). `id` : identifiant du journal WhatsApp ou
+        de l'ancien appel (null pour une session) ; seul `id` accepte un retour d'appel.
       properties:
         id:
           type: integer
-          readOnly: true
+          nullable: true
+        session_id:
+          type: string
+          format: uuid
+          nullable: true
+        type:
+          type: string
+          description: '`call` ou `whatsapp`.'
+        state:
+          type: string
+          nullable: true
         business_id:
           type: integer
+          nullable: true
         business_name:
           type: string
+          nullable: true
         zone:
           type: string
+          nullable: true
         date:
           type: string
           format: date-time
-        type:
-          type: string
         feedback:
           type: string
           nullable: true
-          readOnly: true
       required:
       - business_id
       - business_name
       - date
       - feedback
       - id
+      - session_id
+      - state
       - type
       - zone
-    Initiate:
-      type: object
-      properties:
-        business_id:
-          type: integer
-          minimum: 1
-        channel:
-          $ref: '#/components/schemas/ChannelEnum'
-        platform:
-          $ref: '#/components/schemas/PlatformEnum'
-        operator:
-          $ref: '#/components/schemas/OperatorEnum'
-      required:
-      - business_id
-      - channel
-      - platform
-    InitiateResponse:
-      type: object
-      description: Seul endroit de l'API qui renvoie le numéro d'un commerçant.
-      properties:
-        call_id:
-          type: integer
-        phone:
-          type: string
-          description: 'Canal call seulement : numéro du commerçant (+2376XXXXXXXX),
-            pour cet appel.'
-        wa_url:
-          type: string
-          description: 'Canal whatsapp seulement : lien https://wa.me/237… avec message
-            pré-rempli.'
-      required:
-      - call_id
     ItemCreate:
       type: object
       properties:
@@ -7316,6 +7768,21 @@ components:
       required:
       - code
       - name
+    JitsiAccess:
+      type: object
+      properties:
+        domain:
+          type: string
+        room:
+          type: string
+          description: 'Nom de salle secret : à ne jamais journaliser.'
+        jwt:
+          type: string
+          description: 'Jeton court limité à cette salle : ne pas journaliser.'
+      required:
+      - domain
+      - jwt
+      - room
     LanguageEnum:
       enum:
       - fr
@@ -7655,14 +8122,6 @@ components:
       - mtn
       - orange
       - unknown
-    OperatorEnum:
-      enum:
-      - orange
-      - mtn
-      type: string
-      description: |-
-        * `orange` - Orange
-        * `mtn` - MTN
     OtpRequest:
       type: object
       properties:
@@ -7902,6 +8361,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AdminZone'
+    PaginatedAgentCallList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentCall'
     PaginatedAuditEntryList:
       type: object
       required:
@@ -8688,6 +9170,19 @@ components:
       required:
       - id
       - name
+    PresenceRequest:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Absent = simple battement de cœur (toutes les 10 s environ).
+    PresenceResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+      required:
+      - available
     ProductCreate:
       type: object
       properties:
@@ -9193,6 +9688,88 @@ components:
       - id
       - name
       - order
+    SessionCreate:
+      type: object
+      properties:
+        business_id:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: 'Commerce consulté (contexte seulement : le commerçant n''est
+            jamais joint).'
+    SessionStart:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateEnum'
+          description: |-
+            `ringing` ou `unavailable`.
+
+            * `ringing` - Sonnerie
+            * `answered` - En cours
+            * `ended` - Terminé
+            * `missed` - Manqué
+            * `declined` - Refusé
+            * `unavailable` - Personne de disponible
+            * `cancelled` - Annulé par l'appelant
+        code:
+          type: string
+          nullable: true
+          description: '`no_agent_available` si personne n''est disponible.'
+        jitsi:
+          allOf:
+          - $ref: '#/components/schemas/JitsiAccess'
+          nullable: true
+        ring_seconds:
+          type: integer
+      required:
+      - code
+      - jitsi
+      - ring_seconds
+      - session_id
+      - state
+    SessionState:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        state:
+          allOf:
+          - $ref: '#/components/schemas/StateEnum'
+          title: État
+        end_reason:
+          title: Motif de fin
+          oneOf:
+          - $ref: '#/components/schemas/EndReasonEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Création
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: Fin de sonnerie
+        answered_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: Réponse
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+          title: Fin
+      required:
+      - created_at
+      - session_id
     Setting:
       type: object
       properties:
@@ -9254,6 +9831,24 @@ components:
         * `standard` - Standard
         * `confort` - Confort
         * `haut_standing` - Haut standing
+    StateEnum:
+      enum:
+      - ringing
+      - answered
+      - ended
+      - missed
+      - declined
+      - unavailable
+      - cancelled
+      type: string
+      description: |-
+        * `ringing` - Sonnerie
+        * `answered` - En cours
+        * `ended` - Terminé
+        * `missed` - Manqué
+        * `declined` - Refusé
+        * `unavailable` - Personne de disponible
+        * `cancelled` - Annulé par l'appelant
     StatusEnum:
       enum:
       - en_attente_validation
@@ -9684,6 +10279,17 @@ components:
       - previous
       - q
       - results
+    WhatsApp:
+      type: object
+      properties:
+        business_id:
+          type: integer
+          minimum: 1
+        platform:
+          $ref: '#/components/schemas/PlatformEnum'
+      required:
+      - business_id
+      - platform
     WhatsAppReport:
       type: object
       properties:
@@ -9699,6 +10305,17 @@ components:
           type: boolean
       required:
       - recorded
+    WhatsAppResponse:
+      type: object
+      properties:
+        call_id:
+          type: integer
+        wa_url:
+          type: string
+          description: Lien https://wa.me/237… avec message pré-rempli (ouvre WhatsApp).
+      required:
+      - call_id
+      - wa_url
     Zone:
       type: object
       properties:

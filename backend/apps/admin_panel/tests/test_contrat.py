@@ -17,7 +17,7 @@ from apps.admin_panel.models import AuditAction, AuditLog
 from apps.admin_panel.services import referential_service as svc
 from apps.business.models import AccountType, BusinessStatus
 from apps.business.services.storage_service import get_storage
-from apps.calls.models import CallChannel, CallLog, Platform
+from apps.calls.models import CallChannel, CallLog, CallSession, Platform
 from apps.catalog.models import Synonym
 from apps.forum.models import ContentStatus, ForbiddenWord, Report
 from apps.forum.tests.helpers import make_post
@@ -170,6 +170,9 @@ def peuplee():
         Report.objects.create(reporter=make_owner(), target_type="post", post=post,
                               reason="spam")
     ForbiddenWord.objects.create(word="arnaque")
+    # T131 : un appel vers l'équipe, pour la liste GET /api/admin/calls/
+    CallSession.objects.create(caller=make_owner(), room="salle-de-test", state="missed",
+                               end_reason="timeout")
     return {"owner": owner, "profile": profile, "other": other, "admin": complet}
 
 
@@ -203,7 +206,7 @@ def _forbidden_forms():
 
 def test_aucune_reponse_admin_ne_contient_un_numero_complet(peuplee):
     client = api_as(peuplee["admin"])
-    gets = [t for (m, t) in c.discovered() if m == "get"]
+    gets = [t for (m, t) in c.discovered() if m == "get" and t not in c.STREAMS]
     assert gets
     for template in gets:
         response = client.get(_fill(template, peuplee))
@@ -231,7 +234,7 @@ def test_exception_unique_detail_compte_pour_l_administrateur_complet(peuplee):
 def test_validateur_ne_recoit_aucun_numero_complet(peuplee):
     client = api_as(admin_in(VALIDATEUR))
     for (method, template) in c.discovered():
-        if method != "get":
+        if method != "get" or template in c.STREAMS:
             continue
         response = client.get(_fill(template, peuplee))
         if response.status_code == 200:
@@ -268,7 +271,7 @@ def test_les_routes_no_store_existent_dans_le_registre():
 # --- (f) la forme réelle des réponses GET = les `properties` du schéma openapi.yaml ------
 
 # Réponses qui ne sont pas du JSON objet/liste (fichier) : rien à comparer.
-NON_JSON = {"export/accounts.csv", "private-files/<str:token>/"}
+NON_JSON = {"export/accounts.csv", "private-files/<str:token>/"} | c.STREAMS
 
 
 def _resolve(spec, schema):

@@ -188,6 +188,20 @@ SMS_PROVIDER = env("SMS_PROVIDER", default="console")
 CREDITS_ENABLED = env("CREDITS_ENABLED")
 PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="fake")  # fake | campay
 
+# --- Appels Jitsi vers l'équipe NetBuis (D-25, docs/spec/APPELS_JITSI.md) ---
+# Valeurs UNIQUEMENT via l'environnement. Secret absent ou de moins de 32 caractères = aucun
+# jeton émis, l'appel est refusé (503 jitsi_not_configured).
+JITSI_DOMAIN = env("JITSI_DOMAIN", default="")
+JITSI_APP_ID = env("JITSI_APP_ID", default="")
+JITSI_JWT_SECRET = env("JITSI_JWT_SECRET", default="")
+JITSI_TOKEN_TTL = 120  # secondes : durée du jeton pour entrer dans la salle
+CALL_RING_SECONDS = 30  # durée de sonnerie
+AGENT_PRESENCE_TTL = 25  # secondes : un agent sans activité plus récente n'est plus disponible
+# Connexion PostgreSQL DIRECTE pour LISTEN/NOTIFY, si DATABASE_URL passe par un pool en mode
+# transaction (pgbouncer, pooler Neon…) ; vide = la base par défaut.
+CALLS_LISTEN_DATABASE_URL = env("CALLS_LISTEN_DATABASE_URL", default="")
+CALL_MAX_DURATION = 4 * 60 * 60  # secondes : un appel « en cours » plus vieux est clos
+
 # --- CamPay (vide jusqu'à É6 ; valeurs UNIQUEMENT via l'environnement) ---
 CAMPAY_ENV = env("CAMPAY_ENV", default="DEV")  # DEV | PROD
 CAMPAY_APP_USERNAME = env("CAMPAY_APP_USERNAME", default="")

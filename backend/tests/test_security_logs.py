@@ -15,12 +15,14 @@ from pathlib import Path
 import pytest
 from django.contrib.auth.models import Group
 from django.core.cache import cache
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
 from apps.accounts.services.token_service import issue_tokens
 from apps.business.models import BusinessProfile
 from apps.business.tests.test_uploads import profile_body, put, sign
+from apps.calls.models import AgentPresence
 from tests.factories.business_factory import get_service_category, make_owner
 from tests.factories.storage_factory import JPEG_BYTES
 from tests.factories.user_factory import AdminFactory
@@ -34,6 +36,9 @@ ADMIN_PHONE = "+237655070809"
 NEW_ADMIN_PHONE = "655121314"
 
 
+watched_jitsi_secret: list[str] = []  # secret Jitsi du test en cours (ne doit pas être journalisé)
+
+
 def national(phone: str) -> str:
     return re.sub(r"\D", "", phone)[-9:]
 
@@ -42,6 +47,9 @@ def national(phone: str) -> str:
 def _env(settings):
     settings.DEBUG = True  # le fournisseur SMS « console » l'exige
     settings.SMS_PROVIDER = "console"
+    settings.JITSI_DOMAIN, settings.JITSI_APP_ID = "jitsi.example.test", "netbuis-test"
+    settings.JITSI_JWT_SECRET = secrets.token_urlsafe(48)
+    watched_jitsi_secret.append(settings.JITSI_JWT_SECRET)
     cache.clear()
     yield
     cache.clear()
@@ -149,12 +157,24 @@ def test_parcours_complet_aucune_donnee_personnelle_dans_les_journaux(caplog, ca
     visitor.get("/api/search/", {"q": term})
     visitor.post("/api/search/voice/", {"text": term + " voix"}, format="json")
     watch("texte de recherche", term)
-    for channel in ("call", "whatsapp"):
-        done = visitor.post("/api/calls/initiate/", {
-            "business_id": profile.pk, "channel": channel, "platform": "android"},
-            format="json")
-        assert done.status_code == 200, done.content
-    watch("numéro (réponse d'appel)", national(ANCHOR))
+    # Appel à l'équipe (D-25) : l'administrateur est disponible, répond, puis l'appelant raccroche.
+    AgentPresence.objects.create(agent=boss, available=True, open_streams=1,
+                                 last_seen=timezone.now())
+    ringing = visitor.post("/api/calls/sessions/", {"business_id": profile.pk}, format="json")
+    assert ringing.status_code == 200 and ringing.json()["state"] == "ringing", ringing.content
+    watch("salle Jitsi", ringing.json()["jitsi"]["room"])
+    watch("jeton Jitsi de l'appelant", ringing.json()["jitsi"]["jwt"])
+    watch("secret Jitsi", watched_jitsi_secret[-1])
+    answered = admin.post(f"/api/admin/calls/sessions/{ringing.json()['session_id']}/accept/")
+    assert answered.status_code == 200, answered.content
+    watch("jeton Jitsi de l'agent", answered.json()["jitsi"]["jwt"])
+    assert visitor.post(
+        f"/api/calls/sessions/{ringing.json()['session_id']}/end/").status_code == 200
+    # WhatsApp (inchangé) : le lien porte le numéro, qui ne doit pas être journalisé.
+    done = visitor.post("/api/calls/whatsapp/", {
+        "business_id": profile.pk, "platform": "android"}, format="json")
+    assert done.status_code == 200, done.content
+    watch("numéro (réponse WhatsApp)", national(ANCHOR))
 
     merchant = api(issue_tokens(owner)["access"])
     caption = "annonce-" + secrets.token_hex(6)

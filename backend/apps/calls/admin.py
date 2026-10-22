@@ -1,7 +1,14 @@
 """Journal des appels : lecture seule, aucun numéro affiché."""
 from django.contrib import admin
 
-from .models import CallFeedback, CallLog, WhatsAppReport
+from .models import (
+    AgentPresence,
+    CallFeedback,
+    CallLog,
+    CallSession,
+    CallSessionDecline,
+    WhatsAppReport,
+)
 
 
 @admin.register(CallLog)
@@ -51,3 +58,33 @@ class CallFeedbackAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+class ReadOnlyAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(CallSession)
+class CallSessionAdmin(ReadOnlyAdmin):
+    """Le nom de salle (secret) n'est affiché nulle part."""
+
+    list_display = ("id", "caller", "business", "state", "agent", "created_at", "ended_at")
+    list_filter = ("state",)
+    exclude = ("room",)
+
+
+@admin.register(CallSessionDecline)
+class CallSessionDeclineAdmin(ReadOnlyAdmin):
+    list_display = ("session", "agent", "created_at")
+
+
+@admin.register(AgentPresence)
+class AgentPresenceAdmin(ReadOnlyAdmin):
+    list_display = ("agent", "available", "open_streams", "last_seen")

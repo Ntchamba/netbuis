@@ -355,9 +355,8 @@ def test_compte_bloque_ne_se_connecte_plus_et_disparait(capsys):
     # recherche, fiche, appel
     assert visitor.get("/api/search/", {"q": "riz"}).json()["results"] == []
     assert visitor.get(f"/api/business/{profile.pk}/").status_code == 404
-    call = visitor.post("/api/calls/initiate/", {
-        "business_id": profile.pk, "channel": "call", "platform": "android",
-        "operator": "orange"}, format="json")
+    call = visitor.post("/api/calls/whatsapp/", {
+        "business_id": profile.pk, "platform": "android"}, format="json")
     assert call.status_code != 200 and profile.phone_anchor not in call.content.decode()
 
     # un admin bloqué ne se connecte plus au dashboard

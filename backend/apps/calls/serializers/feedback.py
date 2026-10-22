@@ -1,7 +1,7 @@
 """Entrées et sorties : retour d'appel, signalement WhatsApp, historique."""
 from rest_framework import serializers
 
-from apps.calls.models import CallLog, FeedbackOutcome
+from apps.calls.models import FeedbackOutcome
 
 
 class FeedbackSerializer(serializers.Serializer):
@@ -21,20 +21,21 @@ class WhatsAppReportResponseSerializer(serializers.Serializer):
     recorded = serializers.BooleanField()
 
 
-class HistorySerializer(serializers.ModelSerializer):
-    """Aucun numéro ni lien : seulement ce que l'écran d'historique affiche."""
+class HistorySerializer(serializers.Serializer):
+    """Aucun numéro ni lien : seulement ce que l'écran d'historique affiche.
 
-    business_id = serializers.IntegerField(source="profile_id")
-    business_name = serializers.CharField(source="profile.name")
-    zone = serializers.CharField(source="profile.zone.name")
-    date = serializers.DateTimeField(source="created_at")
-    type = serializers.CharField(source="channel")
-    feedback = serializers.SerializerMethodField()
+    `type` = `call` (appel à l'équipe, ou ancien appel) ou `whatsapp`. `state` : état de la
+    session d'appel (null pour un lien WhatsApp). `session_id` : identifiant de la session
+    (null pour un lien WhatsApp ou un ancien appel). `id` : identifiant du journal WhatsApp ou
+    de l'ancien appel (null pour une session) ; seul `id` accepte un retour d'appel.
+    """
 
-    class Meta:
-        model = CallLog
-        fields = ("id", "business_id", "business_name", "zone", "date", "type", "feedback")
-
-    def get_feedback(self, obj) -> str | None:
-        fb = getattr(obj, "feedback", None)
-        return fb.outcome if fb else None
+    id = serializers.IntegerField(allow_null=True)
+    session_id = serializers.UUIDField(allow_null=True)
+    type = serializers.CharField(help_text="`call` ou `whatsapp`.")
+    state = serializers.CharField(allow_null=True)
+    business_id = serializers.IntegerField(allow_null=True)
+    business_name = serializers.CharField(allow_null=True)
+    zone = serializers.CharField(allow_null=True)
+    date = serializers.DateTimeField()
+    feedback = serializers.CharField(allow_null=True)
