@@ -67,6 +67,11 @@ class Post(TimeStampedModel):
     status = models.CharField(
         "statut", max_length=8, choices=ContentStatus.choices, default=ContentStatus.ACTIVE
     )
+    reports_reset_at = models.DateTimeField(
+        "signalements comptés depuis", null=True, blank=True,
+        help_text="Posé à la restauration : seuls les signalements POSTÉRIEURS comptent pour "
+                  "le masquage automatique.",
+    )
 
     objects = PostQuerySet.as_manager()
 
@@ -123,6 +128,11 @@ class Comment(TimeStampedModel):
     text = models.CharField("texte", max_length=COMMENT_MAX)
     status = models.CharField(
         "statut", max_length=8, choices=ContentStatus.choices, default=ContentStatus.ACTIVE
+    )
+    reports_reset_at = models.DateTimeField(
+        "signalements comptés depuis", null=True, blank=True,
+        help_text="Posé à la restauration : seuls les signalements POSTÉRIEURS comptent pour "
+                  "le masquage automatique.",
     )
 
     objects = CommentQuerySet.as_manager()

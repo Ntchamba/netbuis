@@ -7,6 +7,16 @@ from .views.audit import AuditListView
 from .views.businesses import ApproveView, BusinessRequestListView, PrivateFileView, RejectView
 from .views.export import AccountsCsvView
 from .views.me import AdminMeView
+from .views.moderation import (
+    DeleteView,
+    ForbiddenWordDetailView,
+    ForbiddenWordListCreateView,
+    HideView,
+    ReportListView,
+)
+from .views.moderation import (
+    RestoreView as ReportRestoreView,
+)
 from .views.referentials import FreeValuesView, build_views
 from .views.settings import SettingDetailView, SettingListView
 from .views.stats import AdminStatsView
@@ -58,6 +68,15 @@ urlpatterns = [
     path("analytics/calls/", CallAnalyticsView.as_view(), name="analytics-calls"),
     path("subscriptions/", SubscriptionListView.as_view(), name="subscriptions"),
     path("audit/", AuditListView.as_view(), name="audit"),
+    path("reports/", ReportListView.as_view(), name="reports"),
+    path("reports/<str:target_type>/<int:pk>/hide/", HideView.as_view(), name="report-hide"),
+    path("reports/<str:target_type>/<int:pk>/restore/", ReportRestoreView.as_view(),
+         name="report-restore"),
+    path("reports/<str:target_type>/<int:pk>/delete/", DeleteView.as_view(),
+         name="report-delete"),
+    path("forbidden-words/", ForbiddenWordListCreateView.as_view(), name="forbidden-words"),
+    path("forbidden-words/<int:pk>/", ForbiddenWordDetailView.as_view(),
+         name="forbidden-word-detail"),
     path("export/accounts.csv", AccountsCsvView.as_view(), name="export-accounts"),
     path("referentials/free-values/", FreeValuesView.as_view(), name="ref-free-values"),
     *_REF_PATHS,

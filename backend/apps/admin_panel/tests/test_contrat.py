@@ -19,6 +19,8 @@ from apps.business.models import AccountType, BusinessStatus
 from apps.business.services.storage_service import get_storage
 from apps.calls.models import CallChannel, CallLog, Platform
 from apps.catalog.models import Synonym
+from apps.forum.models import ContentStatus, ForbiddenWord, Report
+from apps.forum.tests.helpers import make_post
 from apps.search.models import SearchLog
 from tests.factories.business_factory import (
     get_sector,
@@ -162,6 +164,12 @@ def peuplee():
     complet = admin_in(COMPLET, name="Chef")
     AuditLog.objects.create(admin=complet, action=AuditAction.CONSULTATION_NUMERO,
                             target_type="accounts.user", target_id=owner.pk)
+    # T094 : un contenu signalé (aperçu avec un numéro écrit dans la légende) et un mot interdit
+    post = make_post(profile, caption=f"Appelez le {KNOWN[4:]} vite", status=ContentStatus.HIDDEN)
+    for _ in range(3):
+        Report.objects.create(reporter=make_owner(), target_type="post", post=post,
+                              reason="spam")
+    ForbiddenWord.objects.create(word="arnaque")
     return {"owner": owner, "profile": profile, "other": other, "admin": complet}
 
 

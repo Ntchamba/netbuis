@@ -1,5 +1,6 @@
 """Aides de test du forum : clients connectés, commerces actifs, publications, commentaires."""
 from datetime import timedelta
+from itertools import count
 
 from django.core.cache import cache
 from django.utils import timezone
@@ -53,9 +54,15 @@ def make_comment(post, author, text="Encore disponible ?", **extra):
     return Comment.objects.create(post=post, author=author, text=text, **extra)
 
 
+_COUNTER = count(1)
+
+
 def payload(owner, **extra):
-    """Corps valide de création d'une publication (le fichier existe dans le stockage de test)."""
-    body = {"media": make_stored_file(owner, "post_image"), "caption": "Nouveau lot de riz"}
+    """Corps valide de création d'une publication (le fichier existe dans le stockage de test).
+    La légende est différente à chaque appel : le filtre anti-doublons (T094) refuse deux fois
+    le même texte en quelques minutes."""
+    body = {"media": make_stored_file(owner, "post_image"),
+            "caption": f"Nouveau lot de riz n°{next(_COUNTER)}"}
     body.update(extra)
     return body
 

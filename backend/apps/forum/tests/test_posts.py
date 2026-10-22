@@ -42,7 +42,7 @@ def test_active_merchant_publishes_image():
     response = client.post(POSTS, payload(profile.owner), format="json")
     assert response.status_code == 201
     body = response.json()
-    assert body["media_type"] == "image" and body["caption"] == "Nouveau lot de riz"
+    assert body["media_type"] == "image" and body["caption"].startswith("Nouveau lot de riz")
     assert body["author"]["business_id"] == profile.pk and body["author"]["name"] == profile.name
     assert body["author"]["zone"]["name"] == profile.zone.name
     assert body["comments_count"] == 0 and body["is_mine"] is True and body["offer"] is None

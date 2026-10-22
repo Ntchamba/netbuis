@@ -18,7 +18,7 @@ from apps.business.services.profile_service import SubscriptionRequired
 from apps.business.services.subscription import active_subscription_queryset, is_subscribed
 from apps.core.services.settings_service import get_setting
 from apps.forum.models import Comment, ContentStatus, Post
-from apps.forum.services import limits
+from apps.forum.services import limits, spam_filter
 from apps.forum.services.errors import DailyPostLimit
 from apps.search.services.filters import zone_parents, zone_subtree_ids
 
@@ -98,6 +98,7 @@ def create_post(user, profile, data) -> Post:
     ).count()
     if recent >= limits.POST_DAILY_LIMIT:
         raise DailyPostLimit()
+    spam_filter.check_post(profile, data.get("caption", ""), now)  # 400 spam_detected
     return Post.objects.create(profile=profile, **data)
 
 

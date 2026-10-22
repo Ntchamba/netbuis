@@ -26,6 +26,7 @@ EXPORTER = "peut_exporter"
 GERER_ADMINS = "peut_gerer_admins"  # attribuer / retirer les rôles
 ACCORDER_ABONNEMENT = "peut_accorder_abonnement"
 GERER_REFERENTIELS = "peut_gerer_referentiels"  # zones, secteurs, catalogue (T074b)
+MODERER_CONTENU = "peut_moderer_contenu"  # forum : masquer / restaurer / supprimer (T094)
 
 PERMISSION_LABELS = {
     VOIR_DEMANDES: "Voir la file des demandes de compte business",
@@ -38,6 +39,7 @@ PERMISSION_LABELS = {
     GERER_ADMINS: "Attribuer ou retirer les rôles d'administration",
     ACCORDER_ABONNEMENT: "Accorder un abonnement",
     GERER_REFERENTIELS: "Gérer les référentiels (zones, secteurs, catalogue)",
+    MODERER_CONTENU: "Modérer le forum (masquer, restaurer, supprimer, mots interdits)",
 }
 
 GROUP_PERMISSIONS = {

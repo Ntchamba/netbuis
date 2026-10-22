@@ -748,6 +748,132 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, ou sans peut_exporter
+  /api/admin/forbidden-words/:
+    get:
+      operationId: admin_forbidden_words_list
+      description: Mots interdits du forum (normalisés), par ordre alphabétique, paginés.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedForbiddenWordList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
+    post:
+      operationId: admin_forbidden_words_create
+      description: Ajoute un mot interdit (stocké sans accents ni majuscules ; comparaison
+        par mots entiers). Audit `moderation_contenu`.
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForbiddenWordCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForbiddenWordCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForbiddenWordCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenWord'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: word_exists
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
+  /api/admin/forbidden-words/{id}/:
+    delete:
+      operationId: admin_forbidden_words_delete
+      description: Retire un mot interdit. Audit `moderation_contenu`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
   /api/admin/me/:
     get:
       operationId: admin_me_retrieve
@@ -3106,6 +3232,281 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Pas administrateur, sans groupe, ou sans peut_gerer_referentiels
+  /api/admin/reports/:
+    get:
+      operationId: admin_reports_list
+      description: 'Une ligne par contenu signalé, le plus récemment signalé d''abord,
+        paginée : motifs avec compteur, nombre de signalants distincts, statut, aperçu
+        (numéros masqués). Jamais l''identité des signalants.'
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un numéro de page de l'ensemble des résultats.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Nombre de résultats à retourner par page.
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - actif
+          - masque
+          - supprime
+        description: 'Statut du contenu signalé (commerce : statut du compte)'
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum:
+          - business
+          - comment
+          - post
+        description: Type de cible
+      tags:
+      - admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReportRowList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_filter
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
+  /api/admin/reports/{target_type}/{id}/delete/:
+    post:
+      operationId: admin_reports_delete
+      description: Suppression DOUCE (actif ou masque -> supprime), motif OBLIGATOIRE
+        dans le corps. Audit `moderation_contenu` dans la même transaction.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportRow'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (supprimer sans motif, rien n'est écrit) ;
+            unsupported_target (commerce) ; invalid
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
+  /api/admin/reports/{target_type}/{id}/hide/:
+    post:
+      operationId: admin_reports_hide
+      description: Masque une publication ou un commentaire signalé (actif -> masque).
+        Audit `moderation_contenu`. Le contenu disparaît du fil, du détail et des
+        commentaires ; son auteur le voit dans `/api/forum/mine/` avec le statut `masque`.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportRow'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (supprimer sans motif, rien n'est écrit) ;
+            unsupported_target (commerce) ; invalid
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
+  /api/admin/reports/{target_type}/{id}/restore/:
+    post:
+      operationId: admin_reports_restore
+      description: 'Restaure un contenu masqué (masque -> actif). Les signalements
+        restent mais ne comptent plus pour le masquage automatique : il faut 3 NOUVEAUX
+        signalants distincts. Audit `moderation_contenu`.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ModerationAction'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportRow'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: reason_required (supprimer sans motif, rien n'est écrit) ;
+            unsupported_target (commerce) ; invalid
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: invalid_state
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Pas Administrateur complet (le Validateur ne modère pas)
   /api/admin/requests/:
     get:
       operationId: admin_requests_list
@@ -6604,6 +7005,33 @@ components:
       required:
       - call_id
       - outcome
+    ForbiddenWord:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        word:
+          type: string
+          readOnly: true
+          title: Mot interdit (normalisé)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - word
+    ForbiddenWordCreate:
+      type: object
+      properties:
+        word:
+          type: string
+          description: Mot ou expression ; stocké sans accents ni majuscules (2 à
+            60 caractères).
+      required:
+      - word
     FormeJuridiqueEnum:
       enum:
       - individuelle
@@ -6970,6 +7398,14 @@ components:
       description: |-
         * `image` - Image
         * `video` - Vidéo
+    ModerationAction:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Motif. OBLIGATOIRE pour supprimer (400 reason_required), facultatif
+            sinon.
+          maxLength: 900
     MyPost:
       type: object
       description: '`GET /api/forum/mine/` : en plus, le statut (actif ou masqué par
@@ -7406,6 +7842,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Comment'
+    PaginatedForbiddenWordList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForbiddenWord'
     PaginatedHistoryList:
       type: object
       required:
@@ -7498,6 +7957,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Post'
+    PaginatedReportRowList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportRow'
     PaginatedSearchResultList:
       type: object
       required:
@@ -8237,6 +8719,17 @@ components:
           type: string
           description: Commentaire facultatif, ajouté au journal d'audit.
           maxLength: 500
+    ReasonCount:
+      type: object
+      properties:
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        count:
+          type: integer
+          description: Nombre de signalements avec ce motif
+      required:
+      - count
+      - reason
     ReasonEnum:
       enum:
       - spam
@@ -8300,6 +8793,73 @@ components:
           $ref: '#/components/schemas/ReasonEnum'
       required:
       - reason
+      - target_id
+      - target_type
+    ReportRow:
+      type: object
+      properties:
+        target_type:
+          $ref: '#/components/schemas/TargetTypeEnum'
+        target_id:
+          type: integer
+        content_status:
+          type: string
+          description: 'Publication/commentaire : actif, masque ou supprime. Commerce
+            : statut de son compte business (actif, en_attente_validation, rejete).'
+        preview:
+          type: string
+          description: Légende ou texte tronqué à 140 caractères (nom pour un commerce)
+            ; numéros et codes masqués.
+        media_type:
+          type: string
+          nullable: true
+          description: image/video pour une publication
+        post_id:
+          type: integer
+          nullable: true
+          description: Publication d'un commentaire
+        business_id:
+          type: integer
+        business_name:
+          type: string
+        author_id:
+          type: integer
+          readOnly: true
+          description: Compte auteur du contenu
+        author_name:
+          type: string
+        author_phone_masked:
+          type: string
+          readOnly: true
+          description: Ex. « +237 6•• •• •• 41 »
+        reasons:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReasonCount'
+          description: Motifs agrégés, avec compteur
+        reporters_count:
+          type: integer
+          description: Nombre de signalants distincts
+        first_reported_at:
+          type: string
+          format: date-time
+        last_reported_at:
+          type: string
+          format: date-time
+      required:
+      - author_id
+      - author_name
+      - author_phone_masked
+      - business_id
+      - business_name
+      - content_status
+      - first_reported_at
+      - last_reported_at
+      - media_type
+      - post_id
+      - preview
+      - reasons
+      - reporters_count
       - target_id
       - target_type
     RequestDecision:

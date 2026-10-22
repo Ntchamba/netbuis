@@ -5,7 +5,7 @@ from rest_framework.exceptions import NotFound
 
 from apps.accounts.models import User
 from apps.forum.models import Comment, Post
-from apps.forum.services import limits
+from apps.forum.services import limits, spam_filter
 from apps.forum.services.errors import CommentRateLimit
 
 
@@ -26,4 +26,5 @@ def create_comment(user, post_id, text) -> Comment:
     ).count()
     if recent >= limits.COMMENT_LIMIT:
         raise CommentRateLimit()
+    spam_filter.check_comment(user, text)  # 400 spam_detected
     return Comment.objects.create(post_id=post_id, author=user, text=text)

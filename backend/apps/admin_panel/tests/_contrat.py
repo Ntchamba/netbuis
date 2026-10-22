@@ -48,6 +48,13 @@ ROUTES: dict[tuple[str, str], str | None] = {
     ("get", "export/accounts.csv"): r.EXPORTER,
     ("get", "referentials/free-values/"): r.GERER_REFERENTIELS,
     ("get", "private-files/<str:token>/"): r.VOIR_DEMANDES,
+    ("get", "reports/"): r.MODERER_CONTENU,
+    ("post", "reports/<str:target_type>/<int:pk>/hide/"): r.MODERER_CONTENU,
+    ("post", "reports/<str:target_type>/<int:pk>/restore/"): r.MODERER_CONTENU,
+    ("post", "reports/<str:target_type>/<int:pk>/delete/"): r.MODERER_CONTENU,
+    ("get", "forbidden-words/"): r.MODERER_CONTENU,
+    ("post", "forbidden-words/"): r.MODERER_CONTENU,
+    ("delete", "forbidden-words/<int:pk>/"): r.MODERER_CONTENU,
 }
 for _slug in REF_SLUGS:
     ROUTES[("get", f"referentials/{_slug}/")] = r.GERER_REFERENTIELS
@@ -64,7 +71,7 @@ FULL_NUMBER_EXCEPTIONS = {"accounts/<int:pk>/"}
 # Routes dont la réponse DOIT porter `Cache-Control: no-store` (route GET -> peut être complétée).
 NO_STORE = {
     "me/", "accounts/<int:pk>/", "export/accounts.csv", "settings/", "admins/",
-    "private-files/<str:token>/",
+    "private-files/<str:token>/", "reports/", "forbidden-words/",
 }
 
 
@@ -93,6 +100,7 @@ def discovered() -> dict[tuple[str, str], str]:
 
 def concrete(route: str, pk=999999, key="inconnu", piece="piece-inconnue") -> str:
     route = route.replace("<int:pk>", str(pk)).replace("<str:key>", key)
+    route = route.replace("<str:target_type>", "post")
     return "/" + PREFIX + route.replace("<str:token>", piece)
 
 
