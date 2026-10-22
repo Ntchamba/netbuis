@@ -7,6 +7,7 @@ import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/interceptors/refresh_interceptor.dart';
 import 'auth_state.dart';
+import 'session_cleaner.dart';
 
 /// Délai avant de proposer « Renvoyer le code » (choix de l'application, le serveur n'en impose pas).
 const Duration resendDelay = Duration(seconds: 30);
@@ -113,9 +114,12 @@ class AuthController extends Notifier<AuthState> {
   /// Session fermée par le renouvellement : l'état change et la garde renvoie vers /login.
   void _onSessionRejected(ApiException? reason) {
     if (!ref.mounted) return;
-    state = reason == null || reason.code == ApiErrorCode.tokenInvalid
-        ? const AuthLoggedOut()
-        : _failure(reason, hasPendingCode: false);
+    if (reason == null || reason.code == ApiErrorCode.tokenInvalid) {
+      clearSessionData(ref);
+      state = const AuthLoggedOut();
+    } else {
+      state = _failure(reason, hasPendingCode: false);
+    }
   }
 
   /// Déconnexion : prévient le serveur si possible, puis efface les jetons dans tous les cas.
@@ -132,6 +136,7 @@ class AuthController extends Notifier<AuthState> {
       // Réseau coupé, jeton déjà invalide… : l'effacement local a lieu quand même.
     } finally {
       await storage.clear();
+      clearSessionData(ref);
       _phone = null;
       state = const AuthLoggedOut();
     }

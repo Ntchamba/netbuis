@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T103
-- **Prochaine tâche** : T104
+- **Tâche en cours** : T104
+- **Prochaine tâche** : T105
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -112,7 +112,7 @@
 | ✅ | T101 | Mobile : Aide et support | b3 | 2026-10-21 | docs/verifications/T101.md ; vérificateur CONFORME |
 | ✅ | T102 | Mobile : finition de l'écran Profil | b1 | 2026-10-21 | docs/verifications/T102.md ; vérificateur CONFORME |
 | ✅ | T102b | Mobile : modifier ma boutique | b3 | 2026-10-21 | docs/verifications/T102b.md ; vérificateur CONFORME |
-| ☐ | T103 | Vérification de tranche : profil | orchestrateur | | |
+| ✅ | T103 | Vérification de tranche : profil | orchestrateur | 2026-10-21 | docs/verifications/T103.md ; vérificateur CONFORME |
 | | | **PHASE 11 — Produits très sollicités et abonnements (sans paiement)** | | | |
 | ☐ | T104 | Backend : tendances | a3 | | |
 | ☐ | T105 | Mobile : produits très sollicités | b3 (dépôt et état des tendances) puis b2 (bande sur l'Accueil), dans cet ordre | | |

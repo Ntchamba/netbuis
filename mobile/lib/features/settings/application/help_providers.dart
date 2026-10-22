@@ -4,10 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/env.dart';
 import '../../../core/config/feature_flags.dart';
 
-/// Crédits et paiements : reportés (décision D-16, `CREDITS_ENABLED=False`). Remplaçable dans les
-/// tests pour vérifier les deux états de la FAQ.
-final creditsEnabledProvider = Provider<bool>((ref) => false);
-
 /// Équipe NetBuis et parrainage : reportés (`TEAM_ENABLED=False`).
 final teamEnabledProvider = Provider<bool>((ref) => FeatureFlags.teamEnabled);
 

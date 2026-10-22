@@ -128,12 +128,14 @@ class SearchController extends Notifier<SearchState> {
       _timer?.cancel();
       _ticket++;
     });
-    // Déconnexion : le dernier résultat mémorisé est effacé.
-    ref.listen(authControllerProvider, (_, next) {
-      if (next is AuthLoggedOut) {
-        _cacheSafely(() => ref.read(searchCacheProvider).clear());
-      }
-    });
+    // Déconnexion : les résultats en mémoire sont oubliés et le dernier résultat mémorisé est
+    // effacé (aucune recherche tant que personne n'est connecté). La connexion suivante reconstruit.
+    final loggedOut = ref.watch(
+        authControllerProvider.select((auth) => auth is AuthLoggedOut));
+    if (loggedOut) {
+      _cacheSafely(() => ref.read(searchCacheProvider).clear());
+      return const SearchState();
+    }
     final city = ref.watch(selectedCityProvider);
     if (city.isLoading) return const SearchState();
     final query = SearchQuery(zone: city.value?.id);

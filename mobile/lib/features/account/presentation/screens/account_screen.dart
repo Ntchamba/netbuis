@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/l10n.dart';
+import '../../../../core/config/feature_flags.dart';
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,7 +13,6 @@ import '../../../business/presentation/widgets/business_status_card.dart';
 import '../../../business/presentation/widgets/edit_business_entry.dart';
 import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
-import '../../../settings/application/help_providers.dart' show creditsEnabledProvider;
 import '../../../settings/application/settings_controller.dart';
 import '../../../settings/presentation/screens/settings_screen.dart' show SettingsCard, SettingsRow;
 import '../../application/account_controller.dart';

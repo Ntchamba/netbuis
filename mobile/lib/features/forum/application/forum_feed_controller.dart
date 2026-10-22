@@ -73,12 +73,14 @@ class ForumFeedController extends Notifier<FeedState> {
   @override
   FeedState build() {
     ref.onDispose(() => _ticket++);
-    // Déconnexion : le dernier fil mémorisé est effacé.
-    ref.listen(authControllerProvider, (_, next) {
-      if (next is AuthLoggedOut) {
-        _cacheSafely(() => ref.read(forumFeedCacheProvider).clear());
-      }
-    });
+    // Déconnexion : le fil en mémoire est oublié et le dernier fil mémorisé est effacé (aucun
+    // chargement tant que personne n'est connecté). La connexion suivante reconstruit le fil.
+    final loggedOut = ref.watch(
+        authControllerProvider.select((auth) => auth is AuthLoggedOut));
+    if (loggedOut) {
+      _cacheSafely(() => ref.read(forumFeedCacheProvider).clear());
+      return const FeedState();
+    }
     // Un contenu que je viens de signaler disparaît tout de suite du fil et de la mémoire hors connexion.
     ref.listen(reportsProvider.select((r) => r.posts), (_, hidden) {
       _dropHidden(hidden);
