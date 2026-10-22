@@ -6,7 +6,7 @@
 ## EN COURS
 
 - **Tâche en cours** : T121 (partie backend en cours ; reste du T121 repris après la phase 13)
-- **Prochaine tâche** : T132 (tableau de bord) puis T133 (mobile)
+- **Prochaine tâche** : T133 (mobile)
 - **Dernière mise à jour** : 2026-10-22
 - **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
@@ -125,7 +125,7 @@
 | ✅ | T041b | Backend : la recherche trouve un commerce par son nom (D-27) | a3 | 2026-10-22 | Vérifiée : 1 565 tests, contrat inchangé. Voir docs/verifications/T041b.md |
 | ✅ | T130 | Spécification et décisions des appels Jitsi | orchestrateur | 2026-10-22 | docs/spec/APPELS_JITSI.md ; D-25 à D-28 ; Q1 (hébergement de Jitsi) à trancher par Jeff |
 | ✅ | T131 | Backend : sessions d'appel, temps réel (SSE + LISTEN/NOTIFY) et accès Jitsi 🔒 | a3 | 2026-10-22 | 1 636 tests, p95 47 ms ; relu par le vérificateur (rien de bloquant), correctif de présence ; à relire par Jeff. Voir docs/verifications/T131.md |
-| ☐ | T132 | Dashboard : appels entrants et salle Jitsi | c3 | | |
+| ✅ | T132 | Dashboard : appels entrants et salle Jitsi | c3 | 2026-10-22 | 287 tests, build OK, essai navigateur OK (fenêtre affichée en 14 ms p95). Voir docs/verifications/T132.md |
 | ☐ | T133 | Mobile : appel Jitsi à la place de l'appel téléphonique | b2 (+ b1) | | |
 | ☐ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | | |
 | ☐ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | | |

@@ -25,6 +25,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "audit", label: "Journal d'audit", to: PATHS.audit, icon: "audit", permission: "peut_voir_comptes" },
   { key: "searches", label: "Recherches", to: PATHS.recherches, icon: "searches", permission: "peut_voir_comptes" },
   { key: "calls", label: "Appels", to: PATHS.appels, icon: "calls", permission: "peut_voir_comptes" },
+  { key: "team-calls", label: "Appels à l'équipe", to: PATHS.appelsEquipe, icon: "calls", permission: "peut_repondre_aux_appels" },
   { key: "trends", label: "Tendances", to: PATHS.tendances, icon: "trends", permission: "peut_voir_comptes" },
   { key: "moderation", label: "Modération", to: PATHS.moderation, icon: "moderation", permission: "peut_moderer_contenu" },
   // Lecture : peut_voir_comptes (GET) ; le bouton d'accord exige peut_accorder_abonnement.
@@ -40,6 +41,7 @@ export function titleFor(pathname: string): string {
   if (pathname.startsWith(PATHS.administrateurs)) return "Administrateurs";
   if (pathname.startsWith(PATHS.audit)) return "Journal d'audit";
   if (pathname.startsWith(PATHS.recherches)) return "Recherches";
+  if (pathname.startsWith(PATHS.appelsEquipe)) return "Appels à l'équipe";
   if (pathname.startsWith(PATHS.appels)) return "Appels";
   if (pathname.startsWith(PATHS.tendances)) return "Tendances";
   if (pathname.startsWith(PATHS.moderation)) return "Modération";

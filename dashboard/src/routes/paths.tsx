@@ -10,6 +10,7 @@ export const PATHS = {
   audit: "/audit",
   recherches: "/recherches",
   appels: "/appels",
+  appelsEquipe: "/appels-equipe",
   tendances: "/tendances",
   moderation: "/moderation",
   referentiels: "/referentiels",
