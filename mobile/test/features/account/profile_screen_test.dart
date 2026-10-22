@@ -78,6 +78,8 @@ void main() {
         findsOneWidget);
     expect(find.text('texte serveur'), findsNothing);
 
+    await tester.ensureVisible(find.text('Se déconnecter'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Se déconnecter'));
     await tester.pumpAndSettle();
     expect(find.byType(LoginScreen), findsOneWidget);
@@ -91,6 +93,8 @@ void main() {
         account: ScriptedAccountRepository(me: meWith(name: 'Jeff N.')),
         auth: auth);
 
+    await tester.ensureVisible(find.text('Se déconnecter'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Se déconnecter'));
     await tester.pumpAndSettle();
 
@@ -127,6 +131,8 @@ void main() {
     final handle = tester.ensureSemantics();
     await pumpAccountApp(tester,
         account: ScriptedAccountRepository(me: meWith(name: 'Jeff N.')));
+    await tester.ensureVisible(find.byKey(const ValueKey('profile-logout')));
+    await tester.pumpAndSettle();
     expect(
         tester.getSemantics(find.byKey(const ValueKey('profile-logout'))),
         matchesSemantics(

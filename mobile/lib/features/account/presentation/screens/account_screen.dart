@@ -11,21 +11,42 @@ import '../../../auth/application/auth_controller.dart';
 import '../../../business/presentation/widgets/business_status_card.dart';
 import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
+import '../../../settings/application/help_providers.dart' show creditsEnabledProvider;
+import '../../../settings/application/settings_controller.dart';
 import '../../../settings/presentation/screens/settings_screen.dart' show SettingsCard, SettingsRow;
 import '../../application/account_controller.dart';
+import '../widgets/delete_account_flow.dart';
+import '../widgets/profile_credits_card.dart';
 import '../widgets/profile_identity.dart';
 
-/// Onglet Profil (maquette Profil, partie haute) : identité puis « Se déconnecter ».
-/// Les autres blocs de la maquette (appel gratuit, solde, historique, compte business,
-/// langue, aide) arrivent avec leurs propres tâches, chacune ajoutant son entrée ici.
+/// Onglet Profil (maquette Profil) : identité, appel gratuit et crédits (seulement si les
+/// crédits sont activés), historique, compte business (ou invitation à l'activer), ville,
+/// langue, thème, aide, déconnexion et suppression du compte.
+///
+/// « Modifier ma boutique » et « Corriger » (compte rejeté) sont masqués : leur écran arrive
+/// avec T102b, qui ajoutera ces entrées ici.
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
+
+  /// Double confirmation, puis DELETE /api/me/. Seul un succès efface jetons et état
+  /// (même déconnexion que « Se déconnecter ») ; sur erreur, rien n'est effacé.
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final deleted = await confirmAndDeleteAccount(
+      context,
+      onDelete: () => ref.read(accountControllerProvider.notifier).deleteAccount(),
+    );
+    if (deleted && ref.context.mounted) {
+      await ref.read(authControllerProvider.notifier).logout();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = L10n.of(context);
     final c = AppColors.of(context);
     final account = ref.watch(accountControllerProvider);
+    final settings = ref.watch(settingsControllerProvider);
+    final creditsEnabled = ref.watch(creditsEnabledProvider);
 
     final Widget identity = account.when(
       data: (me) => ProfileIdentity(me: me),
@@ -66,6 +87,12 @@ class AccountScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               identity,
               const SizedBox(height: 16),
+              if (creditsEnabled &&
+                  account.value != null &&
+                  ProfileCreditsCard.hasContent(account.value!)) ...[
+                ProfileCreditsCard(me: account.value!),
+                const SizedBox(height: 16),
+              ],
               _HistoryRow(
                 label: l10n.t('profile.history'),
                 onTap: () => context.push(Routes.callHistory),
@@ -98,29 +125,45 @@ class AccountScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              // Langue et thème ouvrent les Réglages, où se fait le choix (maquette Profil).
               SettingsCard(children: [
                 SettingsRow(
                   key: const ValueKey('profile-settings'),
-                  label: l10n.t('profile.settings'),
+                  label: l10n.t('profile.language'),
+                  value: l10n.t(settings.language == 'en'
+                      ? 'settings.language.en'
+                      : 'settings.language.fr'),
                   onTap: () => context.push(Routes.settings),
+                ),
+                SettingsRow(
+                  key: const ValueKey('profile-theme'),
+                  label: l10n.t('profile.theme'),
+                  value: l10n.t(switch (settings.themeMode) {
+                    ThemeMode.light => 'settings.theme.light',
+                    ThemeMode.dark => 'settings.theme.dark',
+                    ThemeMode.system => 'settings.theme.system',
+                  }),
+                  onTap: () => context.push(Routes.settings),
+                ),
+                SettingsRow(
+                  key: const ValueKey('profile-help'),
+                  label: l10n.t('profile.help'),
+                  onTap: () => context.push(Routes.help),
+                ),
+                _DangerRow(
+                  inkKey: const ValueKey('profile-logout'),
+                  label: l10n.t('profile.logout'),
+                  onTap: () => ref.read(authControllerProvider.notifier).logout(),
                 ),
               ]),
               const SizedBox(height: 16),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: c.card,
-                  border: Border.all(color: c.border),
-                  borderRadius: BorderRadius.circular(16),
+              SettingsCard(children: [
+                _DangerRow(
+                  inkKey: const ValueKey('profile-delete'),
+                  label: l10n.t('profile.delete'),
+                  onTap: () => _deleteAccount(context, ref),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: _LogoutRow(
-                    label: l10n.t('profile.logout'),
-                    onTap: () =>
-                        ref.read(authControllerProvider.notifier).logout(),
-                  ),
-                ),
-              ),
+              ]),
               ],
             ),
           ),
@@ -191,8 +234,11 @@ class _ProfileError extends StatelessWidget {
   }
 }
 
-class _LogoutRow extends StatelessWidget {
-  const _LogoutRow({required this.label, required this.onTap});
+/// Ligne d'action sensible (déconnexion, suppression), en couleur d'erreur.
+class _DangerRow extends StatelessWidget {
+  const _DangerRow({required this.inkKey, required this.label, required this.onTap});
+
+  final Key inkKey;
 
   final String label;
   final VoidCallback onTap;
@@ -206,7 +252,7 @@ class _LogoutRow extends StatelessWidget {
       onTap: onTap,
       excludeSemantics: true,
       child: InkWell(
-        key: const ValueKey('profile-logout'),
+        key: inkKey,
         onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 52),

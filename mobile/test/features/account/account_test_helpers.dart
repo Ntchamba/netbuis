@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/app.dart';
 import 'package:netbuis/core/di/providers.dart';
@@ -26,6 +27,10 @@ class ScriptedAccountRepository implements AccountRepository {
   final List<String> sentNames = [];
   int getCalls = 0;
 
+  /// Erreur levée par `deleteAccount` (null = succès) et nombre d'appels.
+  ApiException? deleteError;
+  int deleteCalls = 0;
+
   @override
   Future<Me> getMe() async {
     getCalls++;
@@ -41,6 +46,13 @@ class ScriptedAccountRepository implements AccountRepository {
     me = (me ?? meWith()).copyWith(name: name);
     return me!;
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    deleteCalls++;
+    final error = deleteError;
+    if (error != null) throw error;
+  }
 }
 
 /// Lance l'application complète à 360 px, connectée, sans réseau ni disque.
@@ -52,6 +64,8 @@ Future<void> pumpAccountApp(
   bool signedIn = true,
   double textScale = 1.0,
   ThemeMode mode = ThemeMode.dark,
+  MemoryTokenStorage? tokens,
+  List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -64,8 +78,9 @@ Future<void> pumpAccountApp(
         accountRepositoryProvider.overrideWithValue(account),
         authRepositoryProvider.overrideWithValue(auth ?? FlowRepository()),
         tokenStorageProvider.overrideWithValue(
-            MemoryTokenStorage(refresh: signedIn ? 'ref-1' : null)),
+            tokens ?? MemoryTokenStorage(refresh: signedIn ? 'ref-1' : null)),
         appPrefsProvider.overrideWithValue(MemoryPrefs(seen: true)),
+        ...overrides,
       ],
       child: NetBuisApp(themeMode: mode, initialLocation: initialLocation),
     ),

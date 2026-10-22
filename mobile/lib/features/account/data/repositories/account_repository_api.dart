@@ -40,4 +40,13 @@ class AccountRepositoryApi implements AccountRepository {
       throw ApiException.fromDio(e);
     }
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await _dio.delete<Object?>(Endpoints.me);
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
 }

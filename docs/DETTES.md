@@ -8,3 +8,5 @@
 - **Journaux d'accès du serveur de production** (gunicorn, nginx) : masquer les jetons dans les chemins (/api/admin/private-files/, /api/uploads/local/).
 - **Mobile** : bascule clair/sombre absente des écrans (le thème suit le téléphone) ; docs/MODULES.md à mettre à jour avec les nouveaux fichiers (home, call, search, forum, maps).
 - **Accueil mobile** : maquette fournie en image (photos sur les cartes, vignettes photo pour les catégories) à confirmer par Jeff.
+
+- T102 : si l'écran Profil disparaît pendant `DELETE /me/` et que l'appel échoue, la 2ᵉ fenêtre de confirmation peut rester affichée sur l'écran de connexion (se ferme par « Annuler ») ; cas limite non testé. Clés `profile.settings*` devenues inutilisées. `creditsEnabledProvider` à rapatrier dans `FeatureFlags`.

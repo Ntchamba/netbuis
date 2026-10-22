@@ -26,4 +26,9 @@ class AccountRepositoryFake implements AccountRepository {
     _me = _me.copyWith(name: value);
     return _me;
   }
+
+  @override
+  Future<void> deleteAccount() async {
+    _me = const Me(id: 1, name: '', phoneMasked: fakePhoneMasked);
+  }
 }

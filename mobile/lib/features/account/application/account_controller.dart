@@ -35,4 +35,17 @@ class AccountController extends AsyncNotifier<Me> {
       return const ApiException(ApiErrorCode.unknown);
     }
   }
+
+  /// DELETE /api/me/. Renvoie `null` en cas de succès, sinon l'erreur ; rien n'est effacé
+  /// ici (la déconnexion locale est faite par l'écran, seulement après un succès).
+  Future<ApiException?> deleteAccount() async {
+    try {
+      await ref.read(accountRepositoryProvider).deleteAccount();
+      return null;
+    } on ApiException catch (e) {
+      return e;
+    } on Object {
+      return const ApiException(ApiErrorCode.unknown);
+    }
+  }
 }

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T102
-- **Prochaine tâche** : T102b
+- **Tâche en cours** : T102b
+- **Prochaine tâche** : T103
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -110,7 +110,7 @@
 | | | **PHASE 10 — Profil, aide, langue** | | | |
 | ✅ | T100 | Mobile : réglages (langue et thème) | b3 | 2026-10-21 | docs/verifications/T100.md ; vérificateur CONFORME |
 | ✅ | T101 | Mobile : Aide et support | b3 | 2026-10-21 | docs/verifications/T101.md ; vérificateur CONFORME |
-| ☐ | T102 | Mobile : finition de l'écran Profil | b1 | | |
+| ✅ | T102 | Mobile : finition de l'écran Profil | b1 | 2026-10-21 | docs/verifications/T102.md ; vérificateur CONFORME |
 | ☐ | T102b | Mobile : modifier ma boutique | b3 | | |
 | ☐ | T103 | Vérification de tranche : profil | orchestrateur | | |
 | | | **PHASE 11 — Produits très sollicités et abonnements (sans paiement)** | | | |

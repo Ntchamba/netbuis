@@ -83,6 +83,30 @@ void main() {
       expect(adapter.seen.single.body, {'name': 'Jeff N.'});
     });
 
+    test('DELETE /me/ : 204 accepté, avec le jeton Bearer', () async {
+      final adapter = FakeAdapter((r) => FakeAdapter.reply(204, null));
+      await _api(adapter).deleteAccount();
+      expect(adapter.seen.single.method, 'DELETE');
+      expect(adapter.seen.single.path, '/me/');
+      expect(adapter.seen.single.headers['Authorization'], 'Bearer acc-test');
+    });
+
+    test('DELETE /me/ : réseau coupé = erreur network ; 403 = compte bloqué', () async {
+      final down = FakeAdapter((r) => throw DioException(
+          requestOptions: RequestOptions(path: '/me/'),
+          type: DioExceptionType.connectionError));
+      await expectLater(
+          _api(down).deleteAccount(),
+          throwsA(isA<ApiException>()
+              .having((e) => e.code, 'code', ApiErrorCode.network)));
+      final blocked = FakeAdapter(
+          (r) => FakeAdapter.reply(403, {'code': 'account_blocked', 'message': ''}));
+      await expectLater(
+          _api(blocked).deleteAccount(),
+          throwsA(isA<ApiException>()
+              .having((e) => e.code, 'code', ApiErrorCode.accountBlocked)));
+    });
+
     test('401 : erreur typée avec le statut', () async {
       final adapter = FakeAdapter((r) =>
           FakeAdapter.reply(401, {'code': 'token_not_valid', 'message': 'x'}));
