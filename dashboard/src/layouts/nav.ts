@@ -27,8 +27,8 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "calls", label: "Appels", to: PATHS.appels, icon: "calls", permission: "peut_voir_comptes" },
   { key: "trends", label: "Tendances", to: PATHS.tendances, icon: "trends", permission: "peut_voir_comptes" },
   { key: "moderation", label: "Modération", to: PATHS.moderation, icon: "moderation", permission: "peut_moderer_contenu" },
-  // Réservée à l'Administrateur complet ; activée par T113.
-  { key: "team", label: "Équipe & abonnements", to: PATHS.equipe, icon: "team", permission: "peut_accorder_abonnement", soon: true },
+  // Lecture : peut_voir_comptes (GET) ; le bouton d'accord exige peut_accorder_abonnement.
+  { key: "team", label: "Équipe & abonnements", to: PATHS.equipe, icon: "team", permission: "peut_voir_comptes" },
 ];
 
 /** Titre de l'en-tête selon la page (maquettes). */

@@ -1,7 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { AdminLayout } from "../layouts/AdminLayout";
 import { AuthLayout } from "../layouts/AuthLayout";
-import { ComingSoonPage } from "../layouts/ComingSoonPage";
 import { LoginPage } from "../modules/auth";
 import { BusinessesPage } from "../modules/businesses";
 import { FreeValuesPage, ReferentialsIndexPage, ReferentialTypePage } from "../modules/referentials";
@@ -11,6 +10,7 @@ import { ReportsPage } from "../modules/forum_moderation";
 import { CallsAnalyticsPage } from "../modules/calls_analytics";
 import { SearchAnalyticsPage } from "../modules/search_analytics";
 import { TrendsPage } from "../modules/trends";
+import { SubscriptionsPage } from "../modules/subscriptions";
 import { SettingsPage } from "../modules/settings";
 import { OverviewPage } from "../modules/overview";
 import { UserDetailPage, UsersPage } from "../modules/users";
@@ -26,7 +26,6 @@ export function AppRoutes() {
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
-          {/* Page provisoire : remplie par T113 (Équipe). */}
           <Route
             path={PATHS.home}
             element={
@@ -142,8 +141,8 @@ export function AppRoutes() {
           <Route
             path={PATHS.equipe}
             element={
-              <RequirePermission permission="peut_accorder_abonnement">
-                <ComingSoonPage title="Équipe & abonnements" />
+              <RequirePermission permission="peut_voir_comptes">
+                <SubscriptionsPage />
               </RequirePermission>
             }
           />

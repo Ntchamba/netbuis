@@ -112,21 +112,19 @@ test("l'entrée active est mise en évidence", async () => {
   expect(active[0]!.textContent).toBe("Comptes");
 });
 
-test("Équipe & abonnements : visible, désactivée, non cliquable, mention bientôt", async () => {
+test("Équipe & abonnements : entrée active et cliquable (lecture = droit de voir les comptes)", async () => {
   server(FULL);
   const div = await mount("/");
   const team = div.querySelectorAll("nav > *")[10]!;
-  expect(team.tagName).toBe("SPAN");
-  expect(team.getAttribute("aria-disabled")).toBe("true");
-  expect(team.textContent).toContain("bientôt");
-  expect(team.getAttribute("href")).toBeNull();
+  expect(team.tagName).toBe("A");
+  expect(team.getAttribute("href")).toBe("/equipe");
+  expect(team.textContent).not.toContain("bientôt");
 });
 
-test("Validateur : l'entrée réservée à l'Administrateur complet est masquée", async () => {
+test("Validateur : voit Équipe & abonnements (lecture), mais pas les entrées d'administration", async () => {
   server(VALIDATEUR);
   const div = await mount("/");
-  expect(labels(div)).toEqual(["Vue d'ensemble", "Demandes7", "Comptes", "Journal d'audit", "Recherches", "Appels", "Tendances"]);
-  expect(div.textContent).not.toContain("Équipe & abonnements");
+  expect(labels(div)).toEqual(["Vue d'ensemble", "Demandes7", "Comptes", "Journal d'audit", "Recherches", "Appels", "Tendances", "Équipe & abonnements"]);
 });
 
 test("sans aucune permission : aucune entrée et aucune requête de stats (refus par défaut)", async () => {
@@ -149,8 +147,8 @@ test("pastille masquée, sans message, si les stats échouent", async () => {
   expect(div.querySelector('aside [role="alert"]')).toBeNull(); // la pastille échoue en silence (la page affiche son propre message)
 });
 
-test("page protégée : un Validateur n'ouvre pas /equipe", async () => {
-  server(VALIDATEUR);
+test("page protégée : sans aucun droit, /equipe affiche « Accès refusé »", async () => {
+  server([]);
   const div = await mount("/equipe");
   expect(div.querySelector('[role="alert"]')?.textContent).toContain("Accès refusé");
 });

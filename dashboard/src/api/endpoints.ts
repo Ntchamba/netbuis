@@ -27,6 +27,8 @@ export const ENDPOINTS = {
   forbiddenWords: "/api/admin/forbidden-words/",
   /** Export CSV des comptes (Administrateur complet, audité) : numéros masqués. */
   exportAccounts: "/api/admin/export/accounts.csv",
+  /** Abonnements : GET liste (peut_voir_comptes), POST accord manuel (Administrateur complet). */
+  subscriptions: "/api/admin/subscriptions/",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */
   privateFilesPrefix: "/api/admin/private-files/",
 } as const;
