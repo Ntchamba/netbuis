@@ -28,6 +28,9 @@ import '../../features/maps/presentation/screens/area_screen.dart';
 import '../../features/maps/presentation/screens/map_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
+import '../../features/settings/presentation/screens/about_screen.dart';
+import '../../features/settings/presentation/screens/legal_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../l10n/l10n.dart';
@@ -50,7 +53,10 @@ GoRouter buildRouter({
   return GoRouter(
     initialLocation: initialLocation,
     refreshListenable: refreshListenable,
-    redirect: (context, state) => authRedirect(readAuth(), state.uri.toString()),
+    redirect: (context, state) {
+      if (Routes.openLegalPaths.contains(state.uri.path)) return null;
+      return authRedirect(readAuth(), state.uri.toString());
+    },
     routes: [
       GoRoute(path: Routes.splash, builder: (context, state) => const SplashScreen()),
       GoRoute(path: Routes.onboarding, builder: (context, state) => const OnboardingScreen()),
@@ -110,6 +116,20 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.callHistory,
         builder: (context, state) => const CallHistoryScreen(),
+      ),
+      GoRoute(path: Routes.settings, builder: (context, state) => const SettingsScreen()),
+      GoRoute(path: Routes.about, builder: (context, state) => const AboutScreen()),
+      GoRoute(
+        path: Routes.legalNotice,
+        builder: (context, state) => const LegalScreen(kind: LegalKind.notice),
+      ),
+      GoRoute(
+        path: Routes.terms,
+        builder: (context, state) => const LegalScreen(kind: LegalKind.terms),
+      ),
+      GoRoute(
+        path: Routes.privacy,
+        builder: (context, state) => const LegalScreen(kind: LegalKind.privacy),
       ),
       GoRoute(path: Routes.publish, builder: (context, state) => const PublishScreen()),
       GoRoute(path: Routes.myPosts, builder: (context, state) => const MyPostsScreen()),

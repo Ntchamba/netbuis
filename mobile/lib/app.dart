@@ -8,16 +8,19 @@ import 'core/router/app_router.dart';
 import 'core/router/routes.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/application/auth_controller.dart';
+import 'features/settings/application/settings_controller.dart';
+import 'features/settings/application/speech_providers.dart';
 
-/// Racine de l'application. Le thème suit le réglage du téléphone.
+/// Racine de l'application. La langue et le thème viennent des réglages (français et
+/// « Automatique » tant que rien n'est choisi) ; [themeMode], s'il est donné, les remplace (tests).
 class NetBuisApp extends ConsumerStatefulWidget {
   const NetBuisApp({
     super.key,
-    this.themeMode = ThemeMode.system,
+    this.themeMode,
     this.initialLocation = Routes.splash,
   });
 
-  final ThemeMode themeMode;
+  final ThemeMode? themeMode;
 
   /// Écran de départ (le lancement ; les tests peuvent partir d'ailleurs).
   final String initialLocation;
@@ -51,13 +54,15 @@ class _NetBuisAppState extends ConsumerState<NetBuisApp> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsControllerProvider);
+    ref.watch(speechLanguageGuardProvider);
     return MaterialApp.router(
       title: 'NetBuis',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: widget.themeMode,
-      locale: const Locale('fr'),
+      themeMode: widget.themeMode ?? settings.themeMode,
+      locale: settings.locale,
       supportedLocales: L10n.supportedLocales,
       localizationsDelegates: const [
         L10n.delegate,

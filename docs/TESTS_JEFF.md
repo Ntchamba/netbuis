@@ -71,3 +71,14 @@ Avant de commencer : installer l'appli sur le vrai serveur, avoir au moins une v
 12. Commentaires nombreux (plus de 20 sur une publication) : la suite se charge en fin de liste.
 13. Compte business actif : le bouton « + » (en bas à droite du Forum) ouvre « Nouvelle publication » ; il n'existe pas pour un compte sans commerce actif.
 14. Dans `adb logcat` pendant le parcours : aucune adresse signée ni jeton, aucun numéro.
+
+## T100 — Réglages : langue, thème, textes légaux, lecture à voix haute (téléphone Android réel)
+Noter le modèle du téléphone et la version d'Android. Faire le test deux fois pour la voix : une fois avec une voix française installée (Réglages Android > Synthèse vocale > Google > Français), une fois sans.
+1. Profil > « Réglages » : l'écran propose Langue (Français, English), Thème (Clair, Sombre, Automatique), puis À propos, Mentions légales, Conditions d'utilisation, Politique de confidentialité.
+2. Choisir « English » : tout passe tout de suite en anglais (Réglages, puis retour sur Profil, Accueil, Carte, Forum, Historique, Connexion après déconnexion). Repérer tout texte resté en français et le noter.
+3. Fermer complètement l'appli (la retirer de la liste des applications récentes) et la rouvrir : elle redémarre en anglais, sans éclair de français. Rechoisir « Français » : idem après redémarrage. Premier lancement après une installation neuve : français.
+4. Thème : « Sombre » et « Clair » s'appliquent tout de suite et restent après redémarrage. « Automatique » : basculer le mode sombre du téléphone (volet rapide) pendant que NetBuis est ouverte : l'appli suit.
+5. « À propos » : nom NetBuis et numéro de version (provisoire, à remplacer) ; « Mentions légales », « Conditions d'utilisation », « Politique de confidentialité » : texte provisoire marqué « À REMPLACER ». Ces deux dernières pages s'ouvrent aussi depuis les liens en bas de l'écran de Connexion (sans être connecté) ; le retour revient à la Connexion.
+6. Voix française installée : sur une page légale, le bouton « Écouter » est visible ; il lit le texte à voix haute ; « Arrêter » coupe ; quitter l'écran coupe ; changer la langue de l'appli coupe.
+7. Sans voix française (la désinstaller ou prendre un téléphone sans) : le bouton « Écouter » n'apparaît nulle part (aucun bouton muet).
+8. Mode avion, stockage presque plein : les réglages restent utilisables.

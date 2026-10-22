@@ -10,6 +10,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../application/auth_controller.dart';
 import '../../application/auth_state.dart';
+import '../../../settings/presentation/widgets/legal_links.dart';
 import '../widgets/auth_messages.dart';
 import '../widgets/auth_page.dart';
 import '../widgets/phone_input.dart';
@@ -111,12 +112,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             onPressed: isValidCameroonMobile(digits) ? _submit : null,
           ),
           const SizedBox(height: 22),
-          // Les textes légaux n'ont pas encore d'écran : la mention reste un texte simple, non cliquable.
           Text(
             l10n.t('auth.phone.terms'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11.5, height: 1.5, color: c.textSecondary),
           ),
+          const LegalLinks(),
         ],
       ),
     );

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T100
-- **Prochaine tâche** : T101
+- **Tâche en cours** : T101
+- **Prochaine tâche** : T102
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -108,7 +108,7 @@
 | ✅ | T095 | Dashboard : modération du forum | c3 | 2026-10-21 | docs/verifications/T095.md ; vérificateur CONFORME |
 | ✅ | T096 | Vérification de tranche : forum | orchestrateur | 2026-10-21 | docs/verifications/T096.md ; vérificateur CONFORME |
 | | | **PHASE 10 — Profil, aide, langue** | | | |
-| ☐ | T100 | Mobile : réglages (langue et thème) | b3 | | |
+| ✅ | T100 | Mobile : réglages (langue et thème) | b3 | 2026-10-21 | docs/verifications/T100.md ; vérificateur CONFORME |
 | ☐ | T101 | Mobile : Aide et support | b3 | | |
 | ☐ | T102 | Mobile : finition de l'écran Profil | b1 | | |
 | ☐ | T102b | Mobile : modifier ma boutique | b3 | | |

@@ -28,6 +28,14 @@ class Routes {
   static const publish = '/publish';
   static const myPosts = '/my-posts';
   static const profile = '/profile';
+  /// Réglages (langue, thème) et pages d'information (T100).
+  static const settings = '/settings';
+  static const about = '/about';
+  static const legalNotice = '/legal';
+  static const terms = '/terms';
+  static const privacy = '/privacy';
+  /// Pages lisibles sans être connecté (liées depuis l'écran de Connexion).
+  static const openLegalPaths = {legalNotice, terms, privacy};
   /// Historique de mes appels (T053), ouvert depuis Profil.
   static const callHistory = '/history';
 

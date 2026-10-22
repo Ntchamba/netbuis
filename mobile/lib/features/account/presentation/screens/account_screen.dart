@@ -11,6 +11,7 @@ import '../../../auth/application/auth_controller.dart';
 import '../../../business/presentation/widgets/business_status_card.dart';
 import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
+import '../../../settings/presentation/screens/settings_screen.dart' show SettingsCard, SettingsRow;
 import '../../application/account_controller.dart';
 import '../widgets/profile_identity.dart';
 
@@ -96,6 +97,14 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              SettingsCard(children: [
+                SettingsRow(
+                  key: const ValueKey('profile-settings'),
+                  label: l10n.t('profile.settings'),
+                  onTap: () => context.push(Routes.settings),
+                ),
+              ]),
               const SizedBox(height: 16),
               DecoratedBox(
                 decoration: BoxDecoration(
