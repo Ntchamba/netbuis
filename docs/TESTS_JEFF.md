@@ -136,3 +136,12 @@ Remplace l'essai « T052 — Appel direct Orange / MTN » (le bouton Appeler ne 
 6. Couper les données mobiles pendant la sonnerie puis pendant la conversation : « La connexion a été coupée. L'appel est terminé. » doit s'afficher en une dizaine de secondes.
 7. Vérifier : aucun numéro de commerçant nulle part ; le journal d'appels du téléphone ne contient rien ; l'historique (Profil → Historique de mes appels) montre l'appel avec « Appel », « Appel manqué », etc.
 8. Noter la taille de l'APK de publication avant/après (`flutter build apk --release`, fichier dans `mobile/build/app/outputs/flutter-apk/`) : le SDK Jitsi l'alourdit nettement.
+
+## T122 — Performances sur téléphone (à mesurer par Jeff, de préférence sur le téléphone le plus modeste disponible)
+Construire en mode profil ou publication : `flutter run --profile` ou `flutter build apk --release` (le mode débogage est toujours lent et ne prouve rien).
+1. Démarrage à froid : fermer complètement l'application (la retirer des applications récentes), la rouvrir en chronométrant jusqu'à l'apparition du bouton « Commencer ». Faire 3 essais, noter le plus long. Repère : moins de 3 secondes sur un téléphone modeste. Option : `flutter run --profile --trace-startup`, valeur `timeToFirstFrameMicros` dans `build/start_up_info.json`.
+2. Défilement des résultats : serveur rempli de 500 commerces (`python manage.py seed_demo --count 500`), rechercher un mot courant et faire défiler de haut en bas plusieurs fois, rapidement. Noter si l'on voit des saccades ou des blancs. Même essai sur la liste d'un quartier (Carte), le fil du forum et l'historique d'appels (Profil). Option : ouvrir Flutter DevTools > Performance pendant le défilement et noter le nombre d'images « jank » (en rouge).
+3. Pagination : en bas de liste, le petit cercle de chargement apparaît puis les éléments suivants s'ajoutent sans que la liste saute en haut.
+4. Photos : fiche d'un commerce avec 3 photos et fil du forum avec images : elles apparaissent sans ralentir le défilement.
+5. Taille de l'APK : relever la taille de `mobile/build/app/outputs/flutter-apk/app-release.apk` (le SDK Jitsi l'alourdit nettement) et la noter avec le modèle du téléphone.
+6. Noter dans `docs/verifications/T122-mobile.md` (section « À noter ») les valeurs relevées.

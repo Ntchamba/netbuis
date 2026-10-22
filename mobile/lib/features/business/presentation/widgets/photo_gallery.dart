@@ -45,7 +45,12 @@ class PhotoGallery extends StatelessWidget {
                   width: width,
                   height: height,
                   fit: BoxFit.cover,
+                  // Décodage limité (perf T122) : pas de photo d'appareil décodée en pleine taille.
+                  cacheWidth: 780,
                   excludeFromSemantics: true,
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : Container(width: width, height: height, color: c.border),
                   errorBuilder: (_, __, ___) => Container(
                     width: width,
                     height: height,
