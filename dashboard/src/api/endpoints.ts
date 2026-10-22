@@ -16,6 +16,10 @@ export const ENDPOINTS = {
   audit: "/api/admin/audit/",
   /** Référentiels modifiables (Administrateur complet) : …/<type>/, …/<type>/<id>/, …/deactivate/, …/reactivate/. */
   referentials: "/api/admin/referentials/",
+  /** Modération du forum (Administrateur complet) : …/<type>/<id>/hide|restore|delete/. */
+  reports: "/api/admin/reports/",
+  /** Mots interdits du filtre anti-spam : …/<id>/. */
+  forbiddenWords: "/api/admin/forbidden-words/",
   /** Export CSV des comptes (Administrateur complet, audité) : numéros masqués. */
   exportAccounts: "/api/admin/export/accounts.csv",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */

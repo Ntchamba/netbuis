@@ -52,6 +52,12 @@ function Icon({ name }: { name: NavIcon }) {
         <path d="M9 12l2 2 4-4" />
       </>
     ),
+    moderation: (
+      <>
+        <path d="M5 21V4" />
+        <path d="M5 4h12l-2 4 2 4H5" />
+      </>
+    ),
     audit: (
       <>
         <path d="M6 3h9l4 4v14H6z" />

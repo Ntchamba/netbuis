@@ -1,6 +1,6 @@
 import { PATHS } from "../routes/paths";
 
-export type NavIcon = "overview" | "requests" | "accounts" | "team" | "referentials" | "settings" | "admins" | "audit";
+export type NavIcon = "overview" | "requests" | "accounts" | "team" | "referentials" | "settings" | "admins" | "audit" | "moderation";
 
 export interface NavItem {
   key: string;
@@ -23,6 +23,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "settings", label: "Réglages", to: PATHS.reglages, icon: "settings", permission: "peut_modifier_reglages" },
   { key: "admins", label: "Administrateurs", to: PATHS.administrateurs, icon: "admins", permission: "peut_gerer_admins" },
   { key: "audit", label: "Journal d'audit", to: PATHS.audit, icon: "audit", permission: "peut_voir_comptes" },
+  { key: "moderation", label: "Modération", to: PATHS.moderation, icon: "moderation", permission: "peut_moderer_contenu" },
   // Réservée à l'Administrateur complet ; activée par T113.
   { key: "team", label: "Équipe & abonnements", to: PATHS.equipe, icon: "team", permission: "peut_accorder_abonnement", soon: true },
 ];
@@ -35,6 +36,7 @@ export function titleFor(pathname: string): string {
   if (pathname.startsWith(PATHS.reglages)) return "Réglages";
   if (pathname.startsWith(PATHS.administrateurs)) return "Administrateurs";
   if (pathname.startsWith(PATHS.audit)) return "Journal d'audit";
+  if (pathname.startsWith(PATHS.moderation)) return "Modération";
   if (pathname.startsWith(PATHS.equipe)) return "Équipe & abonnements";
   return "Vue d'ensemble";
 }

@@ -8,6 +8,7 @@ export const PATHS = {
   reglages: "/reglages",
   administrateurs: "/administrateurs",
   audit: "/audit",
+  moderation: "/moderation",
   referentiels: "/referentiels",
   referentielsAExaminer: "/referentiels/a-examiner",
   referentiel: "/referentiels/:type",
