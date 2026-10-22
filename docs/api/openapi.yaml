@@ -5668,6 +5668,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: account_blocked / account_deleted
+  /api/trends/:
+    get:
+      operationId: trends_list
+      description: Produits les plus recherchés (10 au plus) et commerces actifs les
+        plus contactés (10 au plus) de la ville sur 7 jours, d'après le dernier calcul.
+        Sans numéro.
+      parameters:
+      - in: query
+        name: zone
+        schema:
+          type: integer
+        description: Identifiant de la ville ou du quartier.
+        required: true
+      tags:
+      - trends
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Trends'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : zone inconnue.'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Compte bloqué.
   /api/uploads/local/{token}/:
     put:
       operationId: uploads_local_put
@@ -9308,6 +9350,79 @@ components:
       required:
       - count
       - term
+    TrendBusiness:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant du compte business (fiche publique).
+        name:
+          type: string
+        zone:
+          $ref: '#/components/schemas/TrendZone'
+        rank:
+          type: integer
+      required:
+      - id
+      - name
+      - rank
+      - zone
+    TrendProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identifiant du produit du catalogue.
+        name:
+          type: string
+          description: Nom à lancer comme recherche.
+        rank:
+          type: integer
+      required:
+      - id
+      - name
+      - rank
+    TrendZone:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    Trends:
+      type: object
+      properties:
+        zone:
+          allOf:
+          - $ref: '#/components/schemas/TrendZone'
+          nullable: true
+          description: Ville des tendances.
+        computed_at:
+          type: string
+          format: date-time
+          nullable: true
+        period_days:
+          type: integer
+          nullable: true
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendProduct'
+          description: 10 au plus.
+        businesses:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendBusiness'
+          description: 10 au plus, actifs seulement.
+      required:
+      - businesses
+      - computed_at
+      - period_days
+      - products
+      - zone
     TypeCompteEnum:
       enum:
       - boutique

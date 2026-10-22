@@ -27,6 +27,9 @@ MAX_VALUES: dict[str, int] = {
     SettingKey.LIMITE_APPELS_PAR_MINUTE: 60,
     SettingKey.LIMITE_APPELS_PAR_JOUR: 1000,
     SettingKey.SEUIL_APPELS_ABONNEMENT: 1000,
+    SettingKey.TRENDS_MIN_SEARCHES: 1000,
+    SettingKey.TRENDS_MIN_ACCOUNTS: 1000,
+    SettingKey.TRENDS_WINDOW_DAYS: 90,
 }
 
 
@@ -58,7 +61,7 @@ def check_value(key: str, value) -> int:
 
 
 def list_settings() -> list[dict]:
-    """Les cinq réglages, dans l'ordre de `SettingKey`, valeur courante lue en base."""
+    """Les réglages, dans l'ordre de `SettingKey`, valeur courante lue en base."""
     rows = {s.key: s for s in PlatformSetting.objects.select_related("modified_by")}
     out = []
     for key in SettingKey.values:

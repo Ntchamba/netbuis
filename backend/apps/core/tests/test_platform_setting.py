@@ -42,6 +42,9 @@ def test_defauts_declares_une_seule_fois():
         "limite_appels_par_minute": 5,
         "limite_appels_par_jour": 50,
         "seuil_appels_abonnement": 10,
+        "trends_min_searches": 5,
+        "trends_min_accounts": 3,
+        "trends_window_days": 7,
     }
     assert set(DEFAULTS) == set(SettingKey.values)
 

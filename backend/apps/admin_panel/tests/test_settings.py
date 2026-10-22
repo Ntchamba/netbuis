@@ -26,6 +26,7 @@ def test_permissions_lecture():
     assert [s["key"] for s in response.json()] == [
         "plafond_sous_categories_non_abonne", "plafond_publications_non_abonne",
         "limite_appels_par_minute", "limite_appels_par_jour", "seuil_appels_abonnement",
+        "trends_min_searches", "trends_min_accounts", "trends_window_days",
     ]
 
 

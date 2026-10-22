@@ -32,6 +32,15 @@ class SettingKey(models.TextChoices):
         "seuil_appels_abonnement",
         "Seuil d'appels quotidiens qui fait proposer l'abonnement",
     )
+    TRENDS_MIN_SEARCHES = (
+        "trends_min_searches",
+        "Tendances : nombre minimum de recherches (ou de contacts) pour être classé",
+    )
+    TRENDS_MIN_ACCOUNTS = (
+        "trends_min_accounts",
+        "Tendances : nombre minimum de comptes distincts pour être classé",
+    )
+    TRENDS_WINDOW_DAYS = "trends_window_days", "Tendances : fenêtre de calcul (jours)"
 
 
 # Valeurs par défaut : D-12 (plafonds 3 et 5), D-05 (5/min, 50/jour),
@@ -42,6 +51,10 @@ DEFAULTS: dict[str, int] = {
     SettingKey.LIMITE_APPELS_PAR_MINUTE: 5,
     SettingKey.LIMITE_APPELS_PAR_JOUR: 50,
     SettingKey.SEUIL_APPELS_ABONNEMENT: 10,
+    # T104 : 5 recherches venant d'au moins 3 comptes, sur 7 jours (valeurs d'essai).
+    SettingKey.TRENDS_MIN_SEARCHES: 5,
+    SettingKey.TRENDS_MIN_ACCOUNTS: 3,
+    SettingKey.TRENDS_WINDOW_DAYS: 7,
 }
 
 # Pour ces cinq réglages, 0 n'a pas de sens (aucun appel possible, proposition
