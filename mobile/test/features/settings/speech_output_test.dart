@@ -104,18 +104,45 @@ void main() {
 
     test('voix française installée : vrai', () async {
       mockEngine((call) async => call.method == 'isLanguageAvailable' ? true : 1);
-      expect(await FlutterTtsSpeechOutput().hasFrenchVoice(), isTrue);
+      expect(await FlutterTtsSpeechOutput().hasVoice('fr-FR'), isTrue);
       expect(calls.first.arguments, 'fr-FR');
     });
 
     test('pas de voix française : faux', () async {
       mockEngine((call) async => false);
-      expect(await FlutterTtsSpeechOutput().hasFrenchVoice(), isFalse);
+      expect(await FlutterTtsSpeechOutput().hasVoice('fr-FR'), isFalse);
+    });
+
+    test('anglais : en-US absent mais en-GB présent : vrai, et lu en en-GB', () async {
+      mockEngine((call) async {
+        switch (call.method) {
+          case 'isLanguageAvailable':
+            return call.arguments == 'en-GB';
+          case 'getLanguages':
+            return ['fr-FR', 'en-GB'];
+        }
+        return 1;
+      });
+      final tts = FlutterTtsSpeechOutput();
+      expect(await tts.hasVoice('en-US'), isTrue);
+      await tts.speak('Hello', languageTag: 'en-US');
+      expect(calls.where((c) => c.method == 'setLanguage').single.arguments, 'en-GB');
+    });
+
+    test('voix française seule : pas de voix anglaise', () async {
+      mockEngine((call) async {
+        if (call.method == 'isLanguageAvailable') return call.arguments == 'fr-FR';
+        if (call.method == 'getLanguages') return ['fr-FR', 'fr-CA'];
+        return 1;
+      });
+      final tts = FlutterTtsSpeechOutput();
+      expect(await tts.hasVoice('en-US'), isFalse);
+      expect(await tts.hasVoice('fr-FR'), isTrue);
     });
 
     test('le moteur plante : faux, sans exception', () async {
       mockEngine((call) async => throw PlatformException(code: 'KO'));
-      expect(await FlutterTtsSpeechOutput().hasFrenchVoice(), isFalse);
+      expect(await FlutterTtsSpeechOutput().hasVoice('fr-FR'), isFalse);
     });
 
     test('lecture : règle la langue puis lit ; langue indisponible : silence', () async {
@@ -130,7 +157,7 @@ void main() {
       mockEngine((call) async => false);
       final none = FlutterTtsSpeechOutput();
       await none.speak('Bonjour', languageTag: 'fr-FR');
-      expect(calls.map((c) => c.method), ['isLanguageAvailable']);
+      expect(calls.map((c) => c.method), ['isLanguageAvailable', 'getLanguages']);
       expect(none.speaking.value, isFalse);
     });
   });

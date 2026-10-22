@@ -34,6 +34,8 @@ class Routes {
   static const legalNotice = '/legal';
   static const terms = '/terms';
   static const privacy = '/privacy';
+  /// Aide et support (T101), ouvert depuis Profil ; protégé par la garde de connexion.
+  static const help = '/help';
   /// Pages lisibles sans être connecté (liées depuis l'écran de Connexion).
   static const openLegalPaths = {legalNotice, terms, privacy};
   /// Historique de mes appels (T053), ouvert depuis Profil.

@@ -82,3 +82,11 @@ Noter le modèle du téléphone et la version d'Android. Faire le test deux fois
 6. Voix française installée : sur une page légale, le bouton « Écouter » est visible ; il lit le texte à voix haute ; « Arrêter » coupe ; quitter l'écran coupe ; changer la langue de l'appli coupe.
 7. Sans voix française (la désinstaller ou prendre un téléphone sans) : le bouton « Écouter » n'apparaît nulle part (aucun bouton muet).
 8. Mode avion, stockage presque plein : les réglages restent utilisables.
+
+## T101 — Aide et support (à tester sur téléphone)
+1. Ouvrir l'écran Aide (accessible depuis Profil quand T102 sera faite ; en attendant, route `/help`). Trois thèmes : Appels, Compte business, Sécurité. Aucune question sur les crédits ni le parrainage ne doit apparaître. Une seule question ouverte à la fois.
+2. « Pourquoi je ne vois pas le numéro du commerçant ? » : la réponse doit être exactement le texte de D-07 (NetBuis n'affiche jamais le numéro… iPhone…).
+3. « Comment créer mon compte business ? » cite les 5 types : Commerce, Entreprise, Structure, Particulier vendeur, Prestataire de service.
+4. Sans coordonnées fournies (`À REMPLACER`) : WhatsApp, téléphone, e-mail et « Signaler un problème » sont grisés, avec « Coordonnées du support à venir » ; toucher ne fait rien.
+5. Quand Jeff fournira les coordonnées (compiler avec `--dart-define=SUPPORT_WHATSAPP=<numéro international> --dart-define=SUPPORT_PHONE=<numéro> --dart-define=SUPPORT_EMAIL=<adresse>`) : « Discuter sur WhatsApp » et « Signaler un problème ou un compte suspect » ouvrent directement WhatsApp (jamais le navigateur) sur la conversation du support ; le signalement arrive avec le message pré-rempli. « Appeler » ouvre le composeur avec le numéro du support ; « Envoyer un e-mail » ouvre la messagerie. Sans WhatsApp installé : message « WhatsApp n'est pas installé ».
+6. Voix : avec une voix française, « Écouter » apparaît sous la réponse ouverte et lit la réponse ; fermer la question ou changer d'écran coupe. Passer l'appli en English : le bouton n'apparaît que si le téléphone a une voix anglaise (sinon aucun bouton). Installer une voix (réglages du téléphone) puis revenir dans NetBuis : le bouton apparaît sans redémarrer l'appli.

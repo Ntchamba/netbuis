@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +9,8 @@ import '../../application/speech_providers.dart';
 import '../../data/speech_output.dart';
 
 /// Bouton « 🔊 Écouter » : lit [text] à voix haute. Il est **masqué** (rien à l'écran)
-/// tant qu'on ne sait pas qu'une voix française est installée, et si la détection échoue.
+/// tant qu'on ne sait pas qu'une voix existe pour la langue courante de l'application
+/// (français : fr-FR ; anglais : en-US ou en-*), et si la détection échoue.
 /// Un second appui, un changement de texte, de langue ou d'écran arrête la lecture.
 class ListenButton extends ConsumerStatefulWidget {
   const ListenButton({super.key, required this.text});
@@ -31,27 +34,30 @@ class _ListenButtonState extends ConsumerState<ListenButton> {
   @override
   void didUpdateWidget(ListenButton old) {
     super.didUpdateWidget(old);
-    if (old.text != widget.text) _speech.stop();
+    if (old.text != widget.text) _stopSoon();
   }
 
   @override
   void dispose() {
-    _speech.stop();
+    _stopSoon();
     super.dispose();
   }
+
+  /// Arrêt différé : on ne modifie pas l'état de lecture pendant que l'arbre est verrouillé.
+  void _stopSoon() => scheduleMicrotask(_speech.stop);
 
   void _toggle() {
     if (_speech.speaking.value) {
       _speech.stop();
       return;
     }
-    final english = Localizations.localeOf(context).languageCode == 'en';
-    _speech.speak(widget.text, languageTag: english ? 'en-US' : FlutterTtsSpeechOutput.frenchTag);
+    _speech.speak(widget.text, languageTag: ref.read(speechLanguageTagProvider));
   }
 
   @override
   Widget build(BuildContext context) {
-    final available = ref.watch(frenchVoiceAvailableProvider).value ?? false;
+    final tag = ref.watch(speechLanguageTagProvider);
+    final available = ref.watch(voiceAvailableProvider(tag)).value ?? false;
     if (!available) return const SizedBox.shrink();
     final l10n = L10n.of(context);
     final c = AppColors.of(context);

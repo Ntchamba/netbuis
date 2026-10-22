@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/app.dart';
 import 'package:netbuis/core/di/providers.dart';
@@ -35,9 +36,11 @@ class MemorySettingsStore implements SettingsStore {
 
 /// Faux service vocal : on choisit si une voix française existe, ou si la détection échoue.
 class FakeSpeechOutput implements SpeechOutput {
-  FakeSpeechOutput({this.french = true, this.detectionFails = false});
+  FakeSpeechOutput({this.french = true, this.english = true, this.detectionFails = false});
 
   bool french;
+  bool english;
+  int detections = 0;
   bool detectionFails;
   final List<String> spoken = [];
   final List<String> tags = [];
@@ -48,9 +51,10 @@ class FakeSpeechOutput implements SpeechOutput {
   ValueListenable<bool> get speaking => _speaking;
 
   @override
-  Future<bool> hasFrenchVoice() async {
+  Future<bool> hasVoice(String languageTag) async {
+    detections++;
     if (detectionFails) throw StateError('moteur absent');
-    return french;
+    return languageTag.startsWith('en') ? english : french;
   }
 
   @override
@@ -75,6 +79,7 @@ Future<void> pumpSettingsApp(
   AuthRepository? auth,
   String initialLocation = Routes.settings,
   bool signedIn = true,
+  List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -90,6 +95,7 @@ Future<void> pumpSettingsApp(
         appPrefsProvider.overrideWithValue(MemoryPrefs(seen: true)),
         settingsStoreProvider.overrideWithValue(store),
         speechOutputProvider.overrideWithValue(speech ?? FakeSpeechOutput()),
+        ...overrides,
       ],
       child: NetBuisApp(initialLocation: initialLocation),
     ),

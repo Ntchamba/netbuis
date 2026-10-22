@@ -29,6 +29,7 @@ import '../../features/maps/presentation/screens/map_screen.dart';
 import '../../features/onboarding/presentation/screens/choose_city_screen.dart';
 import '../../features/search/presentation/screens/search_screen.dart';
 import '../../features/settings/presentation/screens/about_screen.dart';
+import '../../features/settings/presentation/screens/help_screen.dart';
 import '../../features/settings/presentation/screens/legal_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
@@ -131,6 +132,7 @@ GoRouter buildRouter({
         path: Routes.privacy,
         builder: (context, state) => const LegalScreen(kind: LegalKind.privacy),
       ),
+      GoRoute(path: Routes.help, builder: (context, state) => const HelpScreen()),
       GoRoute(path: Routes.publish, builder: (context, state) => const PublishScreen()),
       GoRoute(path: Routes.myPosts, builder: (context, state) => const MyPostsScreen()),
       GoRoute(
