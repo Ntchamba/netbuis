@@ -16,3 +16,6 @@ _STORAGE_TMP = Path(tempfile.mkdtemp(prefix="netbuis-test-storage-"))
 atexit.register(shutil.rmtree, _STORAGE_TMP, ignore_errors=True)
 MEDIA_ROOT = _STORAGE_TMP / "media"
 PRIVATE_MEDIA_ROOT = _STORAGE_TMP / "private_media"
+
+# Le schéma de l'API est servi en test (comme en développement).
+API_DOCS_ENABLED = True

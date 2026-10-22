@@ -9,7 +9,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(DEBUG=(bool, False), CREDITS_ENABLED=(bool, False))
 environ.Env.read_env(BASE_DIR / ".env")  # absent = ignoré
 
-SECRET_KEY = env("SECRET_KEY", default="dev-only-insecure-key-change-me")
+# Clé de développement : 36 caractères (PyJWT exige au moins 32 octets pour HS256). Refusée en
+# production (config/settings/prod.py).
+DEV_SECRET_KEY = "dev-only-insecure-key-change-me-0000"
+SECRET_KEY = env("SECRET_KEY", default=DEV_SECRET_KEY)
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
@@ -132,10 +135,13 @@ REST_FRAMEWORK = {
         "otp_verify": "30/hour",  # vérifications de code, par IP (T006b)
         "call": "5/min",  # par compte
         "uploads": "60/hour",  # demandes d'URL d'envoi de fichier (T027), par compte
+        "search": "60/min",  # recherches (écrite et vocale), par compte (T121)
+        "suggest": "120/min",  # suggestions de saisie, par compte (T121)
     },
-    # IP du client = REMOTE_ADDR : l'en-tête X-Forwarded-For (falsifiable) est ignoré.
-    # À régler au déploiement derrière un proxy (nombre de proxys de confiance).
-    "NUM_PROXIES": 0,
+    # IP du client = REMOTE_ADDR : l'en-tête X-Forwarded-For (falsifiable) est ignoré tant que
+    # NUM_PROXIES vaut 0. Derrière un proxy (Railway : 1), mettre NUM_PROXIES=1 dans
+    # l'environnement, sinon tous les clients partagent l'IP du proxy (voir DEPLOYMENT.md).
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
 }
 
 # Durées : BACKLOG T007 (accès 15 min, rafraîchissement 30 jours).
@@ -158,6 +164,13 @@ LOGGING = {
     },
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+
+# Schéma et documentation interactive de l'API (/api/schema/, /api/docs/) : servis seulement en
+# développement. Désactivés par défaut en production (T121).
+API_DOCS_ENABLED = env.bool("API_DOCS_ENABLED", default=DEBUG)
+# Chemin de l'admin Django. Par défaut « django-admin/ » ; en production il est désactivé tant
+# qu'un chemin non trivial n'est pas donné par l'environnement (config/settings/prod.py).
+DJANGO_ADMIN_PATH = env("DJANGO_ADMIN_PATH", default="django-admin/")
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "NetBuis API",

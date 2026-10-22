@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import IsAuthenticatedNotBlocked
 from apps.accounts.serializers.otp import ErrorSerializer
+from apps.core.throttling import SuggestRateThrottle
 from apps.search.serializers.suggestion import SuggestionSerializer
 from apps.search.services.suggestions import suggest
 
@@ -21,10 +22,12 @@ from apps.search.services.suggestions import suggest
         200: SuggestionSerializer(many=True),
         401: OpenApiResponse(response=ErrorSerializer, description="Non connecté."),
         403: OpenApiResponse(response=ErrorSerializer, description="Compte bloqué ou supprimé."),
+        429: OpenApiResponse(response=ErrorSerializer, description="throttled : trop de requêtes."),
     },
 ))
 class SuggestionsView(generics.GenericAPIView):
     permission_classes = [IsAuthenticatedNotBlocked]
+    throttle_classes = [SuggestRateThrottle]  # 120 / minute / compte (réglage `suggest`)
     serializer_class = SuggestionSerializer
     pagination_class = None
 

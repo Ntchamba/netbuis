@@ -5646,6 +5646,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: account_blocked / account_deleted
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'throttled : trop de recherches.'
   /api/search/suggestions/:
     get:
       operationId: search_suggestions
@@ -5680,6 +5686,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Compte bloqué ou supprimé.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'throttled : trop de requêtes.'
   /api/search/voice/:
     post:
       operationId: search_voice
@@ -5730,6 +5742,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: account_blocked / account_deleted
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'throttled : trop de recherches.'
   /api/trends/:
     get:
       operationId: trends_list

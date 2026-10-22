@@ -5,10 +5,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    path("django-admin/", admin.site.urls),
     path("api/", include("apps.core.health.urls")),
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     path("api/", include("apps.accounts.urls")),
     path("api/", include("apps.geo.urls")),
     path("api/", include("apps.catalog.urls")),
@@ -22,6 +19,17 @@ urlpatterns = [
     path("api/payments/", include("apps.payments.urls")),
     path("api/admin/", include("apps.admin_panel.urls")),
 ]
+
+# Admin Django : désactivé en production tant qu'aucun chemin non trivial n'est donné (T121).
+if settings.DJANGO_ADMIN_PATH:
+    urlpatterns.insert(0, path(settings.DJANGO_ADMIN_PATH, admin.site.urls))
+
+# Schéma et documentation de l'API : développement seulement par défaut (T121).
+if settings.API_DOCS_ENABLED:
+    urlpatterns += [
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
+    ]
 
 # Photos PUBLIQUES envoyées (MEDIA_ROOT) : servies par Django seulement si DEBUG (renvoie [] sinon).
 # L'espace privé (PRIVATE_MEDIA_ROOT : CNI, diplôme) n'a aucune route ici. En production, ce sera

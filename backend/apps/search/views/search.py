@@ -17,6 +17,7 @@ from apps.accounts.permissions import IsAuthenticatedNotBlocked
 from apps.accounts.serializers.otp import ErrorSerializer
 from apps.business.models import Offer
 from apps.core.pagination import StandardPagination
+from apps.core.throttling import SearchRateThrottle
 from apps.search.models import SearchMode
 from apps.search.serializers.query import SearchQuerySerializer, VoiceQuerySerializer
 from apps.search.serializers.result import SearchResultSerializer
@@ -27,6 +28,7 @@ _ERRORS = {
     400: OpenApiResponse(response=ErrorSerializer, description="invalid : zone inconnue…"),
     401: OpenApiResponse(response=ErrorSerializer, description="Non connecté."),
     403: OpenApiResponse(response=ErrorSerializer, description="account_blocked / account_deleted"),
+    429: OpenApiResponse(response=ErrorSerializer, description="throttled : trop de recherches."),
 }
 
 
@@ -56,6 +58,7 @@ def _prices(profiles) -> dict:
 
 class _SearchBase(generics.GenericAPIView):
     permission_classes = [IsAuthenticatedNotBlocked]
+    throttle_classes = [SearchRateThrottle]  # 60 / minute / compte (réglage `search`)
     pagination_class = StandardPagination
     serializer_class = SearchResultSerializer
     mode = SearchMode.TEXT
