@@ -12,6 +12,8 @@ export const ENDPOINTS = {
   settings: "/api/admin/settings/",
   /** Administrateurs : …/<id>/ (changer le rôle, retirer le rôle). */
   admins: "/api/admin/admins/",
+  /** Journal d'audit, lecture seule (GET uniquement). */
+  audit: "/api/admin/audit/",
   /** Référentiels modifiables (Administrateur complet) : …/<type>/, …/<type>/<id>/, …/deactivate/, …/reactivate/. */
   referentials: "/api/admin/referentials/",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */

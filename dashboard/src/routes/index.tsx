@@ -6,6 +6,7 @@ import { LoginPage } from "../modules/auth";
 import { BusinessesPage } from "../modules/businesses";
 import { FreeValuesPage, ReferentialsIndexPage, ReferentialTypePage } from "../modules/referentials";
 import { AdminsPage } from "../modules/admins";
+import { AuditLogPage } from "../modules/audit_log";
 import { SettingsPage } from "../modules/settings";
 import { OverviewPage } from "../modules/overview";
 import { UserDetailPage, UsersPage } from "../modules/users";
@@ -91,6 +92,14 @@ export function AppRoutes() {
             element={
               <RequirePermission permission="peut_gerer_admins">
                 <AdminsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.audit}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <AuditLogPage />
               </RequirePermission>
             }
           />

@@ -52,6 +52,12 @@ function Icon({ name }: { name: NavIcon }) {
         <path d="M9 12l2 2 4-4" />
       </>
     ),
+    audit: (
+      <>
+        <path d="M6 3h9l4 4v14H6z" />
+        <path d="M14 3v5h5M9 13h7M9 17h7" />
+      </>
+    ),
     team: <path d="M12 2l2.6 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.4-.4z" />,
   };
   return (

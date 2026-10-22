@@ -21,3 +21,10 @@ export function formatRelative(iso: string, now: Date = new Date()): string {
   if (days < 7) return `il y a ${days} j`;
   return formatDate(iso);
 }
+
+/** « 21 oct. 2026, 14:05 » en heure locale du Cameroun. */
+export function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short", timeZone: TIME_ZONE }).format(d);
+}

@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T087
-- **Prochaine tâche** : T088
+- **Tâche en cours** : T088
+- **Prochaine tâche** : T089
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -96,7 +96,7 @@
 | ✅ | T083 | Dashboard : Comptes | c3 | 2026-10-21 | docs/verifications/T083.md ; vérificateur CONFORME |
 | ✅ | T085 | Dashboard : référentiels | c3 | 2026-10-21 | docs/verifications/T085.md ; vérificateur CONFORME |
 | ✅ | T086 | Dashboard : réglages et administrateurs | c3 | 2026-10-21 | docs/verifications/T086.md ; vérificateur CONFORME |
-| ☐ | T087 | Dashboard : journal d'audit | c3 + c2 | | |
+| ✅ | T087 | Dashboard : journal d'audit | c3 + c2 | 2026-10-21 | docs/verifications/T087.md ; vérificateur CONFORME |
 | ☐ | T088 | Dashboard : export | c3 | | |
 | ☐ | T089 | Vérification de tranche : administration de bout en bout | orchestrateur | | |
 | | | **PHASE 9 — Forum : publications et commentaires (Étape 7)** | | | |
