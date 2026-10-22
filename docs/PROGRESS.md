@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T093
-- **Prochaine tâche** : T094
+- **Tâche en cours** : T094
+- **Prochaine tâche** : T095
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -103,7 +103,7 @@
 | ✅ | T090 | Backend : publications, commentaires, signalements | a3 | 2026-10-21 | docs/verifications/T090.md ; vérificateur CONFORME |
 | ✅ | T091 | Mobile : Publier et Mes publications | b3 | 2026-10-21 | docs/verifications/T091.md ; vérificateur CONFORME |
 | ✅ | T092 | Mobile : Forum et page d'une publication | b3 | 2026-10-21 | docs/verifications/T092.md ; vérificateur CONFORME |
-| ☐ | T093 | Mobile : signaler | b3 | | |
+| ✅ | T093 | Mobile : signaler | b3 | 2026-10-21 | docs/verifications/T093.md ; vérificateur CONFORME |
 | ☐ | T094 | Backend : modération | a3 + c2 | | |
 | ☐ | T095 | Dashboard : modération du forum | c3 | | |
 | ☐ | T096 | Vérification de tranche : forum | orchestrateur | | |

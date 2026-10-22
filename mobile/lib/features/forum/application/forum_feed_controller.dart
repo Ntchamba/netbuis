@@ -10,6 +10,7 @@ import '../../search/application/offline_controller.dart';
 import '../data/forum_feed_cache.dart';
 import '../data/models/feed_post.dart';
 import 'forum_services.dart';
+import 'report_controller.dart';
 
 enum FeedStatus { idle, loading, results, empty, error }
 
@@ -78,6 +79,10 @@ class ForumFeedController extends Notifier<FeedState> {
         _cacheSafely(() => ref.read(forumFeedCacheProvider).clear());
       }
     });
+    // Un contenu que je viens de signaler disparaît tout de suite du fil et de la mémoire hors connexion.
+    ref.listen(reportsProvider.select((r) => r.posts), (_, hidden) {
+      _dropHidden(hidden);
+    });
     final city = ref.watch(selectedCityProvider);
     if (city.isLoading) return const FeedState();
     final zone = city.value?.id;
@@ -85,6 +90,44 @@ class ForumFeedController extends Notifier<FeedState> {
       if (ref.mounted && state.status == FeedStatus.idle) _run(zone);
     });
     return FeedState(zone: zone);
+  }
+
+  Set<int> get _hidden => ref.read(reportsProvider).posts;
+
+  List<FeedPost> _visible(List<FeedPost> items) {
+    final hidden = _hidden;
+    return hidden.isEmpty
+        ? items
+        : [
+            for (final p in items)
+              if (!hidden.contains(p.id)) p
+          ];
+  }
+
+  void _dropHidden(Set<int> hidden) {
+    final kept = _visible(state.items);
+    if (kept.length != state.items.length) {
+      state = state.copyWith(
+        items: kept,
+        status: kept.isEmpty && state.status == FeedStatus.results
+            ? FeedStatus.empty
+            : null,
+      );
+    }
+    _cacheSafely(() async {
+      final cache = ref.read(forumFeedCacheProvider);
+      final saved = await cache.read();
+      if (saved == null) return;
+      final left = [
+        for (final p in saved.items)
+          if (!hidden.contains(p.id)) p
+      ];
+      if (left.length == saved.items.length) return;
+      if (left.isEmpty) return cache.clear();
+      final count = saved.count - (saved.items.length - left.length);
+      await cache.write(CachedFeed(
+          zone: saved.zone, items: left, count: count < 0 ? 0 : count));
+    });
   }
 
   /// La mémoire du téléphone ne doit jamais casser le fil.
@@ -131,8 +174,12 @@ class ForumFeedController extends Notifier<FeedState> {
     }
   }
 
-  void _applyFirstPage(int? zone, ForumPage<FeedPost> page) {
+  void _applyFirstPage(int? zone, ForumPage<FeedPost> rawPage) {
     ref.read(offlineProvider.notifier).set(false);
+    final page = ForumPage<FeedPost>(
+        items: _visible(rawPage.items),
+        count: rawPage.count,
+        hasNext: rawPage.hasNext);
     // La mémoire n'est écrite qu'après un succès, jamais après une erreur.
     if (page.items.isNotEmpty) {
       _cacheSafely(() => ref
@@ -162,11 +209,12 @@ class ForumFeedController extends Notifier<FeedState> {
         ref.read(offlineProvider.notifier).set(true);
         final saved = await _readCache();
         if (!ref.mounted || ticket != _ticket) return;
-        if (saved != null && saved.zone == zone && saved.items.isNotEmpty) {
+        final savedItems = saved == null ? <FeedPost>[] : _visible(saved.items);
+        if (saved != null && saved.zone == zone && savedItems.isNotEmpty) {
           state = FeedState(
             zone: zone,
             status: FeedStatus.results,
-            items: saved.items,
+            items: savedItems,
             page: 1,
             fromCache: true,
           );
@@ -205,7 +253,7 @@ class ForumFeedController extends Notifier<FeedState> {
       state = state.copyWith(
         items: [
           ...s.items,
-          for (final p in page.items)
+          for (final p in _visible(page.items))
             if (!known.contains(p.id)) p
         ],
         page: s.page + 1,

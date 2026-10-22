@@ -176,7 +176,7 @@ void main() {
     expect(find.byKey(const Key('detail-verified')), findsNothing);
   });
 
-  testWidgets('Appeler (T052) et WhatsApp (T054) sont activés ; Signaler reste désactivé « Bientôt »',
+  testWidgets('Appeler (T052), WhatsApp (T054) et Signaler (T093) sont activés',
       (tester) async {
     await _pump(tester, _Repo(_json));
     await tester.scrollUntilVisible(find.byKey(const Key('detail-report')), 300,
@@ -185,10 +185,11 @@ void main() {
     expect(find.text('Appeler · Bientôt'), findsNothing);
     expect(find.text('WhatsApp'), findsOneWidget);
     expect(find.text('WhatsApp · Bientôt'), findsNothing);
-    expect(find.textContaining('Signaler ce commerce'), findsOneWidget);
+    expect(find.text('Signaler ce commerce'), findsOneWidget);
+    expect(find.textContaining('Bientôt'), findsNothing);
     expect(_enabled(tester, const Key('detail-call')), isTrue);
     expect(_enabled(tester, const Key('detail-whatsapp')), isTrue);
-    expect(tester.widget<TextButton>(find.byKey(const Key('detail-report'))).onPressed, isNull);
+    expect(tester.widget<TextButton>(find.byKey(const Key('detail-report'))).onPressed, isNotNull);
   });
 
   testWidgets('WhatsApp indisponible : grisé avec « Non disponible »', (tester) async {

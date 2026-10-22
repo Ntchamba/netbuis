@@ -21,6 +21,10 @@ class ForumFeedRepositoryFake implements ForumFeedRepository {
   final Map<int, List<ForumComment>> _comments = {};
   int _nextCommentId = 5000;
 
+  /// Contenus signalés par moi : le serveur les exclut de mes fils (T093).
+  final Set<int> hiddenPosts = {};
+  final Set<int> hiddenComments = {};
+
   void _add(FeedPost post, int zoneId, int cityId) {
     _posts.add((post: post, zoneId: zoneId, cityId: cityId));
   }
@@ -104,7 +108,8 @@ class ForumFeedRepositoryFake implements ForumFeedRepository {
   Future<ForumPage<FeedPost>> feed({int? zone, int page = 1}) async {
     final all = [
       for (final e in _posts)
-        if (zone == null || e.zoneId == zone || e.cityId == zone)
+        if (!hiddenPosts.contains(e.post.id) &&
+            (zone == null || e.zoneId == zone || e.cityId == zone))
           _withCount(e.post),
     ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final start = (page - 1) * pageSize;
@@ -119,7 +124,9 @@ class ForumFeedRepositoryFake implements ForumFeedRepository {
 
   FeedPost _find(int id) {
     for (final e in _posts) {
-      if (e.post.id == id) return _withCount(e.post);
+      if (e.post.id == id && !hiddenPosts.contains(id)) {
+        return _withCount(e.post);
+      }
     }
     throw const ApiException(ApiErrorCode.unknown,
         statusCode: 404, serverCode: 'not_found');
@@ -131,7 +138,10 @@ class ForumFeedRepositoryFake implements ForumFeedRepository {
   @override
   Future<ForumPage<ForumComment>> comments(int postId, {int page = 1}) async {
     _find(postId);
-    final all = _comments[postId] ?? const <ForumComment>[];
+    final all = [
+      for (final c in _comments[postId] ?? const <ForumComment>[])
+        if (!hiddenComments.contains(c.id)) c
+    ];
     final start = (page - 1) * pageSize;
     final items = start >= all.length
         ? <ForumComment>[]
@@ -140,6 +150,33 @@ class ForumFeedRepositoryFake implements ForumFeedRepository {
         items: items,
         count: all.length,
         hasNext: start + pageSize < all.length);
+  }
+
+  /// Vrai si ce commentaire est le mien (un commentaire que j'ai écrit pendant la session).
+  bool isMyComment(int id) {
+    for (final list in _comments.values) {
+      for (final c in list) {
+        if (c.id == id) return c.isMine;
+      }
+    }
+    return false;
+  }
+
+  /// Vrai si la publication existe (et n'est pas masquée pour moi).
+  bool hasPost(int id) {
+    for (final e in _posts) {
+      if (e.post.id == id) return !hiddenPosts.contains(id);
+    }
+    return false;
+  }
+
+  bool hasComment(int id) {
+    for (final list in _comments.values) {
+      for (final c in list) {
+        if (c.id == id) return !hiddenComments.contains(id);
+      }
+    }
+    return false;
   }
 
   @override

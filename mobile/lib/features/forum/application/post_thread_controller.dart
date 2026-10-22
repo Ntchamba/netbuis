@@ -9,6 +9,7 @@ import '../data/models/feed_post.dart';
 import '../data/repositories/forum_feed_repository.dart';
 import 'forum_feed_controller.dart';
 import 'forum_services.dart';
+import 'report_controller.dart';
 
 enum ThreadStatus { loading, ready, error }
 
@@ -73,6 +74,13 @@ class PostThreadController extends Notifier<ThreadState> {
   @override
   ThreadState build() {
     ref.onDispose(() => _ticket++);
+    // Un commentaire que je viens de signaler disparaît tout de suite de la page.
+    ref.listen(reportsProvider.select((r) => r.comments), (_, hidden) {
+      final kept = _visible(state.comments);
+      if (kept.length != state.comments.length) {
+        state = state.copyWith(comments: kept);
+      }
+    });
     Future.microtask(() {
       if (ref.mounted &&
           state.status == ThreadStatus.loading &&
@@ -81,6 +89,16 @@ class PostThreadController extends Notifier<ThreadState> {
       }
     });
     return const ThreadState();
+  }
+
+  List<ForumComment> _visible(List<ForumComment> items) {
+    final hidden = ref.read(reportsProvider).comments;
+    return hidden.isEmpty
+        ? items
+        : [
+            for (final c in items)
+              if (!hidden.contains(c.id)) c
+          ];
   }
 
   ForumFeedRepository get _repo => ref.read(forumFeedRepositoryProvider);
@@ -103,7 +121,7 @@ class PostThreadController extends Notifier<ThreadState> {
       state = ThreadState(
         status: ThreadStatus.ready,
         post: post,
-        comments: page.items,
+        comments: _visible(page.items),
         page: 1,
         hasMore: page.hasNext && page.items.isNotEmpty,
       );
@@ -127,7 +145,7 @@ class PostThreadController extends Notifier<ThreadState> {
       if (!ref.mounted || ticket != _ticket) return;
       final merged = [...state.comments];
       final known = {for (final c in merged) c.id};
-      for (final c in page.items) {
+      for (final c in _visible(page.items)) {
         if (known.add(c.id)) merged.add(c);
       }
       // Un commentaire que je viens d'écrire peut précéder des pages pas encore chargées.

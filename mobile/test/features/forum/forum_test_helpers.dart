@@ -10,6 +10,8 @@ import 'package:netbuis/features/forum/application/forum_services.dart';
 import 'package:netbuis/features/forum/data/forum_feed_cache.dart';
 import 'package:netbuis/features/forum/data/models/feed_post.dart';
 import 'package:netbuis/features/forum/data/models/post.dart';
+import 'package:netbuis/features/forum/data/models/report.dart';
+import 'package:netbuis/features/forum/data/repositories/report_repository.dart';
 import 'package:netbuis/features/forum/data/repositories/forum_feed_repository.dart';
 
 import '../account/account_test_helpers.dart';
@@ -28,6 +30,7 @@ FeedPost feedPost(
   String? offer,
   PostMediaType type = PostMediaType.image,
   String? mediaUrl,
+  bool mine = false,
 }) =>
     FeedPost(
       id: id,
@@ -41,24 +44,31 @@ FeedPost feedPost(
       offerName: offer,
       createdAt: DateTime.now().subtract(age),
       commentsCount: comments,
+      isMine: mine,
     );
 
 ForumComment comment(int id, String text,
         {String name = 'Sali A.',
         String initials = 'SA',
-        Duration age = const Duration(minutes: 45)}) =>
+        Duration age = const Duration(minutes: 45),
+        bool mine = false}) =>
     ForumComment(
       id: id,
       authorName: name,
       initials: initials,
       text: text,
       createdAt: DateTime.now().subtract(age),
+      isMine: mine,
     );
 
 const ApiException kRateLimit = ApiException(ApiErrorCode.unknown,
     statusCode: 429, serverCode: 'comment_rate_limit');
 const ApiException kBlocked = ApiException(ApiErrorCode.accountBlocked,
     statusCode: 403, serverCode: 'account_blocked');
+const ApiException kAlreadyReported = ApiException(ApiErrorCode.unknown,
+    statusCode: 409, serverCode: 'already_reported');
+const ApiException kOwnContent = ApiException(ApiErrorCode.unknown,
+    statusCode: 400, serverCode: 'own_content');
 const ApiException kGone = ApiException(ApiErrorCode.unknown,
     statusCode: 404, serverCode: 'not_found');
 
@@ -140,6 +150,21 @@ class ScriptedFeedRepository implements ForumFeedRepository {
   }
 }
 
+/// Dépôt des signalements scénarisé : garde les envois, peut échouer ou attendre à la demande.
+class ScriptedReportRepository implements ReportRepository {
+  ApiException? error;
+  Completer<void>? gate;
+  final List<({ReportTarget target, int id, ReportReason reason})> calls = [];
+
+  @override
+  Future<void> report(ReportTarget target, int id, ReportReason reason) async {
+    calls.add((target: target, id: id, reason: reason));
+    await gate?.future;
+    final e = error;
+    if (e != null) throw e;
+  }
+}
+
 class ForumHarness {
   ForumHarness({
     List<FeedPost> posts = const [],
@@ -155,6 +180,7 @@ class ForumHarness {
   final ScriptedFeedRepository repo;
   final UploadFailingBusinessRepository business;
   final ForumFeedCache cache;
+  final ScriptedReportRepository reports = ScriptedReportRepository();
   final List<Uri> opened = [];
   bool openResult = true;
 
@@ -167,6 +193,7 @@ class ForumHarness {
       overrides: [
         forumFeedRepositoryProvider.overrideWithValue(repo),
         forumFeedCacheProvider.overrideWithValue(cache),
+        reportRepositoryProvider.overrideWithValue(reports),
         businessRepositoryProvider.overrideWithValue(business),
         externalUrlOpenerProvider.overrideWithValue((uri) async {
           opened.add(uri);

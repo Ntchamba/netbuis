@@ -10,6 +10,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../call/presentation/widgets/call_button.dart';
 import '../../../call/presentation/widgets/whatsapp_button.dart';
 import '../../../search/application/offline_controller.dart';
+import '../../../forum/application/report_controller.dart';
+import '../../../forum/data/models/report.dart';
+import '../../../forum/presentation/widgets/report_sheet.dart';
 import '../../application/public_business_controller.dart';
 import '../../data/models/public_business.dart';
 import '../widgets/contact_actions.dart';
@@ -54,7 +57,11 @@ class BusinessDetailScreen extends ConsumerWidget {
                   action: l10n.t('business.detail.retry'),
                   onAction: () => ref.invalidate(publicBusinessProvider(businessId)),
                 ),
-          data: (b) => _Content(business: b, offline: ref.watch(offlineProvider)),
+          data: (b) => _Content(
+            business: b,
+            offline: ref.watch(offlineProvider),
+            reported: ref.watch(reportsProvider).businesses.contains(b.id),
+          ),
         ),
       ),
     );
@@ -62,10 +69,12 @@ class BusinessDetailScreen extends ConsumerWidget {
 }
 
 class _Content extends StatelessWidget {
-  const _Content({required this.business, this.offline = false});
+  const _Content(
+      {required this.business, this.offline = false, this.reported = false});
 
   final PublicBusiness business;
   final bool offline;
+  final bool reported;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +142,9 @@ class _Content extends StatelessWidget {
           businessName: b.name,
           whatsappAvailable: b.whatsappAvailable,
           offline: offline,
+          reported: reported,
+          onReport: () =>
+              openReport(context, target: ReportTarget.business, id: b.id),
           onCall: () => startCall(context, businessId: b.id, businessName: b.name),
           onWhatsapp: () => startWhatsapp(context, businessId: b.id, businessName: b.name),
         ),

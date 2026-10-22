@@ -11,6 +11,9 @@ import '../data/repositories/forum_feed_repository_fake.dart';
 import '../data/repositories/forum_repository.dart';
 import '../data/repositories/forum_repository_api.dart';
 import '../data/repositories/forum_repository_fake.dart';
+import '../data/repositories/report_repository.dart';
+import '../data/repositories/report_repository_api.dart';
+import '../data/repositories/report_repository_fake.dart';
 
 /// Dépôt du forum : factice si `USE_FAKE_API=true`, sinon relié à l'API.
 final forumRepositoryProvider = Provider<ForumRepository>((ref) {
@@ -22,6 +25,16 @@ final forumRepositoryProvider = Provider<ForumRepository>((ref) {
 final forumFeedRepositoryProvider = Provider<ForumFeedRepository>((ref) {
   if (Env.useFakeApi) return ForumFeedRepositoryFake();
   return ForumFeedRepositoryApi(ref.read(dioProvider));
+});
+
+/// Dépôt des signalements (T093) : factice si `USE_FAKE_API=true` (il masque alors les contenus
+/// signalés dans le fil factice), sinon relié à l'API.
+final reportRepositoryProvider = Provider<ReportRepository>((ref) {
+  if (Env.useFakeApi) {
+    final feed = ref.read(forumFeedRepositoryProvider);
+    return ReportRepositoryFake(feed is ForumFeedRepositoryFake ? feed : null);
+  }
+  return ReportRepositoryApi(ref.read(dioProvider));
 });
 
 /// Mémoire du dernier fil réussi (hors connexion).

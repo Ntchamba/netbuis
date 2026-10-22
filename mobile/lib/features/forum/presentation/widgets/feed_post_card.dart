@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../application/post_time.dart';
 import '../../data/models/feed_post.dart';
 import 'post_visuals.dart';
+import 'report_menu_button.dart';
 
 /// Texte « n commentaires · écrire un commentaire » de la carte (maquette Forum).
 String feedCommentsLabel(L10n l10n, int count) => count == 1
@@ -16,11 +17,22 @@ String feedCommentsLabel(L10n l10n, int count) => count == 1
 /// ouvre la page de la publication.
 class FeedPostCard extends StatelessWidget {
   const FeedPostCard(
-      {super.key, required this.post, required this.now, required this.onOpen});
+      {super.key,
+      required this.post,
+      required this.now,
+      required this.onOpen,
+      this.onReport,
+      this.offline = false});
 
   final FeedPost post;
   final DateTime now;
   final VoidCallback onOpen;
+
+  /// Menu discret ⋯ « Signaler » (T093) ; absent sur mes propres publications.
+  final VoidCallback? onReport;
+
+  /// Hors connexion : « Signaler » est désactivé.
+  final bool offline;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +77,14 @@ class FeedPostCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (!post.isMine && onReport != null)
+                    ReportMenuButton(
+                      key: ValueKey('feed-report-${post.id}'),
+                      tooltip: l10n.t(offline
+                          ? 'report.post.offline'
+                          : 'report.post.action'),
+                      onPressed: offline ? null : onReport,
+                    ),
                 ],
               ),
             ),

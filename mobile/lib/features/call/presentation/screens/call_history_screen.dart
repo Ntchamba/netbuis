@@ -10,6 +10,11 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../search/application/offline_controller.dart';
 import '../../application/call_history_controller.dart';
 import '../../data/models/call_history_entry.dart';
+import '../../../business/presentation/widgets/contact_actions.dart'
+    show ReportBusinessButton;
+import '../../../forum/application/report_controller.dart';
+import '../../../forum/data/models/report.dart';
+import '../../../forum/presentation/widgets/report_sheet.dart';
 import '../widgets/call_button.dart';
 import '../widgets/whatsapp_button.dart';
 
@@ -211,6 +216,8 @@ class _HistoryCard extends ConsumerWidget {
     final c = AppColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
     final offline = ref.watch(offlineProvider);
+    final reported =
+        ref.watch(reportsProvider).businesses.contains(entry.businessId);
     final isWhatsapp = entry.type == HistoryType.whatsapp;
     final date =
         formatHistoryDate(context, entry.date, ref.watch(historyNowProvider)());
@@ -249,51 +256,64 @@ class _HistoryCard extends ConsumerWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Semantics(
-                container: true,
-                excludeSemantics: true,
-                label: l10n
-                    .t('history.entry')
-                    .replaceAll('{name}', entry.businessName)
-                    .replaceAll('{zone}', entry.zone)
-                    .replaceAll('{date}', date)
-                    .replaceAll('{type}', typeLabel),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.businessName,
-                      key: ValueKey('history-name-${entry.id}'),
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      '${entry.zone} · $date',
-                      style: TextStyle(fontSize: 12, color: c.textSecondary),
-                    ),
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        key: ValueKey('history-badge-${entry.id}'),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: badgeBg,
-                          borderRadius: BorderRadius.circular(999),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    container: true,
+                    excludeSemantics: true,
+                    label: l10n
+                        .t('history.entry')
+                        .replaceAll('{name}', entry.businessName)
+                        .replaceAll('{zone}', entry.zone)
+                        .replaceAll('{date}', date)
+                        .replaceAll('{type}', typeLabel),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entry.businessName,
+                          key: ValueKey('history-name-${entry.id}'),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w700),
                         ),
-                        child: Text(
-                          typeLabel,
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: badgeFg),
+                        const SizedBox(height: 1),
+                        Text(
+                          '${entry.zone} · $date',
+                          style:
+                              TextStyle(fontSize: 12, color: c.textSecondary),
                         ),
-                      ),
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Container(
+                            key: ValueKey('history-badge-${entry.id}'),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: badgeBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              typeLabel,
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: badgeFg),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  ReportBusinessButton(
+                    buttonKey: ValueKey('history-report-${entry.id}'),
+                    reported: reported,
+                    offline: offline,
+                    onReport: () => openReport(context,
+                        target: ReportTarget.business, id: entry.businessId),
+                  ),
+                ],
               ),
             ),
             IconButton(
@@ -306,10 +326,10 @@ class _HistoryCard extends ConsumerWidget {
               onPressed: offline
                   ? null
                   : () => startCall(
-                context,
-                businessId: entry.businessId,
-                businessName: entry.businessName,
-              ),
+                        context,
+                        businessId: entry.businessId,
+                        businessName: entry.businessName,
+                      ),
               style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: Icon(Icons.phone, color: c.accentText),
             ),
@@ -317,14 +337,16 @@ class _HistoryCard extends ConsumerWidget {
               key: ValueKey('history-whatsapp-${entry.id}'),
               tooltip: offline
                   ? '${l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName)}, ${l10n.t('offline.label')}'
-                  : l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName),
+                  : l10n
+                      .t('history.whatsappAgain')
+                      .replaceAll('{name}', entry.businessName),
               onPressed: offline
                   ? null
                   : () => startWhatsapp(
-                context,
-                businessId: entry.businessId,
-                businessName: entry.businessName,
-              ),
+                        context,
+                        businessId: entry.businessId,
+                        businessName: entry.businessName,
+                      ),
               style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: Icon(Icons.chat_outlined, color: c.accentText),
             ),

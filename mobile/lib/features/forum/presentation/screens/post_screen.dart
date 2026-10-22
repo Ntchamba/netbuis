@@ -10,7 +10,10 @@ import '../../application/post_thread_controller.dart';
 import '../../application/post_time.dart';
 import '../../data/models/feed_post.dart';
 import '../../data/repositories/forum_feed_repository.dart';
+import '../../data/models/report.dart';
 import '../widgets/post_visuals.dart';
+import '../widgets/report_menu_button.dart';
+import '../widgets/report_sheet.dart';
 
 /// Page d'une publication (maquette Publication) : le commerce, le média, la légende,
 /// l'étiquette produit, les commentaires (suite chargée en bas de liste) et le champ pour écrire.
@@ -160,7 +163,20 @@ class _PostScreenState extends ConsumerState<PostScreen> {
           controller: _scroll,
           itemCount: 2 + (comments.isEmpty ? 1 : comments.length) + extra,
           itemBuilder: (context, i) {
-            if (i == 0) return _PostHeader(post: post, now: now);
+            if (i == 0) {
+              return _PostHeader(
+                post: post,
+                now: now,
+                offline: ref.watch(offlineProvider),
+                onReport: () => openReport(context,
+                    target: ReportTarget.post,
+                    id: post.id,
+                    // La publication signalée n'est plus montrée : on revient au fil.
+                    onRemoved: () {
+                      if (mounted && context.canPop()) context.pop();
+                    }),
+              );
+            }
             if (i == 1) {
               return Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -220,7 +236,13 @@ class _PostScreenState extends ConsumerState<PostScreen> {
             return Padding(
               padding: EdgeInsets.fromLTRB(
                   20, 0, 20, index == comments.length - 1 ? 20 : 14),
-              child: _CommentBubble(comment: comments[index], now: now),
+              child: _CommentBubble(
+                comment: comments[index],
+                now: now,
+                offline: ref.watch(offlineProvider),
+                onReport: () => openReport(context,
+                    target: ReportTarget.comment, id: comments[index].id),
+              ),
             );
           },
         );
@@ -314,10 +336,16 @@ class _PostScreenState extends ConsumerState<PostScreen> {
 }
 
 class _PostHeader extends StatelessWidget {
-  const _PostHeader({required this.post, required this.now});
+  const _PostHeader(
+      {required this.post,
+      required this.now,
+      required this.onReport,
+      required this.offline});
 
   final FeedPost post;
   final DateTime now;
+  final VoidCallback onReport;
+  final bool offline;
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +374,13 @@ class _PostHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!post.isMine)
+                ReportMenuButton(
+                  key: const ValueKey('post-report'),
+                  tooltip: l10n.t(
+                      offline ? 'report.post.offline' : 'report.post.action'),
+                  onPressed: offline ? null : onReport,
+                ),
             ],
           ),
         ),
@@ -374,10 +409,16 @@ class _PostHeader extends StatelessWidget {
 }
 
 class _CommentBubble extends StatelessWidget {
-  const _CommentBubble({required this.comment, required this.now});
+  const _CommentBubble(
+      {required this.comment,
+      required this.now,
+      required this.onReport,
+      required this.offline});
 
   final ForumComment comment;
   final DateTime now;
+  final VoidCallback onReport;
+  final bool offline;
 
   @override
   Widget build(BuildContext context) {
@@ -437,6 +478,13 @@ class _CommentBubble extends StatelessWidget {
               ],
             ),
           ),
+          if (!comment.isMine && !comment.pending)
+            ReportMenuButton(
+              key: ValueKey('comment-report-${comment.id}'),
+              tooltip: l10n.t(
+                  offline ? 'report.comment.offline' : 'report.comment.action'),
+              onPressed: offline ? null : onReport,
+            ),
         ],
       ),
     );

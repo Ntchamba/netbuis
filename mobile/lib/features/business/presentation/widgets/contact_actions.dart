@@ -1,5 +1,4 @@
-// Appeler (T052) et WhatsApp (T054) branchés ; Signaler présent mais désactivé (« Bientôt »).
-// T093 branche Signaler. Aucun numéro ici.
+// Appeler (T052), WhatsApp (T054) et Signaler (T093) branchés. Aucun numéro ici.
 import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/l10n.dart';
@@ -14,6 +13,7 @@ class ContactActions extends StatelessWidget {
     this.onWhatsapp,
     this.onReport,
     this.offline = false,
+    this.reported = false,
   });
 
   final String businessName;
@@ -25,6 +25,9 @@ class ContactActions extends StatelessWidget {
   final VoidCallback? onCall;
   final VoidCallback? onWhatsapp;
   final VoidCallback? onReport;
+
+  /// Vrai : ce commerce a déjà été signalé pendant cette session (« Déjà signalé », désactivé).
+  final bool reported;
 
   /// Hors connexion : Appeler et WhatsApp désactivés, avec « Hors connexion ».
   final bool offline;
@@ -67,17 +70,11 @@ class ContactActions extends StatelessWidget {
           onPressed: whatsappAvailable && !offline ? onWhatsapp : null,
         ),
         const SizedBox(height: 4),
-        TextButton.icon(
-          key: const Key('detail-report'),
-          onPressed: onReport,
-          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-          icon: const Icon(Icons.flag_outlined, size: 18),
-          label: Text(
-            onReport == null
-                ? '${l10n.t('business.detail.report')} · $soon'
-                : l10n.t('business.detail.report'),
-            style: TextStyle(color: onReport == null ? c.textSecondary : c.accentText),
-          ),
+        ReportBusinessButton(
+          buttonKey: const Key('detail-report'),
+          onReport: onReport,
+          reported: reported,
+          offline: offline,
         ),
       ],
     );
@@ -128,6 +125,43 @@ class _Action extends StatelessWidget {
               icon: Icon(icon, size: 18),
               label: child,
             ),
+    );
+  }
+}
+
+/// « Signaler ce commerce » (fiche publique et Historique) : devient « Déjà signalé » (désactivé)
+/// après un signalement, et reste désactivé avec « Hors connexion » sans réseau.
+class ReportBusinessButton extends StatelessWidget {
+  const ReportBusinessButton({
+    super.key,
+    required this.buttonKey,
+    required this.onReport,
+    this.reported = false,
+    this.offline = false,
+  });
+
+  final Key buttonKey;
+  final VoidCallback? onReport;
+  final bool reported;
+  final bool offline;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context);
+    final c = AppColors.of(context);
+    final enabled = !reported && !offline && onReport != null;
+    final label = reported
+        ? l10n.t('report.already')
+        : offline
+            ? '${l10n.t('business.detail.report')} · ${l10n.t('offline.label')}'
+            : l10n.t('business.detail.report');
+    return TextButton.icon(
+      key: buttonKey,
+      onPressed: enabled ? onReport : null,
+      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      icon: Icon(reported ? Icons.flag : Icons.flag_outlined, size: 18),
+      label: Text(label,
+          style: TextStyle(color: enabled ? c.accentText : c.textSecondary)),
     );
   }
 }

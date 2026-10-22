@@ -9,7 +9,10 @@ import '../../../business/application/business_controller.dart';
 import '../../../business/data/models/business.dart';
 import '../../application/comment_errors.dart';
 import '../../application/forum_feed_controller.dart';
+import '../../../search/application/offline_controller.dart';
+import '../../data/models/report.dart';
 import '../widgets/feed_post_card.dart';
+import '../widgets/report_sheet.dart';
 
 /// Onglet Forum (maquette Forum) : le fil des publications des commerçants de la ville choisie.
 /// Tirer pour rafraîchir, suite chargée en bas de liste, bouton « + » pour un compte business actif.
@@ -186,6 +189,7 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
         );
       case FeedStatus.results:
         final now = DateTime.now();
+        final offline = ref.watch(offlineProvider);
         final extra = state.loadingMore || state.loadMoreFailed ? 1 : 0;
         return RefreshIndicator(
           onRefresh: _refresh,
@@ -231,6 +235,9 @@ class _ForumScreenState extends ConsumerState<ForumScreen> {
                   post: post,
                   now: now,
                   onOpen: () => context.push(Routes.forumPostPath(post.id)),
+                  offline: offline,
+                  onReport: () => openReport(context,
+                      target: ReportTarget.post, id: post.id),
                 ),
               );
             },

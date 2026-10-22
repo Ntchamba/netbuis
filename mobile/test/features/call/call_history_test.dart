@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/network/dio_client.dart';
 import 'package:netbuis/features/call/application/call_history_controller.dart';
+import 'package:netbuis/features/forum/application/forum_services.dart';
+import 'package:netbuis/features/forum/data/models/report.dart';
+import 'package:netbuis/features/search/application/offline_controller.dart';
 import 'package:netbuis/features/call/data/models/call_history_entry.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository_api.dart';
@@ -15,6 +19,8 @@ import 'package:netbuis/features/call/presentation/screens/call_history_screen.d
 import '../account/account_test_helpers.dart';
 import '../auth/auth_test_helpers.dart';
 import '../business/business_submit_helpers.dart' show kApiUrl;
+import '../forum/forum_test_helpers.dart'
+    show ScriptedReportRepository, kAlreadyReported, kGone, kOwnContent;
 import 'call_test_helpers.dart';
 
 Map<String, Object?> _row(int id, {String type = 'call', String name = 'Chez Aminatou'}) => {
@@ -65,7 +71,7 @@ class _GatedHistory implements CallHistoryRepository {
 final _now = DateTime(2026, 10, 21, 12);
 
 Future<void> _pump(WidgetTester tester, CallHistoryRepository repo, FakeCallRepository calls,
-    FakeCallChannel channel) async {
+    FakeCallChannel channel, {List<Override> extra = const []}) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -74,6 +80,7 @@ Future<void> _pump(WidgetTester tester, CallHistoryRepository repo, FakeCallRepo
       ...callOverrides(channel, calls),
       callHistoryRepositoryProvider.overrideWithValue(repo),
       historyNowProvider.overrideWithValue(() => _now),
+      ...extra,
     ],
     child: testApp(const CallHistoryScreen()),
   ));
@@ -308,5 +315,143 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(CallHistoryScreen), findsNothing);
     expect(find.text('Mon profil'), findsOneWidget);
+  });
+
+  group('Signaler ce commerce (T093)', () {
+    CallHistoryEntry other() => CallHistoryEntry(
+          id: 2,
+          businessId: 6,
+          businessName: 'Atelier Ibrahim',
+          zone: 'Domayo',
+          date: DateTime(2026, 10, 19, 8, 0),
+          type: HistoryType.call,
+        );
+
+    Future<ScriptedReportRepository> open(WidgetTester tester,
+        {bool offline = false}) async {
+      final reports = ScriptedReportRepository();
+      final repo = _ScriptedHistory([
+        CallHistoryPage(count: 2, hasNext: false, results: [_entry(1), other()]),
+      ]);
+      await _pump(tester, repo, FakeCallRepository(), FakeCallChannel(),
+          extra: [reportRepositoryProvider.overrideWithValue(reports)]);
+      if (offline) {
+        ProviderScope.containerOf(tester.element(find.byType(Scaffold).first))
+            .read(offlineProvider.notifier)
+            .set(true);
+        await tester.pump();
+      }
+      return reports;
+    }
+
+    Future<void> tapKey(WidgetTester tester, Key key) async {
+      await tester.ensureVisible(find.byKey(key));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(key));
+      await tester.pumpAndSettle();
+    }
+
+    bool enabled(WidgetTester tester, String key) =>
+        tester.widget<TextButton>(find.byKey(ValueKey(key))).onPressed != null;
+
+    testWidgets(
+        'chaque ligne a « Signaler ce commerce » ; un motif envoie target_type=business ; merci puis « Déjà signalé » pour ce seul commerce',
+        (tester) async {
+      final reports = await open(tester);
+      expect(find.text('Signaler ce commerce'), findsNWidgets(2));
+      await tapKey(tester, const ValueKey('history-report-1'));
+      for (final label in ['Spam', 'Arnaque', 'Contenu inapproprié', 'Autre']) {
+        expect(find.text(label), findsOneWidget);
+      }
+      await tapKey(tester, const Key('report-reason-contenu_inapproprie'));
+
+      expect(reports.calls.single, (
+        target: ReportTarget.business,
+        id: 5,
+        reason: ReportReason.inapproprie
+      ));
+      expect(find.text('Merci, votre signalement a été envoyé.'), findsOneWidget);
+      expect(find.text('Déjà signalé'), findsOneWidget);
+      expect(enabled(tester, 'history-report-1'), isFalse);
+      // L'autre commerce reste signalable ; les boutons Rappeler restent là.
+      expect(enabled(tester, 'history-report-2'), isTrue);
+      expect(find.byKey(const ValueKey('history-recall-1')), findsOneWidget);
+    });
+
+    testWidgets('annuler : rien n\'est envoyé', (tester) async {
+      final reports = await open(tester);
+      await tapKey(tester, const ValueKey('history-report-2'));
+      await tapKey(tester, const Key('report-cancel'));
+      expect(reports.calls, isEmpty);
+      expect(enabled(tester, 'history-report-2'), isTrue);
+    });
+
+    testWidgets('409 : « Déjà signalé » sans erreur', (tester) async {
+      final reports = await open(tester);
+      reports.error = kAlreadyReported;
+      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const Key('report-reason-spam'));
+      expect(find.text('Vous avez déjà signalé ce contenu.'), findsOneWidget);
+      expect(enabled(tester, 'history-report-1'), isFalse);
+    });
+
+    testWidgets('own_content : message clair', (tester) async {
+      final reports = await open(tester);
+      reports.error = kOwnContent;
+      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const Key('report-reason-spam'));
+      expect(find.text('Vous ne pouvez pas signaler votre propre contenu.'),
+          findsOneWidget);
+      await tapKey(tester, const Key('report-close'));
+      expect(enabled(tester, 'history-report-1'), isTrue);
+    });
+
+    testWidgets('404 : « plus disponible »', (tester) async {
+      final reports = await open(tester);
+      reports.error = kGone;
+      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const Key('report-reason-autre'));
+      expect(find.text('Ce commerce n\'est plus disponible.'), findsOneWidget);
+      expect(enabled(tester, 'history-report-1'), isTrue);
+    });
+
+    testWidgets('réseau : message + Réessayer', (tester) async {
+      final reports = await open(tester);
+      reports.error = const ApiException(ApiErrorCode.network);
+      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const Key('report-reason-spam'));
+      expect(find.byKey(const Key('report-error')), findsOneWidget);
+      expect(find.text('Réessayer'), findsOneWidget);
+      reports.error = null;
+      ProviderScope.containerOf(tester.element(find.byType(Scaffold).first))
+          .read(offlineProvider.notifier)
+          .set(false);
+      await tapKey(tester, const Key('report-retry'));
+      expect(reports.calls.length, 2);
+      expect(enabled(tester, 'history-report-1'), isFalse);
+    });
+
+    testWidgets('double envoi impossible', (tester) async {
+      final reports = await open(tester);
+      reports.gate = Completer<void>();
+      await tapKey(tester, const ValueKey('history-report-1'));
+      await tester.tap(find.byKey(const Key('report-reason-spam')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('report-reason-spam')), warnIfMissed: false);
+      await tester.tap(find.byKey(const Key('report-reason-arnaque')), warnIfMissed: false);
+      await tester.pump();
+      expect(reports.calls.length, 1);
+      reports.gate!.complete();
+      await tester.pumpAndSettle();
+      expect(reports.calls.length, 1);
+    });
+
+    testWidgets('hors connexion : bouton désactivé avec « Hors connexion »',
+        (tester) async {
+      final reports = await open(tester, offline: true);
+      expect(enabled(tester, 'history-report-1'), isFalse);
+      expect(find.text('Signaler ce commerce · Hors connexion'), findsNWidgets(2));
+      expect(reports.calls, isEmpty);
+    });
   });
 }
