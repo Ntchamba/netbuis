@@ -129,3 +129,34 @@ jobs:
         run: |
           export PLAYWRIGHT_MODULE="$RUNNER_TEMP/pw/node_modules/playwright"
           node scripts/e2e_appel/bout_en_bout.mjs
+
+  apk:
+    name: APK Android (signature de débogage)
+    runs-on: ubuntu-latest
+    needs: [mobile]
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Construire l'APK (adresse du serveur fournie par un secret de dépôt)
+        env:
+          API_URL: ${{ secrets.NETBUIS_API_URL }}
+        run: flutter build apk --release --dart-define=API_URL="${API_URL:-https://exemple.invalide/api}"
+      - name: Taille de l'APK
+        run: ls -l build/app/outputs/flutter-apk/app-release.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: netbuis-apk-debug-signe
+          path: mobile/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14

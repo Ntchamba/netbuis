@@ -144,22 +144,25 @@
 
 | Fonctionnalité demandée | Tâches | Preuve (test / journal) | Statut |
 |---|---|---|---|
-| Barre de recherche : entrer le nom d'un produit | T040–T046 | | ☐ |
-| Liste des commerçants locaux qui ont ce produit (abonnés en premier) | T040, T041, T045 | | ☐ |
-| Recherche vocale | T041, T046 | | ☐ |
-| Appel téléphonique direct, ligne Orange / MTN, numéro jamais affiché | T050, T052, T057 | | ☐ |
-| Contact WhatsApp | T051, T054 | | ☐ |
-| Historique des appels | T051, T053 | | ☐ |
-| Exploration par ville / quartier (carte) | T060–T063 | | ☐ |
-| Compte par numéro de téléphone + code SMS | T006–T012 | | ☐ |
-| Compte business, 5 types, avec validation | T025–T036, T070–T083 | | ☐ |
-| Produits du commerçant | T037, T038 | | ☐ |
-| Forum : publications, commentaires, signalement, modération | T090–T096 | | ☐ |
-| Produits très sollicités sur le marché | T104–T106 | | ☐ |
-| Abonnements (accord manuel) et plafonds | T110–T113 | | ☐ |
-| Dashboard d'administration (demandes, comptes, rôles, audit, réglages, référentiels, export) | T070–T089, T074b, T074c | | ☐ |
-| Accessibilité (peu lecteurs) | T120 | | ☐ |
-| Sécurité, performances, tests de bout en bout, APK | T121–T124 | | ☐ |
+| Barre de recherche : entrer le nom d'un produit (et, depuis D-27, d'un commerce) | T040–T046, T041b | `backend/tests/e2e/test_flow_search.py`, `docs/verifications/T041.md`, `T041b.md` (< 300 ms sur 5 000 commerces : `T122-backend.md`), scénario mobile « recherche » (`T123-mobile.md`) | ✅ (essai sur téléphone : `RECETTE.md` §2) |
+| Liste des commerçants locaux qui ont ce produit (abonnés en premier) | T040, T041, T045 | `T041.md`, `T045.md`, test d'ordre « abonnés d'abord » (`test_name_search.py::test_09`) | ✅ |
+| Recherche vocale | T041, T046 | `T046.md`, `test_flow_search.py` (vocale), scénario mobile vocal | ⚠ micro réel à tester (`TESTS_JEFF.md` T046) |
+| ~~Appel téléphonique Orange / MTN~~ → **appel Jitsi vers l'équipe NetBuis, numéro jamais affiché** (D-25, D-30) | T050, T057, T130–T135 | `T131.md`, `T132.md`, `T132b.md`, `T133.md`, `T134.md` (serveur réel + navigateur, p95 60 ms), `backend/tests/e2e/test_flow_call.py`, `test_security_phone_leak.py` | ✅ automatisé ; ⚠ audio / Jitsi réel / téléphone (`RECETTE.md` §3) |
+| Contact WhatsApp | T051, T054 | `T054.md`, `POST /api/calls/whatsapp/` (`test_flow_call.py`), scénarios mobile WhatsApp | ⚠ ouverture de WhatsApp sur téléphone |
+| Historique des appels | T051, T053, T133 | `T053.md`, `T133.md`, `test_agent_api.py::test_historique_de_l_appelant…` | ✅ |
+| Exploration par ville / quartier (carte) | T060–T063 | `T060.md`–`T063.md`, `backend/tests/e2e/test_flow_map.py`, scénario mobile « carte » | ✅ (GPS reporté V05) |
+| Compte par numéro de téléphone + code SMS | T006–T012 | `backend/tests/e2e/test_flow_access.py`, scénarios mobile « accès » | ✅ (vrai SMS : fournisseur à brancher par Jeff) |
+| Compte business, 5 types, avec validation | T025–T036, T070–T083 | `test_flow_business_creation.py`, `T070.md`–`T083.md`, scénario mobile « création de commerce » | ✅ |
+| Produits du commerçant | T037, T038 | `T037.md`, `T038.md` | ✅ |
+| Forum : publications, commentaires, signalement, modération | T090–T096 | `T090.md`–`T096.md`, `test_flow_forum.py`, parcours « modération » du tableau de bord | ✅ |
+| Produits très sollicités sur le marché | T104–T106 | `T104.md`–`T106.md` | ✅ (données réelles de tendance : après usage) |
+| Abonnements (accord manuel) et plafonds | T110–T113 | `T110.md`–`T113.md` | ✅ |
+| Dashboard d'administration (demandes, comptes, rôles, audit, réglages, référentiels, export) | T070–T089, T074b, T074c, T132, T132b | `T123-dashboard.md` (35 parcours + essais navigateur), `test_flow_admin.py` | ✅ |
+| Accessibilité (peu lecteurs) | T120 | `T120.md`, `T120-accessibilite.md` | ⚠ à valider par Jeff (couleurs, lecture à voix haute) |
+| Sécurité | T121 | `T121-backend.md`, `T121-dashboard.md`, `T121-mobile.md`, `T121b.md` (0 ✘) | ✅ (⚠ points listés dans `A_RELIRE_PAR_JEFF.md`) |
+| Performances | T122 | `T122-backend.md`, `T122-mobile.md` | ✅ serveur ; ⚠ mobile à mesurer sur téléphone |
+| Tests de bout en bout + intégration continue | T123 | `T123-*.md`, `.github/workflows/ci.yml` | ✅ tests ; ⚠ le workflow n'a pas encore tourné sur GitHub |
+| APK | T124 | — | ✘ non construit ici (pas de SDK Android) : tâche `apk` du workflow ou construction par Jeff |
 | **Reporté** : paiements, déploiement, équipe/parrainage, commandes, notifications, impression, GPS | V01–V10 | — | ⏸ |
 
 ## Données `À REMPLACER` à fournir par Jeff
