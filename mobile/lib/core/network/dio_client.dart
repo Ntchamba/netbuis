@@ -1,6 +1,7 @@
 // Client Dio unique
 import 'package:dio/dio.dart';
 
+import '../config/env.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/refresh_interceptor.dart';
 
@@ -12,7 +13,7 @@ Dio buildDio(
     Future<RefreshOutcome> Function()? refreshSession}) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: ensureSecureApiUrl(baseUrl),
       connectTimeout: const Duration(seconds: 15),
       sendTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),

@@ -78,3 +78,10 @@ Pour atteindre le contraste 4,5:1 en thème clair, trois couleurs ont été ajou
 ## T132b — numéros pendant l'appel (D-30)
 - `backend/apps/calls/services/context_service.py`, `CallContextView` (views/agent.py), 2 tests ajoutés dans `backend/tests/test_security_phone_leak.py`. Seule route qui délivre les numéros ; lecture auditée (`consultation_numero`).
 - Le type « particulier / entreprise » affiché (`kind`) est à confirmer.
+
+## T121 — points ⚠ à décider (mobile et dashboard)
+- Sauvegarde Android coupée, trafic en clair interdit, HTTPS imposé en release (mobile/android, lib/core/config/env.dart).
+- Retrait des permissions caméra / téléphone / localisation (release, profile, debug) : à revérifier sur un vrai APK avec `aapt2 dump permissions` (le SDK Jitsi n'a pas pu être téléchargé ici).
+- Signature de release : clé de débogage pour l'instant → créer une vraie clé hors dépôt (T124).
+- Une erreur serveur (5xx) lors du rafraîchissement déconnecte l'utilisateur : à décider (attendre plutôt que déconnecter ?).
+- `has_diplome` côté serveur (dette) ; `geolocator` inutilisé dans pubspec ; `Retry-After` à exposer en CORS ; cookie de rafraîchissement si domaines différents.

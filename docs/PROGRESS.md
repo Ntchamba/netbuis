@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T121 (partie backend en cours ; reste du T121 repris après la phase 13)
-- **Prochaine tâche** : T121 (dashboard et mobile), puis T122
+- **Tâche en cours** : T121b
+- **Prochaine tâche** : T121b puis T122
 - **Dernière mise à jour** : 2026-10-22
 - **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
@@ -133,7 +133,8 @@
 | ✅ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | 2026-10-22 | docs/deployment/JITSI.md |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
-| 🔄 | T121 | Revue de sécurité (partie backend ✅ 2026-10-22 : docs/verifications/T121-backend.md, 1 551 tests, 23 ✔ 7 ⚠ 0 ✘ ; dashboard ✅ 2026-10-22 : docs/verifications/T121-dashboard.md, 312 tests, 16 ✔ 3 ⚠ 0 ✘ ; mobile à refaire après la phase 13) | a1 (backend), c3 (dashboard), b1 (mobile) | | |
+| ✅ | T121 | Revue de sécurité (backend 23 ✔ 7 ⚠ ; dashboard 16 ✔ 3 ⚠ ; mobile 23 ✔ 10 ⚠ ; aucun ✘ : docs/verifications/T121-*.md) | a1 (backend), c3 (dashboard), b1 (mobile) | 2026-10-22 | 1 651 serveur, 312 dashboard, 1 702 mobile. Points ⚠ pour Jeff dans A_RELIRE_PAR_JEFF.md |
+| ☐ | T121b | Mobile : valider le domaine Jitsi (comme le dashboard), traiter le code `throttled` (429) de la recherche | b3 / b2 | | |
 | ☐ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | | |
 | ☐ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | | |
 | ☐ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | |

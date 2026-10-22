@@ -114,8 +114,10 @@ class AuthController extends Notifier<AuthState> {
   /// Session fermée par le renouvellement : l'état change et la garde renvoie vers /login.
   void _onSessionRejected(ApiException? reason) {
     if (!ref.mounted) return;
+    // Les jetons sont déjà effacés : les mémoires disque du compte (fil, recherche) aussi,
+    // quelle que soit la raison (compte bloqué ou supprimé compris).
+    clearSessionData(ref);
     if (reason == null || reason.code == ApiErrorCode.tokenInvalid) {
-      clearSessionData(ref);
       state = const AuthLoggedOut();
     } else {
       state = _failure(reason, hasPendingCode: false);

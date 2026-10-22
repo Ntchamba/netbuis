@@ -1,4 +1,5 @@
 // Lecture des --dart-define (API_URL, USE_FAKE_API)
+import 'package:flutter/foundation.dart';
 
 /// Réglages fixés à la compilation (`--dart-define=API_URL=… --dart-define=USE_FAKE_API=true`).
 class Env {
@@ -25,4 +26,22 @@ class Env {
       String.fromEnvironment('SUPPORT_PHONE', defaultValue: toReplace);
   static const String supportEmail =
       String.fromEnvironment('SUPPORT_EMAIL', defaultValue: toReplace);
+}
+
+/// Vérifie l'adresse de l'API avant tout envoi (T121).
+///
+/// En **release** ([release] vaut `kReleaseMode`), seule une adresse `https://` avec un hôte et
+/// sans identifiants (`utilisateur:mot-de-passe@`) est acceptée : sinon [StateError] (sans
+/// afficher l'adresse). En débogage, `http://` reste permis (émulateur `10.0.2.2`, poste local).
+String ensureSecureApiUrl(String url, {bool release = kReleaseMode}) {
+  final uri = Uri.tryParse(url);
+  final valid = uri != null && uri.host.isNotEmpty && uri.userInfo.isEmpty;
+  final scheme = uri?.scheme;
+  if (!valid || (scheme != 'https' && scheme != 'http')) {
+    throw StateError('API_URL invalide');
+  }
+  if (release && scheme != 'https') {
+    throw StateError('API_URL doit être en https en version de production');
+  }
+  return url;
 }
