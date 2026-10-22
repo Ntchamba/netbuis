@@ -59,6 +59,7 @@ ROUTES: dict[tuple[str, str], str | None] = {
     ("post", "calls/sessions/<uuid:pk>/accept/"): r.REPONDRE_APPELS,
     ("post", "calls/sessions/<uuid:pk>/decline/"): r.REPONDRE_APPELS,
     ("post", "calls/sessions/<uuid:pk>/end/"): r.REPONDRE_APPELS,
+    ("get", "calls/sessions/<uuid:pk>/context/"): r.REPONDRE_APPELS,
     ("get", "forbidden-words/"): r.MODERER_CONTENU,
     ("post", "forbidden-words/"): r.MODERER_CONTENU,
     ("delete", "forbidden-words/<int:pk>/"): r.MODERER_CONTENU,
@@ -74,6 +75,10 @@ for _slug in REF_SLUGS:
 
 # Flux SSE (T131) : réponse sans fin, jamais lue en entier par les parcours « toutes les GET ».
 STREAMS = {"calls/stream/"}
+
+# Fiche de l'appel en cours (T132b, D-30) : ne répond 200 qu'à l'agent qui a répondu, appel en
+# cours. Hors parcours « 200 + schéma » ; couverte par apps/calls/tests/test_context.py.
+NEEDS_ANSWERED_CALL = {"calls/sessions/<uuid:pk>/context/"}
 
 # Seule route admin autorisée à renvoyer un numéro complet (Administrateur complet seulement).
 FULL_NUMBER_EXCEPTIONS = {"accounts/<int:pk>/"}

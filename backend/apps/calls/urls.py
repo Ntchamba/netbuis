@@ -26,6 +26,8 @@ urlpatterns = [
     path("admin/calls/presence/", agent.PresenceView.as_view(), name="admin-calls-presence"),
     path("admin/calls/sessions/<uuid:pk>/accept/", agent.AcceptView.as_view(),
          name="admin-calls-accept"),
+    path("admin/calls/sessions/<uuid:pk>/context/", agent.CallContextView.as_view(),
+         name="admin-calls-context"),
     path("admin/calls/sessions/<uuid:pk>/decline/", agent.DeclineView.as_view(),
          name="admin-calls-decline"),
     path("admin/calls/sessions/<uuid:pk>/end/", agent.AgentEndView.as_view(),

@@ -74,3 +74,7 @@ Pour atteindre le contraste 4,5:1 en thème clair, trois couleurs ont été ajou
 ## T131 — appels Jitsi (backend)
 - `apps/calls/services/session_service.py` (transitions atomiques, une session active par appelant), `jitsi.py` (jeton), droit `peut_repondre_aux_appels`, absence de numéro dans flux/liste/historique, route `POST /api/calls/whatsapp/`.
 - À trancher : JaaS signe en RS256 (pas HS256) — voir D-28.
+
+## T132b — numéros pendant l'appel (D-30)
+- `backend/apps/calls/services/context_service.py`, `CallContextView` (views/agent.py), 2 tests ajoutés dans `backend/tests/test_security_phone_leak.py`. Seule route qui délivre les numéros ; lecture auditée (`consultation_numero`).
+- Le type « particulier / entreprise » affiché (`kind`) est à confirmer.

@@ -271,7 +271,7 @@ def test_les_routes_no_store_existent_dans_le_registre():
 # --- (f) la forme réelle des réponses GET = les `properties` du schéma openapi.yaml ------
 
 # Réponses qui ne sont pas du JSON objet/liste (fichier) : rien à comparer.
-NON_JSON = {"export/accounts.csv", "private-files/<str:token>/"} | c.STREAMS
+NON_JSON = {"export/accounts.csv", "private-files/<str:token>/"} | c.STREAMS | c.NEEDS_ANSWERED_CALL
 
 
 def _resolve(spec, schema):

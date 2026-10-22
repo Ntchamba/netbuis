@@ -239,3 +239,64 @@ def test_detail_de_compte_admin_est_la_seule_exception_et_elle_est_auditee(world
     masked = client_of(validator).get(f"/api/admin/accounts/{target.pk}/")
     assert masked.status_code == 200
     assert national(target.phone) not in SEPARATORS.sub("", masked.content.decode())
+
+
+# --- T132b / D-30 : la fiche de l'appel en cours est la SEULE route d'appel qui donne les numéros
+
+
+def _schema_has_phone(spec, node, seen=()):
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if ref:
+            if ref in seen:
+                return False
+            return _schema_has_phone(
+                spec, spec["components"]["schemas"][ref.rsplit("/", 1)[1]], seen + (ref,))
+        if "phone" in node.get("properties", {}):
+            return True
+        return any(_schema_has_phone(spec, v, seen) for v in node.values())
+    if isinstance(node, list):
+        return any(_schema_has_phone(spec, v, seen) for v in node)
+    return False
+
+
+def test_le_contrat_n_autorise_que_la_fiche_d_appel_a_porter_un_numero_dans_les_routes_d_appel():
+    spec = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    carrying = set()
+    for path, item in spec["paths"].items():
+        if not path.startswith(("/api/calls/", "/api/admin/calls/")):
+            continue
+        for operation in item.values():
+            if isinstance(operation, dict) and _schema_has_phone(
+                    spec, operation.get("responses", {})):
+                carrying.add(path)
+    assert carrying == {"/api/admin/calls/sessions/{id}/context/"}
+
+
+def test_parcours_des_routes_d_appel_les_numeros_ne_sortent_que_de_la_fiche(world, settings):
+    settings.JITSI_DOMAIN, settings.JITSI_APP_ID = "jitsi.example.test", "netbuis-test"
+    settings.JITSI_JWT_SECRET = secrets.token_urlsafe(48)
+    shop = world["active"][0]
+    caller = client_of(world["viewer"])
+    agent = make_agent()
+    agent_client = client_of(agent)
+    session_id = caller.post("/api/calls/sessions/", {"business_id": shop.pk},
+                             format="json").json()["session_id"]
+    assert agent_client.post(f"/api/admin/calls/sessions/{session_id}/accept/").status_code == 200
+    numbers = {national(shop.phone_anchor), national(world["viewer"].phone)}
+    routes = [
+        ("/api/admin/calls/", agent_client), ("/api/calls/history/", caller),
+        (f"/api/calls/sessions/{session_id}/", caller),
+        (f"/api/admin/calls/sessions/{session_id}/context/", agent_client),
+    ]
+    carrying = []
+    for route, client in routes:
+        response = client.get(route)
+        assert response.status_code == 200, route
+        if leaks(response.content.decode(), numbers):
+            carrying.append(route)
+    assert carrying == [f"/api/admin/calls/sessions/{session_id}/context/"]
+    # Un autre agent, y compris Administrateur complet, ne lit rien.
+    other = make_agent(group="Administrateur complet")
+    refused = client_of(other).get(f"/api/admin/calls/sessions/{session_id}/context/")
+    assert refused.status_code == 404 and not leaks(refused.content.decode(), numbers)

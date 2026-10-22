@@ -838,6 +838,44 @@ paths:
           description: non connecté
         '403':
           description: droit « répondre aux appels » absent
+  /api/admin/calls/sessions/{id}/context/:
+    get:
+      operationId: admin_calls_context
+      description: 'Fiche de l''appel en cours (D-30) : appelant et commerce visé,
+        AVEC les numéros de téléphone. Seule route qui les renvoie. Réservée à l''agent
+        qui a répondu, tant que l''appel est `answered` ; chaque lecture est comptée
+        sur la session et notée dans le journal serveur sans numéro. Jamais mise en
+        cache.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin-calls
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallContext'
+          description: ''
+        '404':
+          description: 'not_found : appel inconnu ou répondu par un autre agent'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: 'call_not_answered : appel pas (ou plus) en cours'
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
   /api/admin/calls/sessions/{id}/decline/:
     post:
       operationId: admin_calls_decline
@@ -7070,9 +7108,16 @@ components:
           type: integer
         name:
           type: string
+        type_label:
+          type: string
+          description: Type de compte en clair (« Entreprise »…).
+        kind:
+          $ref: '#/components/schemas/KindEnum'
       required:
       - id
+      - kind
       - name
+      - type_label
     BusinessProfile:
       type: object
       properties:
@@ -7416,6 +7461,26 @@ components:
       - days
       - since
       - total_calls
+    CallContext:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          description: Toujours `answered`.
+        caller:
+          $ref: '#/components/schemas/ContextCaller'
+        business:
+          allOf:
+          - $ref: '#/components/schemas/ContextBusiness'
+          nullable: true
+      required:
+      - business
+      - caller
+      - session_id
+      - state
     CallError:
       type: object
       properties:
@@ -7519,6 +7584,149 @@ components:
           maxLength: 300
       required:
       - text
+    ContextBusiness:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type_compte:
+          type: string
+        type_label:
+          type: string
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        phone:
+          type: string
+          description: Numéro du commerce visé (E.164). Agent qui a répondu seulement
+            (D-30).
+        owner_name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        sous_categories:
+          type: array
+          items:
+            type: string
+        zone_name:
+          type: string
+        zone_parent_name:
+          type: string
+          nullable: true
+        repere:
+          type: string
+        description:
+          type: string
+        representant_nom:
+          type: string
+        forme_juridique:
+          type: string
+        rccm:
+          type: string
+        photo_url:
+          type: string
+          nullable: true
+        representant_photo_url:
+          type: string
+          nullable: true
+        status:
+          type: string
+        cni_verifiee:
+          type: boolean
+        motif_rejet:
+          type: string
+        subscription:
+          $ref: '#/components/schemas/ContextSubscription'
+        reports_count:
+          type: integer
+        whatsapp_reports_count:
+          type: integer
+        calls_count:
+          type: integer
+        views_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextHistory'
+      required:
+      - calls_count
+      - category
+      - cni_verifiee
+      - created_at
+      - description
+      - forme_juridique
+      - history
+      - id
+      - kind
+      - motif_rejet
+      - name
+      - owner_name
+      - phone
+      - photo_url
+      - rccm
+      - repere
+      - reports_count
+      - representant_nom
+      - representant_photo_url
+      - sous_categories
+      - status
+      - subscription
+      - type_compte
+      - type_label
+      - views_count
+      - whatsapp_reports_count
+      - zone_name
+      - zone_parent_name
+    ContextCaller:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          description: Numéro de l'appelant (E.164). Agent qui a répondu seulement
+            (D-30).
+      required:
+      - name
+      - phone
+    ContextHistory:
+      type: object
+      properties:
+        action:
+          type: string
+        label:
+          type: string
+        reason:
+          type: string
+        admin_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - action
+      - admin_name
+      - created_at
+      - label
+      - reason
+    ContextSubscription:
+      type: object
+      properties:
+        active:
+          type: boolean
+        end:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - active
+      - end
     CuisineEnum:
       enum:
       - camerounaise
@@ -7783,6 +7991,14 @@ components:
       - domain
       - jwt
       - room
+    KindEnum:
+      enum:
+      - entreprise
+      - particulier
+      type: string
+      description: |-
+        * `entreprise` - entreprise
+        * `particulier` - particulier
     LanguageEnum:
       enum:
       - fr

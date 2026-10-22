@@ -504,3 +504,137 @@ describe("ErrorBoundary", () => {
     expect(div.textContent).toBe("ok");
   });
 });
+
+// ---- T132b : fiche du commerce visé pendant l'appel (D-30) ----
+const FICHE_PHONES = { business: "+237600000001", caller: "+237600000002" };
+const RINGING_TYPED = { ...RINGING, business: { id: 7, name: "Boutique Test", type_label: "Entreprise", kind: "entreprise" } };
+const CARD = {
+  id: 7, name: "Boutique Test", type_compte: "entreprise", type_label: "Entreprise", kind: "entreprise",
+  phone: FICHE_PHONES.business, owner_name: "Mme Ngo", category: "Alimentation", sous_categories: ["Riz"],
+  zone_name: "Domayo", zone_parent_name: "Maroua", repere: "Près du marché", description: "Vente de riz.",
+  representant_nom: "Mme Ngo", forme_juridique: "SARL", rccm: "RC/MAR/1", photo_url: null, representant_photo_url: null,
+  status: "actif", cni_verifiee: true, motif_rejet: "", subscription: { active: true, end: "2027-01-01T00:00:00Z" },
+  reports_count: 2, whatsapp_reports_count: 1, calls_count: 5, views_count: 40, created_at: "2026-01-01T00:00:00Z",
+  history: [{ action: "validation_business", label: "Validation du compte", reason: "", admin_name: "Chef", created_at: "2026-01-02T10:00:00Z" }],
+};
+
+describe("fiche du commerce visé", () => {
+  const context = (business: unknown) => ({ session_id: RINGING.session_id, state: "answered", caller: { name: "Awa", phone: FICHE_PHONES.caller }, business });
+  const handler = (ctx: () => Reply) => (c: Call): Reply | undefined => {
+    if (c.url.endsWith("/accept/")) return { status: 200, data: { session_id: RINGING.session_id, caller_name: "Awa", business: RINGING_TYPED.business, jitsi: JITSI } };
+    if (c.url.endsWith("/end/")) return { status: 200, data: { session_id: RINGING.session_id, state: "ended" } };
+    if (c.url.endsWith("/context/")) return ctx();
+    return undefined;
+  };
+  const answer = async () => {
+    lastStream().push(sse("ringing", RINGING_TYPED));
+    await wait();
+    await click(byText(dialog()!, "button", "Répondre"));
+    await wait();
+  };
+  const fiche = () => document.querySelector('[data-testid="call-fiche"]');
+  const contextCalls = () => calls.filter((c) => c.method === "get" && c.url.endsWith("/context/"));
+
+  test("la fenêtre d'appel entrant indique le type du commerce ; aucun numéro, aucune requête de fiche avant de répondre", async () => {
+    server(PERMS, handler(() => ({ status: 200, data: context(CARD) })));
+    await mount();
+    lastStream().push(sse("ringing", RINGING_TYPED));
+    await wait();
+    expect(dialog()!.textContent).toContain("Boutique Test");
+    expect(dialog()!.textContent).toContain("Entreprise");
+    expect(dialog()!.textContent).not.toContain("600000001");
+    expect(contextCalls()).toHaveLength(0);
+  });
+
+  test("dans la salle : nom et type du commerce visé, bouton « Voir la fiche », rien n'est chargé avant le clic", async () => {
+    server(PERMS, handler(() => ({ status: 200, data: context(CARD) })));
+    await mount();
+    await answer();
+    const target = room()!.querySelector('[data-testid="call-target"]')!;
+    expect(target.textContent).toContain("Boutique Test");
+    expect(target.textContent).toContain("Entreprise");
+    expect(byText(target, "button", "Voir la fiche")).not.toBeNull();
+    expect(fiche()).toBeNull();
+    expect(contextCalls()).toHaveLength(0);
+    expect(document.body.textContent).not.toContain("600 000 001");
+  });
+
+  test("Voir la fiche : panneau latéral avec fiche complète et les deux numéros ; la salle et l'appel restent en cours", async () => {
+    server(PERMS, handler(() => ({ status: 200, data: context(CARD) })));
+    await mount();
+    await answer();
+    const disposedBefore = jitsi.disposed;
+    await click(byText(room()!, "button", "Voir la fiche"));
+    await wait();
+    const panel = fiche()!;
+    expect(panel).not.toBeNull();
+    expect(panel.querySelector('[data-testid="phone-business"]')!.textContent).toBe("+237 600 000 001");
+    expect(panel.querySelector('[data-testid="phone-caller"]')!.textContent).toBe("+237 600 000 002");
+    for (const text of ["Entreprise", "Mme Ngo", "Alimentation", "Domayo, Maroua", "Près du marché", "Vente de riz.", "Actif", "Vérifiée", "Abonné jusqu'au", "Validation du compte"]) {
+      expect(panel.textContent).toContain(text);
+    }
+    expect(panel.textContent).toMatch(/Signalements\s*2/);
+    expect(room()).not.toBeNull();
+    expect(jitsi.created).toHaveLength(1); // la salle n'est pas rechargée
+    expect(jitsi.disposed).toBe(disposedBefore);
+    expect(posts("/end/")).toHaveLength(0);
+    expect(contextCalls()).toHaveLength(1);
+    await click(byText(panel, "button", "Fermer la fiche"));
+    await wait();
+    expect(fiche()).toBeNull();
+    expect(room()).not.toBeNull();
+  });
+
+  test("raccrocher ferme la fiche ; les numéros ne restent ni dans la page, ni dans le stockage, ni dans la console", async () => {
+    const spies = (["log", "info", "warn", "error", "debug"] as const).map((m) => vi.spyOn(console, m));
+    server(PERMS, handler(() => ({ status: 200, data: context(CARD) })));
+    await mount();
+    await answer();
+    await click(byText(room()!, "button", "Voir la fiche"));
+    await wait();
+    const stored = () => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage });
+    for (const n of ["600000001", "600000002", "600 000 001"]) expect(stored()).not.toContain(n);
+    await click(byText(room()!, "button", "Raccrocher"));
+    await wait();
+    expect(fiche()).toBeNull();
+    expect(document.body.textContent).not.toContain("600 000 001");
+    expect(document.body.textContent).not.toContain("600 000 002");
+    for (const n of ["600000001", "600000002"]) expect(stored()).not.toContain(n);
+    for (const s of spies) expect(s).not.toHaveBeenCalled();
+  });
+
+  test("fiche refusée par le serveur (409) : message clair, l'appel continue, on peut réessayer", async () => {
+    let status = 409;
+    server(PERMS, handler(() => (status === 409 ? { status: 409, data: { code: "call_not_answered", message: "x" } } : { status: 200, data: context(CARD) })));
+    await mount();
+    await answer();
+    await click(byText(room()!, "button", "Voir la fiche"));
+    await wait();
+    expect(fiche()!.textContent).toContain("Impossible de charger la fiche. L'appel continue.");
+    expect(fiche()!.textContent).not.toContain("600000001");
+    expect(room()).not.toBeNull();
+    status = 200;
+    await click(byText(fiche()!, "button", "Réessayer"));
+    await wait();
+    expect(fiche()!.querySelector('[data-testid="phone-business"]')).not.toBeNull();
+  });
+
+  test("appel sans commerce visé : message clair, pas de bouton « Voir la fiche », numéro de l'appelant seulement", async () => {
+    server(PERMS, (c) => {
+      if (c.url.endsWith("/accept/")) return { status: 200, data: { session_id: RINGING.session_id, caller_name: "Awa", business: null, jitsi: JITSI } };
+      if (c.url.endsWith("/context/")) return { status: 200, data: context(null) };
+      return undefined;
+    });
+    await mount();
+    lastStream().push(sse("ringing", { ...RINGING, business: null }));
+    await wait();
+    expect(dialog()!.textContent).toContain("Appel sans commerce précisé");
+    await click(byText(dialog()!, "button", "Répondre"));
+    await wait();
+    const target = room()!.querySelector('[data-testid="call-target"]')!;
+    expect(target.textContent).toContain("Appel sans commerce précisé : aucune fiche à afficher.");
+    expect(Array.from(room()!.querySelectorAll("button")).some((b) => b.textContent?.includes("fiche"))).toBe(false);
+    expect(target.querySelector('[data-testid="phone-caller"]')!.textContent).toBe("+237 600 000 002");
+    expect(fiche()).toBeNull();
+  });
+});

@@ -35,6 +35,7 @@ export function IncomingCallDialog({ call, others, inCall, busy, onAccept, onDec
 
   const left = secondsLeft(call, now);
   const subject = call.business ? `Appel au sujet de ${call.business.name}` : "Appel sans commerce précisé";
+  const kind = call.business?.type_label;
 
   return (
     <div
@@ -53,6 +54,7 @@ export function IncomingCallDialog({ call, others, inCall, busy, onAccept, onDec
         </h2>
         <p id="incoming-call-desc" className="mt-1 text-[13px] text-ink-2">
           {subject}
+          {kind && <span className="ml-1 rounded-full border border-line px-2 py-0.5 text-[11px] font-bold text-ink-2">{kind}</span>}
         </p>
         {left !== null && (
           <p className="mt-2 text-[12.5px] font-semibold text-ink-2">

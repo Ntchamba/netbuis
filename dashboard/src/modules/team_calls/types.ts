@@ -6,6 +6,9 @@ export type CallState = "ringing" | "answered" | "ended" | "missed" | "declined"
 export interface BusinessContext {
   id: number;
   name: string;
+  /** Type de compte en clair (« Entreprise », « Particulier vendeur »…). Absent des anciens serveurs. */
+  type_label?: string;
+  kind?: "entreprise" | "particulier";
 }
 
 /** Événement `ringing` du flux : ni numéro, ni salle, ni jeton. */
@@ -77,3 +80,42 @@ export type CallFilter = "all" | "missed" | "answered";
 export const CALLS_PAGE_SIZE = 20;
 
 export type StreamStatus = "off" | "connecting" | "open" | "reconnecting" | "forbidden";
+
+/** Fiche de l'appel en cours (GET .../context/) : SEULE réponse qui porte des numéros (D-30). Jamais stockée. */
+export interface CallContext {
+  session_id: string;
+  state: CallState;
+  caller: { name: string; phone: string };
+  business: BusinessCard | null;
+}
+
+export interface BusinessCard {
+  id: number;
+  name: string;
+  type_compte: string;
+  type_label: string;
+  kind: "entreprise" | "particulier";
+  phone: string;
+  owner_name: string;
+  category: string | null;
+  sous_categories: string[];
+  zone_name: string;
+  zone_parent_name: string | null;
+  repere: string;
+  description: string;
+  representant_nom: string;
+  forme_juridique: string;
+  rccm: string;
+  photo_url: string | null;
+  representant_photo_url: string | null;
+  status: string;
+  cni_verifiee: boolean;
+  motif_rejet: string;
+  subscription: { active: boolean; end: string | null };
+  reports_count: number;
+  whatsapp_reports_count: number;
+  calls_count: number;
+  views_count: number;
+  created_at: string;
+  history: Array<{ action: string; label: string; reason: string; admin_name: string; created_at: string }>;
+}

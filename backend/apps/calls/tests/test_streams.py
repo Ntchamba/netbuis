@@ -107,7 +107,9 @@ def test_aucun_numero_salle_ni_jeton_dans_les_evenements():
         stream = await Stream(agent).open()
         started = (await post(caller, profile.pk)).json()
         event = await stream.wait_for("ringing", session_id=started["session_id"])
-        assert event["business"] == {"id": profile.pk, "name": "Chez Riz"}
+        assert event["business"] == {"id": profile.pk, "name": "Chez Riz",
+                                     "type_label": profile.get_type_compte_display(),
+                                     "kind": "entreprise"}
         text = str(event)
         for secret in (started["jitsi"]["room"], started["jitsi"]["jwt"], caller_user.phone,
                        profile.phone_anchor):

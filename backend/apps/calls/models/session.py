@@ -68,6 +68,13 @@ class CallSession(models.Model):
     expires_at = models.DateTimeField("fin de sonnerie", null=True, blank=True)
     answered_at = models.DateTimeField("réponse", null=True, blank=True)
     ended_at = models.DateTimeField("fin", null=True, blank=True)
+    context_views = models.PositiveSmallIntegerField(
+        "lectures de la fiche", default=0, editable=False,
+        help_text="Nombre de fois où l'agent a ouvert la fiche (D-30, T132b) : trace de lecture.",
+    )
+    context_viewed_at = models.DateTimeField(
+        "dernière lecture de la fiche", null=True, blank=True, editable=False,
+    )
 
     class Meta:
         verbose_name = "session d'appel"

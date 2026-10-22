@@ -1,5 +1,5 @@
 import { api } from "../../api/client";
-import type { AcceptResponse, AgentCallPage, CallFilter } from "./types";
+import type { AcceptResponse, AgentCallPage, CallContext, CallFilter } from "./types";
 import { CALLS_PAGE_SIZE } from "./types";
 
 const BASE = "/api/admin/calls/";
@@ -21,6 +21,11 @@ export async function declineCall(id: string): Promise<void> {
 
 export async function endCall(id: string): Promise<void> {
   await api.post(`${BASE}sessions/${id}/end/`, {});
+}
+
+/** Fiche de l'appel en cours, avec les numéros (agent qui a répondu, appel `answered`). Jamais en cache HTTP. */
+export async function fetchCallContext(id: string): Promise<CallContext> {
+  return (await api.get<CallContext>(`${BASE}sessions/${id}/context/`)).data;
 }
 
 const STATES: Record<CallFilter, string | null> = { all: null, missed: "missed,declined", answered: "answered,ended" };

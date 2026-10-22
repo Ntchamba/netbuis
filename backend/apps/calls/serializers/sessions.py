@@ -40,6 +40,8 @@ class SessionStateSerializer(serializers.ModelSerializer):
 class BusinessContextSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
+    type_label = serializers.CharField(help_text="Type de compte en clair (« Entreprise »…).")
+    kind = serializers.ChoiceField(choices=["entreprise", "particulier"])
 
 
 class AcceptResponseSerializer(serializers.Serializer):
@@ -101,3 +103,61 @@ class CallErrorSerializer(serializers.Serializer):
     code = serializers.CharField()
     message = serializers.CharField()
     session_id = serializers.UUIDField(required=False)
+
+
+class ContextCallerSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    phone = serializers.CharField(
+        help_text="Numéro de l'appelant (E.164). Agent qui a répondu seulement (D-30).")
+
+
+class ContextHistorySerializer(serializers.Serializer):
+    action = serializers.CharField()
+    label = serializers.CharField()
+    reason = serializers.CharField()
+    admin_name = serializers.CharField()
+    created_at = serializers.DateTimeField()
+
+
+class ContextSubscriptionSerializer(serializers.Serializer):
+    active = serializers.BooleanField()
+    end = serializers.DateTimeField(allow_null=True)
+
+
+class ContextBusinessSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    type_compte = serializers.CharField()
+    type_label = serializers.CharField()
+    kind = serializers.ChoiceField(choices=["entreprise", "particulier"])
+    phone = serializers.CharField(
+        help_text="Numéro du commerce visé (E.164). Agent qui a répondu seulement (D-30).")
+    owner_name = serializers.CharField()
+    category = serializers.CharField(allow_null=True)
+    sous_categories = serializers.ListField(child=serializers.CharField())
+    zone_name = serializers.CharField()
+    zone_parent_name = serializers.CharField(allow_null=True)
+    repere = serializers.CharField()
+    description = serializers.CharField()
+    representant_nom = serializers.CharField()
+    forme_juridique = serializers.CharField()
+    rccm = serializers.CharField()
+    photo_url = serializers.CharField(allow_null=True)
+    representant_photo_url = serializers.CharField(allow_null=True)
+    status = serializers.CharField()
+    cni_verifiee = serializers.BooleanField()
+    motif_rejet = serializers.CharField()
+    subscription = ContextSubscriptionSerializer()
+    reports_count = serializers.IntegerField()
+    whatsapp_reports_count = serializers.IntegerField()
+    calls_count = serializers.IntegerField()
+    views_count = serializers.IntegerField()
+    created_at = serializers.DateTimeField()
+    history = ContextHistorySerializer(many=True)
+
+
+class CallContextSerializer(serializers.Serializer):
+    session_id = serializers.UUIDField()
+    state = serializers.CharField(help_text="Toujours `answered`.")
+    caller = ContextCallerSerializer()
+    business = ContextBusinessSerializer(allow_null=True)

@@ -11,12 +11,13 @@ from apps.calls.models import CallSession, SessionState
 from apps.calls.serializers.sessions import (
     AcceptResponseSerializer,
     AgentCallSerializer,
+    CallContextSerializer,
     CallErrorSerializer,
     PresenceRequestSerializer,
     PresenceResponseSerializer,
     SessionStateSerializer,
 )
-from apps.calls.services import events, presence, session_service, streams
+from apps.calls.services import context_service, events, presence, session_service, streams
 from apps.calls.views.mixins import EventStreamNegotiation, ExtraErrorFieldsMixin, NoStoreMixin
 
 CanAnswerCalls = require(REPONDRE_APPELS)
@@ -96,7 +97,7 @@ class AcceptView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
         business = session.business
         body = {
             "session_id": session.id, "caller_name": events.caller_display_name(session.caller),
-            "business": {"id": business.pk, "name": business.name} if business else None,
+            "business": events.business_ref(business),
             "jitsi": result["jitsi"],
         }
         return Response(AcceptResponseSerializer(body).data)
@@ -132,6 +133,29 @@ class AgentEndView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
     def post(self, request, pk):
         session = session_service.end_by_agent(request.user, pk)
         return Response(SessionStateSerializer(session).data)
+
+
+class CallContextView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
+    permission_classes = [CanAnswerCalls]
+
+    @extend_schema(
+        operation_id="admin_calls_context", tags=["admin-calls"],
+        responses={200: CallContextSerializer,
+                   404: OpenApiResponse(description="not_found : appel inconnu ou répondu par "
+                                                    "un autre agent"),
+                   409: OpenApiResponse(CallErrorSerializer,
+                                        description="call_not_answered : appel pas (ou plus) en "
+                                                    "cours"),
+                   **_ERRORS},
+        description=(
+            "Fiche de l'appel en cours (D-30) : appelant et commerce visé, AVEC les numéros de "
+            "téléphone. Seule route qui les renvoie. Réservée à l'agent qui a répondu, tant que "
+            "l'appel est `answered` ; chaque lecture est comptée sur la session et notée dans "
+            "le journal serveur sans numéro. Jamais mise en cache."
+        ),
+    )
+    def get(self, request, pk):
+        return Response(CallContextSerializer(context_service.read_context(request.user, pk)).data)
 
 
 class AgentCallListView(NoStoreMixin, ListAPIView):

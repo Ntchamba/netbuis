@@ -1,17 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Spinner } from "../../../components/ui";
+import { useCallContext } from "../hooks";
 import { buildOptions, loadJitsiApi, type JitsiApi } from "../jitsi";
+import { formatPhone } from "./CallFichePanel";
 import type { ActiveCall } from "../types";
 
 interface Props {
   call: ActiveCall;
   onHangUp: () => void;
+  /** La fiche du commerce visé est ouverte à côté de la salle. */
+  ficheOpen: boolean;
+  onToggleFiche: () => void;
 }
 
 type RoomState = "loading" | "ready" | "error";
 
 /** Salle Jitsi intégrée (audio, vidéo coupée). Le domaine, la salle et le jeton viennent de l'API. */
-export function CallRoom({ call, onHangUp }: Props) {
+export function CallRoom({ call, onHangUp, ficheOpen, onToggleFiche }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const apiRef = useRef<JitsiApi | null>(null);
   const hangUpRef = useRef(onHangUp);
@@ -46,7 +51,8 @@ export function CallRoom({ call, onHangUp }: Props) {
     };
   }, [call.jitsi, attempt]);
 
-  const subject = call.business ? ` · ${call.business.name}` : "";
+  const business = call.business;
+  const caller = useCallContext(call.sessionId, !business); // sans commerce : seulement le numéro de l'appelant
   return (
     <section
       aria-label="Appel en cours"
@@ -56,12 +62,34 @@ export function CallRoom({ call, onHangUp }: Props) {
       <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
         <div className="min-w-0">
           <p className="truncate text-[13.5px] font-extrabold">{call.callerName}</p>
-          <p className="truncate text-[12px] text-ink-2">Appel en cours{subject}</p>
+          <p className="truncate text-[12px] text-ink-2">Appel en cours</p>
         </div>
         <Button variant="danger" className="min-h-11 shrink-0" onClick={onHangUp}>
           Raccrocher
         </Button>
       </header>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2" data-testid="call-target">
+        {business ? (
+          <>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-bold">{business.name}</p>
+              <p className="truncate text-[11.5px] text-ink-2">{business.type_label ?? "Commerce visé"}</p>
+            </div>
+            <Button variant="secondary" className="min-h-11 shrink-0" aria-expanded={ficheOpen} onClick={onToggleFiche}>
+              {ficheOpen ? "Fermer la fiche" : "Voir la fiche"}
+            </Button>
+          </>
+        ) : (
+          <div className="min-w-0 text-[12.5px] text-ink-2">
+            <p>Appel sans commerce précisé : aucune fiche à afficher.</p>
+            {caller.data && (
+              <p className="mt-0.5 text-ink">
+                Numéro de l'appelant : <span data-testid="phone-caller">{formatPhone(caller.data.caller.phone)}</span>
+              </p>
+            )}
+          </div>
+        )}
+      </div>
       <div className="relative min-h-0 flex-1 bg-bg">
         <div ref={container} data-testid="jitsi-container" className="h-full w-full" />
         {state === "loading" && (

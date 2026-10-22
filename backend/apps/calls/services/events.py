@@ -25,6 +25,17 @@ def caller_display_name(user) -> str:
     return (user.name or "").strip()[:60] or "Utilisateur"
 
 
+def business_ref(business) -> dict | None:
+    """Commerce visé tel que le voit l'agent AVANT de répondre : nom et type, jamais de numéro."""
+    if business is None:
+        return None
+    particulier = business.type_compte in ("particulier_vendeur", "prestataire_service")
+    return {
+        "id": business.pk, "name": business.name, "type_label": business.get_type_compte_display(),
+        "kind": "particulier" if particulier else "entreprise",
+    }
+
+
 def publish(event: str, payload: dict) -> None:
     body = json.dumps({"event": event, **payload}, separators=(",", ":"), ensure_ascii=False)
     with connection.cursor() as cursor:
@@ -46,7 +57,7 @@ def ringing_payload(session, ring_seconds_left: int | None = None) -> dict:
         "session_id": str(session.id),
         "state": session.state,
         "caller_name": caller_display_name(session.caller),
-        "business": {"id": business.pk, "name": business.name} if business else None,
+        "business": business_ref(business),
         "expires_at": session.expires_at.isoformat() if session.expires_at else None,
         "ring_seconds_left": ring_seconds_left,
     }

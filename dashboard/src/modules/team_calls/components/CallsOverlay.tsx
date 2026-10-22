@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { useCalls } from "../CallsProvider";
 import { CallErrorBoundary } from "./CallErrorBoundary";
+import { CallFichePanel } from "./CallFichePanel";
 import { CallRoom } from "./CallRoom";
 import { IncomingCallDialog } from "./IncomingCallDialog";
 
 /** Fenêtre d'appel entrant et salle Jitsi, au-dessus de toutes les pages. */
 export function CallsOverlay() {
   const { enabled, notice, incoming, active, answering, accept, decline, hangUp } = useCalls();
+  const [fiche, setFiche] = useState<string | null>(null); // appel dont la fiche est ouverte
   if (!enabled) return null;
   const first = incoming[0];
   return (
@@ -26,7 +29,18 @@ export function CallsOverlay() {
           {notice}
         </p>
       )}
-      {active && <CallRoom key={active.sessionId} call={active} onHangUp={() => void hangUp()} />}
+      {active && (
+        <CallRoom
+          key={active.sessionId}
+          call={active}
+          onHangUp={() => void hangUp()}
+          ficheOpen={fiche === active.sessionId}
+          onToggleFiche={() => setFiche((cur) => (cur === active.sessionId ? null : active.sessionId))}
+        />
+      )}
+      {active && active.business && fiche === active.sessionId && (
+        <CallFichePanel key={`fiche-${active.sessionId}`} sessionId={active.sessionId} onClose={() => setFiche(null)} />
+      )}
     </CallErrorBoundary>
   );
 }

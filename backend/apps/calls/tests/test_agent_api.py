@@ -100,7 +100,9 @@ def test_accept_renvoie_salle_jeton_et_contexte_sans_numero():
     assert response.status_code == 200 and response["Cache-Control"] == "no-store"
     data = response.json()
     assert data["caller_name"] == "Awa"
-    assert data["business"] == {"id": profile.pk, "name": "Chez Riz"}
+    assert data["business"] == {"id": profile.pk, "name": "Chez Riz",
+                                "type_label": profile.get_type_compte_display(),
+                                "kind": "entreprise"}
     assert set(data["jitsi"]) == {"domain", "room", "jwt"}
     text = response.content.decode()
     assert profile.phone_anchor not in text and caller.user.phone not in text
