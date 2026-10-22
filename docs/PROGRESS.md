@@ -6,7 +6,7 @@
 ## EN COURS
 
 - **Tâche en cours** : T121 (partie backend en cours ; reste du T121 repris après la phase 13)
-- **Prochaine tâche** : T135
+- **Prochaine tâche** : T121 (dashboard et mobile), puis T122
 - **Dernière mise à jour** : 2026-10-22
 - **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
@@ -130,7 +130,7 @@
 | ✅ | T132b | Dashboard : voir la fiche du commerce visé pendant l'appel (demande de Jeff) | c3 | 2026-10-22 | 1 650 tests serveur, 293 dashboard, essai navigateur OK ; relu par le vérificateur (trace de lecture ajoutée à l'audit) ; à relire par Jeff (route qui délivre les numéros). Voir docs/verifications/T132b.md |
 | ✅ | T133 | Mobile : appel Jitsi à la place de l'appel téléphonique | b2 (+ b1) | 2026-10-22 | 1 673 tests, analyse 0 problème (faux Jitsi). Non mesurable ici : taille APK, essai réel (voir TESTS_JEFF.md). Textes Aide/Onboarding à corriger (T133b) |
 | ✅ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | 2026-10-22 | Bout en bout réel (serveur + navigateur), p95 60 ms. Voir docs/verifications/T134.md |
-| ☐ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | | |
+| ✅ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | 2026-10-22 | docs/deployment/JITSI.md |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
 | 🔄 | T121 | Revue de sécurité (partie backend ✅ 2026-10-22 : docs/verifications/T121-backend.md, 1 551 tests, 23 ✔ 7 ⚠ 0 ✘ ; dashboard et mobile à refaire après la phase 13 pour couvrir les nouvelles routes) | a1 (backend), c3 (dashboard), b1 (mobile) | | |

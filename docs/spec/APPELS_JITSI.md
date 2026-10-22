@@ -42,7 +42,7 @@ Le code est écrit pour fonctionner avec les deux premières options : seuls les
 
 ## Sécurité et vie privée
 - Salle secrète, jeton signé à usage limité (une salle, courte durée), aucun enregistrement. L'utilisateur est averti que l'appel est avec l'équipe NetBuis (texte à écrire en T133, à valider par Jeff).
-- Le tableau de bord montre à l'agent : prénom/nom d'affichage de l'appelant, commerce concerné, durée. Le numéro complet de l'appelant n'est PAS montré dans la fenêtre d'appel (il reste dans le détail du compte, audité, comme T083).
+- Le tableau de bord montre à l'agent : prénom/nom d'affichage de l'appelant, commerce concerné, durée. MISE À JOUR D-30 : une fois l'appel décroché, la fiche montre le numéro du commerce visé ET celui de l'appelant, à l'agent qui a répondu seulement, lecture auditée (T132b). Rien avant la réponse.
 - Chaque appel est journalisé sans contenu (états, horodatages, agent) ; aucun jeton Jitsi ni nom de salle dans les journaux.
 - Les nouvelles routes sont couvertes par le test qui énumère toutes les routes (T121) et par les tests de droits.
 
