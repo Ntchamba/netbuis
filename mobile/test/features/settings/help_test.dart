@@ -13,9 +13,7 @@ import '../call/call_test_helpers.dart';
 import 'settings_test_helpers.dart';
 
 const _d07 =
-    "NetBuis n'affiche jamais le numéro. Votre téléphone peut cependant l'afficher pendant l'appel "
-    "et le garder dans son journal d'appels. Sur iPhone, le système demande une confirmation qui "
-    'montre le numéro.';
+    "Dans NetBuis, l'appel se fait dans l'application, avec l'équipe NetBuis. Aucun numéro n'est échangé avec le commerçant. Seul WhatsApp ouvre une conversation avec le numéro du commerce.";
 
 // Valeurs d'essai : ce ne sont pas de vrais contacts.
 const _fakeSupport = SupportContact(

@@ -249,14 +249,6 @@ Future<void> tapAndSettle(WidgetTester tester, Finder f) async {
   await settleSheet(tester);
 }
 
-/// Ferme la feuille facultative « ça a abouti ? » sans répondre.
-Future<void> dismissFeedback(WidgetTester tester) async {
-  expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
-  await tester.tap(find.byKey(const Key('feedback-later')));
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 500));
-  expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-}
 
 /// Aucun texte de l'arbre de widgets (Text, RichText, étiquettes d'accessibilité,
 /// info-bulles, champs) ne contient le numéro, sous aucune des écritures courantes.

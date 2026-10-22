@@ -1,4 +1,4 @@
-// T054 : WhatsApp (wa.me) et retour « ça a abouti ? ».
+// T054 : WhatsApp (wa.me).
 // Le lien wa.me CONTIENT le numéro du commerçant : il ne doit être ni affiché, ni gardé, ni
 // mis dans une erreur. Faux canal natif et faux dépôt : aucun réseau, aucun téléphone.
 import 'package:flutter/material.dart';
@@ -15,7 +15,6 @@ import 'package:netbuis/features/call/data/models/call_feedback.dart';
 import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/call/data/repositories/call_repository_api.dart';
 import 'package:netbuis/features/call/data/repositories/call_repository_fake.dart';
-import 'package:netbuis/features/call/presentation/widgets/feedback_sheet.dart';
 import 'package:netbuis/features/call/presentation/widgets/whatsapp_button.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
 import 'package:netbuis/features/search/presentation/widgets/result_card.dart';
@@ -392,116 +391,6 @@ void main() {
     test('états : toString ne contient ni lien ni numéro', () {
       expect(const WhatsappFlowState().toString(), isNot(contains('wa.me')));
       expect(const CallFlowState().toString(), isNot(contains(kFakeDigits)));
-    });
-  });
-
-  group('« ça a abouti ? » après un appel', () {
-    // La feuille reste disponible pour le journal WhatsApp / anciens appels (POST /calls/{id}/feedback/) ;
-    // l'appel à l'équipe (Jitsi) ne la montre plus.
-    Future<void> callAndClose(WidgetTester tester) async {
-      tester.view.physicalSize = const Size(360, 780);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-      await tester.pumpWidget(ProviderScope(
-        overrides: callOverrides(channel, repo),
-        child: testApp(Scaffold(
-          body: Builder(
-            builder: (context) => Center(
-              child: FilledButton(
-                key: kOpenCall,
-                onPressed: () => showCallFeedback(Navigator.of(context),
-                    callId: 7, businessName: 'Chez Aminatou'),
-                child: const Text('Retour'),
-              ),
-            ),
-          ),
-        )),
-      ));
-      await tester.pumpAndSettle();
-      await tapAndSettle(tester, find.byKey(kOpenCall));
-    }
-
-    testWidgets('la feuille s\'ouvre après l\'appel : 3 gros boutons avec icône, fermable',
-        (tester) async {
-      await callAndClose(tester);
-      expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
-      expect(find.text('Votre appel à Chez Aminatou a-t-il abouti ?'), findsOneWidget);
-      final expected = {
-        'feedback-answered': ('Abouti', Icons.check_circle_outline),
-        'feedback-no-answer': ('Pas de réponse', Icons.phone_missed),
-        'feedback-wrong-number': ('Mauvais numéro', Icons.phone_disabled),
-      };
-      for (final e in expected.entries) {
-        final b = find.byKey(Key(e.key));
-        expect(b, findsOneWidget);
-        expect(find.descendant(of: b, matching: find.text(e.value.$1)), findsOneWidget);
-        expect(find.descendant(of: b, matching: find.byIcon(e.value.$2)), findsOneWidget);
-        expect(tester.getSize(b).height, greaterThanOrEqualTo(64));
-      }
-      expect(find.byKey(const Key('feedback-later')), findsOneWidget);
-      expect(repo.feedbacks, isEmpty, reason: 'rien n\'est envoyé sans réponse');
-      expectNoPhoneOnScreen(tester);
-    });
-
-    testWidgets('Abouti / Pas de réponse / Mauvais numéro : POST du bon résultat pour l\'appel',
-        (tester) async {
-      final cases = {
-        'feedback-answered': CallOutcome.answered,
-        'feedback-no-answer': CallOutcome.noAnswer,
-        'feedback-wrong-number': CallOutcome.wrongNumber,
-      };
-      for (final e in cases.entries) {
-        repo.feedbacks.clear();
-        await callAndClose(tester);
-        await tapAndSettle(tester, find.byKey(Key(e.key)));
-        expect(repo.feedbacks, [(callId: 7, outcome: e.value)]);
-        expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-        expect(find.text('Merci pour votre réponse.'), findsOneWidget);
-        await tester.pump(const Duration(seconds: 5));
-      }
-    });
-
-    testWidgets('fermée sans répondre (« Plus tard ») : rien n\'est envoyé', (tester) async {
-      await callAndClose(tester);
-      await dismissFeedback(tester);
-      expect(repo.feedbacks, isEmpty);
-      expect(find.text('Merci pour votre réponse.'), findsNothing);
-    });
-
-    testWidgets('fermée en touchant à côté : jamais bloquante, rien n\'est envoyé', (tester) async {
-      await callAndClose(tester);
-      await tester.tapAt(const Offset(180, 20));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-      expect(repo.feedbacks, isEmpty);
-      // L'écran de départ répond de nouveau.
-      await tapAndSettle(tester, find.byKey(kOpenCall));
-      expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
-    });
-
-    testWidgets('double toucher sur une réponse : un seul envoi', (tester) async {
-      await callAndClose(tester);
-      final b = find.byKey(const Key('feedback-answered'));
-      await tester.tap(b);
-      await tester.tap(b, warnIfMissed: false);
-      await settleSheet(tester);
-      expect(repo.feedbacks, hasLength(1));
-    });
-
-    testWidgets('envoi en échec : message, la feuille reste, on peut réessayer ou fermer',
-        (tester) async {
-      repo.feedbackError = _refused('not_found', 404);
-      await callAndClose(tester);
-      await tapAndSettle(tester, find.byKey(const Key('feedback-no-answer')));
-      expect(find.byKey(const Key('feedback-error')), findsOneWidget);
-      expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
-      expect(repo.feedbacks, isEmpty);
-
-      repo.feedbackError = null;
-      await tapAndSettle(tester, find.byKey(const Key('feedback-no-answer')));
-      expect(repo.feedbacks, [(callId: 7, outcome: CallOutcome.noAnswer)]);
-      expect(find.byKey(const Key('feedback-sheet')), findsNothing);
     });
   });
 

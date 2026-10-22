@@ -92,7 +92,7 @@ const _titles = [
 
 const _bodies = [
   'Recherchez un produit ou un service et découvrez les commerçants qui le proposent près de chez vous.',
-  "NetBuis n'affiche jamais le numéro. Votre téléphone peut cependant l'afficher pendant l'appel et le garder dans son journal d'appels. Sur iPhone, le système demande une confirmation qui montre le numéro.",
+  "L'appel se fait dans l'application, avec l'équipe NetBuis : aucun numéro n'est échangé avec le commerçant. WhatsApp, lui, ouvre une conversation avec le numéro du commerce.",
   "Parcourez les commerces quartier par quartier, dans votre ville — et bientôt dans d'autres villes.",
   'Découvrez les nouveautés publiées par les commerçants et commentez leurs publications.',
   'Publiez vos produits ou services pour être trouvé près de chez vous.',
