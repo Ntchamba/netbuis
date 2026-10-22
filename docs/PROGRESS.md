@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T106
-- **Prochaine tâche** : T110
+- **Tâche en cours** : T110
+- **Prochaine tâche** : T111
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -116,7 +116,7 @@
 | | | **PHASE 11 — Produits très sollicités et abonnements (sans paiement)** | | | |
 | ✅ | T104 | Backend : tendances | a3 | 2026-10-21 | docs/verifications/T104.md ; vérificateur CONFORME |
 | ✅ | T105 | Mobile : produits très sollicités | b3 (dépôt et état des tendances) puis b2 (bande sur l'Accueil), dans cet ordre | 2026-10-21 | docs/verifications/T105.md ; vérificateur CONFORME |
-| ☐ | T106 | Dashboard : analyses | c3 | | |
+| ✅ | T106 | Dashboard : analyses | c3 | 2026-10-21 | docs/verifications/T106.md ; vérificateur CONFORME |
 | ☐ | T110 | Backend : accorder, faire expirer, proposer un abonnement (sans paiement) | a2 (expiration, proposition) puis c2 (route d'administration), dans cet ordre | | |
 | ☐ | T111 | Mobile : propositions d'abonnement | b3 | | |
 | ☐ | T112 | Vérification de tranche : plafonds et abonnement | orchestrateur | | |

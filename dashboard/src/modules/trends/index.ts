@@ -1,3 +1,1 @@
-// À implémenter.
-// Agent C · Étape É5
-export {};
+export { TrendsPage } from "./pages/TrendsPage";

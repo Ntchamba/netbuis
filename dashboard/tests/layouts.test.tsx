@@ -86,7 +86,7 @@ test("Administrateur complet : toutes les entrées, pastille, nom, thème, déco
   const div = await mount("/");
   expect(div.querySelector("aside")?.textContent).toContain("Admin");
   const items = labels(div);
-  expect(items).toHaveLength(8);
+  expect(items).toHaveLength(11);
   expect(items[0]).toBe("Vue d'ensemble");
   expect(items[1]).toBe("Demandes7");
   expect(items[2]).toBe("Comptes");
@@ -94,7 +94,10 @@ test("Administrateur complet : toutes les entrées, pastille, nom, thème, déco
   expect(items[4]).toBe("Réglages");
   expect(items[5]).toBe("Administrateurs");
   expect(items[6]).toBe("Journal d'audit");
-  expect(items[7]).toContain("Équipe & abonnements");
+  expect(items[7]).toBe("Recherches");
+  expect(items[8]).toBe("Appels");
+  expect(items[9]).toBe("Tendances");
+  expect(items[10]).toContain("Équipe & abonnements");
   expect(div.querySelector('[data-testid="admin-name"]')?.textContent).toBe("Awa Test");
   expect(div.textContent).not.toContain("+237");
   expect(div.querySelector('[aria-label="Changer de thème"]')).not.toBeNull();
@@ -112,7 +115,7 @@ test("l'entrée active est mise en évidence", async () => {
 test("Équipe & abonnements : visible, désactivée, non cliquable, mention bientôt", async () => {
   server(FULL);
   const div = await mount("/");
-  const team = div.querySelectorAll("nav > *")[7]!;
+  const team = div.querySelectorAll("nav > *")[10]!;
   expect(team.tagName).toBe("SPAN");
   expect(team.getAttribute("aria-disabled")).toBe("true");
   expect(team.textContent).toContain("bientôt");
@@ -122,7 +125,7 @@ test("Équipe & abonnements : visible, désactivée, non cliquable, mention bien
 test("Validateur : l'entrée réservée à l'Administrateur complet est masquée", async () => {
   server(VALIDATEUR);
   const div = await mount("/");
-  expect(labels(div)).toEqual(["Vue d'ensemble", "Demandes7", "Comptes", "Journal d'audit"]);
+  expect(labels(div)).toEqual(["Vue d'ensemble", "Demandes7", "Comptes", "Journal d'audit", "Recherches", "Appels", "Tendances"]);
   expect(div.textContent).not.toContain("Équipe & abonnements");
 });
 

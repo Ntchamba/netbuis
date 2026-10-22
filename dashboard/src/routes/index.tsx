@@ -8,6 +8,9 @@ import { FreeValuesPage, ReferentialsIndexPage, ReferentialTypePage } from "../m
 import { AdminsPage } from "../modules/admins";
 import { AuditLogPage } from "../modules/audit_log";
 import { ReportsPage } from "../modules/forum_moderation";
+import { CallsAnalyticsPage } from "../modules/calls_analytics";
+import { SearchAnalyticsPage } from "../modules/search_analytics";
+import { TrendsPage } from "../modules/trends";
 import { SettingsPage } from "../modules/settings";
 import { OverviewPage } from "../modules/overview";
 import { UserDetailPage, UsersPage } from "../modules/users";
@@ -101,6 +104,30 @@ export function AppRoutes() {
             element={
               <RequirePermission permission="peut_voir_comptes">
                 <AuditLogPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.recherches}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <SearchAnalyticsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.appels}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <CallsAnalyticsPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.tendances}
+            element={
+              <RequirePermission permission="peut_voir_comptes">
+                <TrendsPage />
               </RequirePermission>
             }
           />

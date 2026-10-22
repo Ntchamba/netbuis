@@ -14,6 +14,11 @@ export const ENDPOINTS = {
   admins: "/api/admin/admins/",
   /** Journal d'audit, lecture seule (GET uniquement). */
   audit: "/api/admin/audit/",
+  /** Analyses en lecture seule (agrégats, ?days=1..90). */
+  analyticsSearches: "/api/admin/analytics/searches/",
+  analyticsCalls: "/api/admin/analytics/calls/",
+  /** Tendances d'une ville (route publique de l'application, ?zone=<id>). */
+  trends: "/api/trends/",
   /** Référentiels modifiables (Administrateur complet) : …/<type>/, …/<type>/<id>/, …/deactivate/, …/reactivate/. */
   referentials: "/api/admin/referentials/",
   /** Modération du forum (Administrateur complet) : …/<type>/<id>/hide|restore|delete/. */

@@ -64,6 +64,14 @@ function Icon({ name }: { name: NavIcon }) {
         <path d="M14 3v5h5M9 13h7M9 17h7" />
       </>
     ),
+    searches: (
+      <>
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="M16 16l5 5" />
+      </>
+    ),
+    calls: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
+    trends: <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />,
     team: <path d="M12 2l2.6 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.4-.4z" />,
   };
   return (
