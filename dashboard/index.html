@@ -3,15 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="referrer" content="same-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      try {
-        document.documentElement.dataset.theme =
-          localStorage.getItem("netbuis-theme") === "light" ? "light" : "dark";
-      } catch (e) {
-        document.documentElement.dataset.theme = "dark";
-      }
-    </script>
+    <script src="/theme-init.js"></script>
     <title>NetBuis — Administration</title>
   </head>
   <body>

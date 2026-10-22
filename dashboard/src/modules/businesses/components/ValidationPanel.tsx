@@ -1,5 +1,6 @@
 import { Button, Modal } from "../../../components/ui";
 import { Can } from "../../../auth/permissions";
+import { safeImageUrl } from "../../../lib/safeUrl";
 import { formatRelative } from "../../../lib/dates";
 import type { DocumentState } from "../hooks";
 import type { BusinessRequest, TypeCompte } from "../types";
@@ -34,7 +35,8 @@ interface PanelProps {
   onOpenDocument: (request: BusinessRequest, kind: DocumentKind) => void;
 }
 
-function Photo({ url, alt, fallback }: { url: string | null; alt: string; fallback: "person" | "image" }) {
+function Photo({ url: rawUrl, alt, fallback }: { url: string | null; alt: string; fallback: "person" | "image" }) {
+  const url = safeImageUrl(rawUrl);
   return (
     <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-line bg-bg">
       {url ? (

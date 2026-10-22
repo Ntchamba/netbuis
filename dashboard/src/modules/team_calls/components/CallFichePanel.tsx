@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Badge, Button, Spinner, type BadgeStatus } from "../../../components/ui";
+import { safeImageUrl } from "../../../lib/safeUrl";
 import { formatDate, formatDateTime } from "../../../lib/dates";
 import { useCallContext } from "../hooks";
 import type { BusinessCard } from "../types";
@@ -34,7 +35,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Photo({ url, alt }: { url: string | null; alt: string }) {
+function Photo({ url: rawUrl, alt }: { url: string | null; alt: string }) {
+  const url = safeImageUrl(rawUrl);
   return url ? (
     <img src={url} alt={alt} loading="lazy" className="h-20 w-20 rounded-[10px] border border-line object-cover" />
   ) : (

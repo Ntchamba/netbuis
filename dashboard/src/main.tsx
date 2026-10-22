@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthProvider";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
 import { ToastProvider } from "./components/ui/Toast";
 import { AppRoutes } from "./routes";
@@ -12,16 +13,18 @@ const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider>
-      <ToastProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </ToastProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>
+              <AuthProvider>
+                <AppRoutes />
+              </AuthProvider>
+            </BrowserRouter>
+          </QueryClientProvider>
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

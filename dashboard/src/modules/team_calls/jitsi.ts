@@ -29,8 +29,17 @@ declare global {
 // Nom de domaine (avec port éventuel) : on refuse tout ce qui ressemble à une adresse complète.
 const DOMAIN_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*(:\d{1,5})?$/i;
 
+const IPV4_PATTERN = /^\d{1,3}(\.\d{1,3}){3}(:\d{1,5})?$/;
+
+/**
+ * Nom d'hôte seulement, jamais une adresse complète ni une adresse IP. Un nom sans point
+ * (« intranet ») n'est accepté que pour « localhost » en développement.
+ */
 export function isValidJitsiDomain(domain: string): boolean {
-  return DOMAIN_PATTERN.test(domain);
+  if (!DOMAIN_PATTERN.test(domain) || IPV4_PATTERN.test(domain)) return false;
+  const host = domain.replace(/:\d+$/, "");
+  if (host.includes(".")) return true;
+  return host.toLowerCase() === "localhost" && import.meta.env.DEV;
 }
 
 const loading = new Map<string, Promise<JitsiConstructor>>();

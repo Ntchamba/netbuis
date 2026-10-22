@@ -133,7 +133,7 @@
 | ✅ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | 2026-10-22 | docs/deployment/JITSI.md |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
-| 🔄 | T121 | Revue de sécurité (partie backend ✅ 2026-10-22 : docs/verifications/T121-backend.md, 1 551 tests, 23 ✔ 7 ⚠ 0 ✘ ; dashboard et mobile à refaire après la phase 13 pour couvrir les nouvelles routes) | a1 (backend), c3 (dashboard), b1 (mobile) | | |
+| 🔄 | T121 | Revue de sécurité (partie backend ✅ 2026-10-22 : docs/verifications/T121-backend.md, 1 551 tests, 23 ✔ 7 ⚠ 0 ✘ ; dashboard ✅ 2026-10-22 : docs/verifications/T121-dashboard.md, 312 tests, 16 ✔ 3 ⚠ 0 ✘ ; mobile à refaire après la phase 13) | a1 (backend), c3 (dashboard), b1 (mobile) | | |
 | ☐ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | | |
 | ☐ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | | |
 | ☐ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | |

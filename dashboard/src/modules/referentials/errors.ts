@@ -18,8 +18,9 @@ function fieldMessages(fields: Record<string, unknown> | undefined): Record<stri
   if (!fields) return undefined;
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(fields)) {
+    // Le texte du serveur n'est jamais affiché tel quel (souvent en anglais, parfois technique) : seul le champ fautif est retenu.
     const first = Array.isArray(value) ? value[0] : value;
-    if (typeof first === "string" && first !== "") out[key] = first;
+    if (typeof first === "string" && first !== "") out[key] = "Valeur invalide : vérifiez ce champ.";
   }
   return Object.keys(out).length > 0 ? out : undefined;
 }
