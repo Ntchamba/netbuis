@@ -6,7 +6,7 @@
 ## EN COURS
 
 - **Tâche en cours** : T121 (partie backend en cours ; reste du T121 repris après la phase 13)
-- **Prochaine tâche** : T134
+- **Prochaine tâche** : T135
 - **Dernière mise à jour** : 2026-10-22
 - **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
@@ -129,7 +129,7 @@
 | ✅ | T133b | Mobile : corriger les textes Aide (FAQ numéro caché) et Onboarding diapo 2 devenus faux ; feuille « ça a abouti ? » à retirer | b1/b3 | 2026-10-22 | 1 667 tests, analyse 0. Voir docs/verifications/T133b.md |
 | ✅ | T132b | Dashboard : voir la fiche du commerce visé pendant l'appel (demande de Jeff) | c3 | 2026-10-22 | 1 650 tests serveur, 293 dashboard, essai navigateur OK ; relu par le vérificateur (trace de lecture ajoutée à l'audit) ; à relire par Jeff (route qui délivre les numéros). Voir docs/verifications/T132b.md |
 | ✅ | T133 | Mobile : appel Jitsi à la place de l'appel téléphonique | b2 (+ b1) | 2026-10-22 | 1 673 tests, analyse 0 problème (faux Jitsi). Non mesurable ici : taille APK, essai réel (voir TESTS_JEFF.md). Textes Aide/Onboarding à corriger (T133b) |
-| ☐ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | | |
+| ✅ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | 2026-10-22 | Bout en bout réel (serveur + navigateur), p95 60 ms. Voir docs/verifications/T134.md |
 | ☐ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | | |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
