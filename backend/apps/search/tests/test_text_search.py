@@ -71,8 +71,9 @@ def test_categorie_de_service_trouve_le_prestataire():
 
 
 def test_secteur_desactive_ne_correspond_plus():
+    # Le nom du commerce est sans rapport avec « pharmacie » : la recherche lit aussi le nom.
     secteur = make_sector(code="pharmacie_sante", name="Pharmacie & Santé", is_active=False)
-    shop("Pharma fermée", [], secteur=secteur)
+    shop("Boutique fermée", [], secteur=secteur)
     assert ids(search("pharmacie")) == []
 
 

@@ -18,6 +18,7 @@ Ce qui n'est PAS ici (volontairement) :
 destiné à l'application ; le numéro ne sort que de `POST /api/calls/initiate/`.
 """
 from django.conf import settings
+from django.contrib.postgres.indexes import GinIndex
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import m2m_changed
@@ -25,6 +26,7 @@ from django.dispatch import receiver
 
 from apps.core.models.base import TimeStampedModel
 from apps.core.utils.phone import normalize_phone
+from apps.core.utils.text_normalize import normalize_text
 from apps.geo.models import Zone, ZoneLevel
 
 OTHER_CODE = "autre"  # code stable de la ligne « Autre » des référentiels
@@ -160,6 +162,11 @@ class BusinessProfile(TimeStampedModel):
     )
     type_compte = models.CharField("type de compte", max_length=24, choices=AccountType.choices)
     name = models.CharField("nom affiché", max_length=150)
+    normalized_name = models.CharField(
+        "nom normalisé", max_length=150, blank=True, default="", editable=False,
+        help_text="Nom en minuscules sans accents (T041b) : sert à la recherche par le nom. "
+                  "Recalculé à chaque save() ; ne jamais l'écrire à la main.",
+    )
     zone = models.ForeignKey(
         Zone, verbose_name="lieu", on_delete=models.PROTECT, related_name="business_profiles",
         help_text="Ville/village ou quartier.",
@@ -261,6 +268,10 @@ class BusinessProfile(TimeStampedModel):
             models.Index(fields=["status"], name="business_profile_status_idx"),
             models.Index(fields=["zone", "status"], name="business_profile_zone_st_idx"),
             models.Index(fields=["type_compte"], name="business_profile_type_idx"),
+            GinIndex(
+                fields=["normalized_name"], opclasses=["gin_trgm_ops"],
+                name="business_profile_name_trgm",
+            ),
         ]
         constraints = [
             models.CheckConstraint(
@@ -430,6 +441,10 @@ class BusinessProfile(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         self.clean()
+        self.normalized_name = normalize_text(self.name)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "name" in update_fields:
+            kwargs["update_fields"] = {*update_fields, "normalized_name"}
         super().save(*args, **kwargs)
 
 

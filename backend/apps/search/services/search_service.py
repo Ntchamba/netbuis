@@ -7,12 +7,15 @@ Un compte business correspond si l'un de ces éléments ressemble au terme (poid
 parenthèses : un secteur large compte moins qu'une offre précise) :
 - une de ses offres actives, par le nom (1,0) ou par le produit du catalogue relié (score du
   produit) ;
+- son propre nom (0,95, T041b / D-27) : plus qu'une sous-catégorie, moins qu'une offre exacte ;
 - une de ses sous-catégories (0,9) ;
 - sa catégorie de service, ou son texte libre (0,9) ;
 - son secteur, ou son texte libre (0,7).
 Seuls les profils de `BusinessProfile.objects.visible()` peuvent sortir.
 """
 from dataclasses import dataclass
+
+from django.db.models import F
 
 from apps.business.models import BusinessProfile, Offer
 from apps.business.services.subscription import subscribed_profiles
@@ -29,6 +32,7 @@ from apps.search.text.trigram_query import (
 )
 
 WEIGHT_OFFER = 1.0
+WEIGHT_NAME = 0.95  # entre l'offre (1,0) et la sous-catégorie (0,9)
 WEIGHT_SUBCATEGORY = 0.9
 WEIGHT_SERVICE = 0.9
 WEIGHT_SECTOR = 0.7
@@ -100,8 +104,10 @@ def _subcategory_scores(base_ids, terms) -> dict:
 
 
 def _profile_field_scores(base, terms) -> dict:
-    """Secteur, catégorie de service et leurs textes libres, en une requête."""
+    """Nom du commerce, secteur, catégorie de service et leurs textes libres, en une requête.
+    Le nom est lu dans `normalized_name` (déjà sans accents, indexé en trigrammes)."""
     columns = {
+        "s_name": (F("normalized_name"), WEIGHT_NAME),
         "s_sector": (active_text("secteur__name", "secteur__is_active"), WEIGHT_SECTOR),
         "s_sector_free": (plain_text("secteur_libre"), WEIGHT_SECTOR),
         "s_service": (
