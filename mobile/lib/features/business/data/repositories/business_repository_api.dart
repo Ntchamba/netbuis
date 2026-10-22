@@ -73,6 +73,16 @@ class BusinessRepositoryApi implements BusinessRepository {
     }
   }
 
+  @override
+  Future<MyBusiness> update(Map<String, Object?> body) async {
+    try {
+      final response = await _dio.patch<Object?>(Endpoints.businessMe, data: body);
+      return _parse(response.data);
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
   MyBusiness _parse(Object? data) {
     try {
       if (data is Map<String, dynamic>) return MyBusiness.fromJson(data);

@@ -55,6 +55,10 @@ class Routes {
   /// « Demande envoyée » : écran final, ouvert après le succès de l'envoi (sans brouillon).
   static const createBusinessSent = '/create-business/sent';
 
+  /// « Modifier ma boutique » / « Corriger » (T102b), ouvert depuis Profil ; protégé par la garde
+  /// de connexion.
+  static const editBusiness = '/edit-business';
+
   /// Choix précis du lieu (ville/village, puis quartier), ouvert depuis le champ
   /// « Ville / Quartier » de l'écran Informations (T034). Ce ne sont pas des étapes.
   static const createBusinessLocation = '/create-business/location';

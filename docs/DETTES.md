@@ -10,3 +10,5 @@
 - **Accueil mobile** : maquette fournie en image (photos sur les cartes, vignettes photo pour les catégories) à confirmer par Jeff.
 
 - T102 : si l'écran Profil disparaît pendant `DELETE /me/` et que l'appel échoue, la 2ᵉ fenêtre de confirmation peut rester affichée sur l'écran de connexion (se ferme par « Annuler ») ; cas limite non testé. Clés `profile.settings*` devenues inutilisées. `creditsEnabledProvider` à rapatrier dans `FeatureFlags`.
+
+- T102b : type de compte, secteur, sous-catégories, forme juridique, RCCM et détails d'établissement non modifiables depuis « Modifier ma boutique » ; un rejet portant sur l'un d'eux ne se corrige pas dans l'application (prévoir un écran de correction réutilisant la création pré-remplie). Pas de test « rejeté + nom changé : aucun avertissement ». `business_edit_screen.dart` > 700 lignes (à découper).

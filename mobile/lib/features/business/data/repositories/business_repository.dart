@@ -20,4 +20,8 @@ abstract class BusinessRepository {
 
   /// GET /api/business/me/ (404 `no_business` si le compte n'en a pas).
   Future<MyBusiness> getMine();
+
+  /// PATCH /api/business/me/ : modifie le compte. [body] ne contient QUE les champs changés
+  /// (le serveur ne regarde que ce qui est envoyé). Règle D-08 appliquée par le serveur.
+  Future<MyBusiness> update(Map<String, Object?> body);
 }

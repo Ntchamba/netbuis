@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/network/api_exception.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../application/business_controller.dart';
 import '../../data/models/business.dart';
@@ -132,6 +134,15 @@ class _StatusBody extends StatelessWidget {
         ],
         const SizedBox(height: 6),
         Text(body, style: TextStyle(fontSize: 12, height: 1.4, color: c.textSecondary)),
+        if (business.status == BusinessStatus.rejected) ...[
+          const SizedBox(height: 10),
+          FilledButton(
+            key: const ValueKey('profile-business-correct'),
+            onPressed: () => context.push(Routes.editBusiness),
+            style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+            child: Text(l10n.t('business.edit.correct')),
+          ),
+        ],
       ],
     );
   }

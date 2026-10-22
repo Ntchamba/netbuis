@@ -119,15 +119,17 @@ void main() {
       expect(_k('profile-my-posts'), findsOneWidget);
     });
 
-    testWidgets('« Modifier ma boutique » et « Corriger » sont masqués (écran de T102b absent)',
-        (tester) async {
-      for (final status in BusinessStatus.values) {
+    for (final status in BusinessStatus.values) {
+      testWidgets('$status : « Modifier ma boutique » là ; « Corriger » seulement si rejeté (T102b)',
+          (tester) async {
         await _pump(tester,
             me: _me(business: true), status: MyBusiness(status: status, motifRejet: 'x'));
-        expect(find.text('Modifier ma boutique'), findsNothing, reason: '$status');
-        expect(find.text('Corriger'), findsNothing, reason: '$status');
-      }
-    });
+        expect(_k('profile-edit-business'), findsOneWidget);
+        expect(find.text('Modifier ma boutique'), findsOneWidget);
+        expect(find.text('Corriger'),
+            status == BusinessStatus.rejected ? findsOneWidget : findsNothing);
+      });
+    }
   });
 
   group('entrées', () {

@@ -60,6 +60,9 @@ class ScriptedBusinessRepository implements BusinessRepository {
 
   @override
   Future<MyBusiness> create(Map<String, Object?> body) => throw StateError('Non utilisé par ces tests');
+
+  @override
+  Future<MyBusiness> update(Map<String, Object?> body) => throw StateError('Non utilisé par ces tests');
 }
 
 Future<void> _openProfile(
@@ -612,7 +615,7 @@ void main() {
           ]));
       expect(find.text('Rejeté'), findsOneWidget);
       expect(find.text('Motif : Photo de la CNI floue'), findsOneWidget);
-      expect(find.text('Votre demande peut être corrigée puis renvoyée (bientôt disponible).'),
+      expect(find.text('Corrigez votre demande, puis renvoyez-la à l\'équipe NetBuis.'),
           findsOneWidget);
       expect(find.text('Activer mon compte Business'), findsNothing);
     });

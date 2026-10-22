@@ -9,6 +9,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/dashed_border.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../business/presentation/widgets/business_status_card.dart';
+import '../../../business/presentation/widgets/edit_business_entry.dart';
 import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
 import '../../../settings/application/help_providers.dart' show creditsEnabledProvider;
@@ -23,8 +24,8 @@ import '../widgets/profile_identity.dart';
 /// crédits sont activés), historique, compte business (ou invitation à l'activer), ville,
 /// langue, thème, aide, déconnexion et suppression du compte.
 ///
-/// « Modifier ma boutique » et « Corriger » (compte rejeté) sont masqués : leur écran arrive
-/// avec T102b, qui ajoutera ces entrées ici.
+/// Avec un compte business : « Modifier ma boutique » (T102b) ; « Corriger » (compte rejeté)
+/// est dans la carte d'état.
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
@@ -106,6 +107,8 @@ class AccountScreen extends ConsumerWidget {
                 const BusinessStatusCard(),
                 const SizedBox(height: 10),
                 const MyProductsEntry(),
+                const SizedBox(height: 10),
+                const EditBusinessEntry(),
                 const SizedBox(height: 16),
               ],
               DecoratedBox(

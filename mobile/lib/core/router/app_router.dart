@@ -7,6 +7,7 @@ import '../../features/auth/application/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_screen.dart';
 import '../../features/business/presentation/screens/business_detail_screen.dart';
+import '../../features/business/presentation/screens/business_edit_screen.dart';
 import '../../features/business/presentation/screens/business_info_screen.dart';
 import '../../features/business/presentation/screens/details_screen.dart';
 import '../../features/business/presentation/screens/district_screen.dart';
@@ -105,6 +106,10 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.createBusinessSent,
         builder: (context, state) => const SentScreen(),
+      ),
+      GoRoute(
+        path: Routes.editBusiness,
+        builder: (context, state) => const BusinessEditScreen(),
       ),
       GoRoute(
         path: Routes.createBusinessLocation,

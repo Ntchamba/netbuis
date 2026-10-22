@@ -1,4 +1,5 @@
-// Compte business du propriétaire (GET/POST /api/business/…) et adresse d'envoi d'un fichier
+// Compte business du propriétaire (GET/POST/PATCH /api/business/…) et adresse d'envoi d'un fichier
+import 'business_draft.dart' show BusinessAccountType;
 
 /// Statut du compte business (`status`), tel que le serveur l'écrit.
 enum BusinessStatus {
@@ -19,13 +20,25 @@ enum BusinessStatus {
   }
 }
 
-/// Ce que l'écran Profil montre du compte business du propriétaire : jamais le numéro
-/// entier ni la CNI (le serveur ne les renvoie pas), seulement le statut et le motif.
+/// Ce que l'écran Profil montre du compte business du propriétaire, et ce qu'il faut pour le
+/// modifier : jamais le numéro entier ni la CNI (le serveur ne les renvoie pas), seulement le
+/// statut, le motif et, pour les photos, le fait qu'elles existent (la clé de stockage n'est
+/// pas gardée).
 class MyBusiness {
   const MyBusiness({
     required this.status,
     this.name = '',
     this.motifRejet = '',
+    this.typeCompte,
+    this.zoneId,
+    this.repere = '',
+    this.description = '',
+    this.descriptionActivite = '',
+    this.representantNom = '',
+    this.hasPhoto = false,
+    this.hasRepresentantPhoto = false,
+    this.hasCni = false,
+    this.hasDiplome = false,
   });
 
   final BusinessStatus status;
@@ -34,14 +47,52 @@ class MyBusiness {
   /// Raison du rejet donnée par l'équipe ; vide hors du statut `rejete`.
   final String motifRejet;
 
+  /// Type de compte (non modifiable depuis « Modifier ma boutique ») ; null si la réponse
+  /// ne le donne pas.
+  final BusinessAccountType? typeCompte;
+
+  /// Identifiant de la zone (ville/village ou quartier) enregistrée.
+  final int? zoneId;
+  final String repere;
+  final String description;
+  final String descriptionActivite;
+  final String representantNom;
+  final bool hasPhoto;
+  final bool hasRepresentantPhoto;
+  final bool hasCni;
+  final bool hasDiplome;
+
   /// Lève [FormatException] si la réponse n'a pas la forme du contrat.
   factory MyBusiness.fromJson(Map<String, dynamic> json) {
-    final name = json['name'];
-    final motif = json['motif_rejet'];
+    String text(String key) {
+      final v = json[key];
+      return v is String ? v.trim() : '';
+    }
+
+    bool filled(String key) {
+      final v = json[key];
+      return v is String && v.isNotEmpty;
+    }
+
+    BusinessAccountType? type;
+    for (final t in BusinessAccountType.values) {
+      if (t.value == json['type_compte']) type = t;
+    }
+    final zone = json['zone'];
     return MyBusiness(
       status: BusinessStatus.parse(json['status']),
-      name: name is String ? name.trim() : '',
-      motifRejet: motif is String ? motif.trim() : '',
+      name: text('name'),
+      motifRejet: text('motif_rejet'),
+      typeCompte: type,
+      zoneId: zone is int ? zone : null,
+      repere: text('repere'),
+      description: text('description'),
+      descriptionActivite: text('description_activite'),
+      representantNom: text('representant_nom'),
+      hasPhoto: filled('photo'),
+      hasRepresentantPhoto: filled('representant_photo'),
+      hasCni: json['has_cni'] == true,
+      hasDiplome: filled('diplome_photo'),
     );
   }
 }

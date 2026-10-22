@@ -106,6 +106,10 @@ class ScriptedBusinessRepository implements BusinessRepository {
 
   @override
   Future<MyBusiness> getMine() async => MyBusiness(status: status, name: 'Chez Aïcha');
+
+  @override
+  Future<MyBusiness> update(Map<String, Object?> body) async =>
+      throw StateError('Non utilisé par ces tests');
 }
 
 const kOfferA = MerchantOffer(id: 1, name: 'Riz parfumé 5 kg', priceFcfa: 4500, description: 'Sac de riz');
