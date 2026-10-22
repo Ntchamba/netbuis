@@ -135,7 +135,7 @@
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
 | ✅ | T121 | Revue de sécurité (backend 23 ✔ 7 ⚠ ; dashboard 16 ✔ 3 ⚠ ; mobile 23 ✔ 10 ⚠ ; aucun ✘ : docs/verifications/T121-*.md) | a1 (backend), c3 (dashboard), b1 (mobile) | 2026-10-22 | 1 651 serveur, 312 dashboard, 1 702 mobile. Points ⚠ pour Jeff dans A_RELIRE_PAR_JEFF.md |
 | ✅ | T121b | Mobile : valider le domaine Jitsi (comme le dashboard), traiter le code `throttled` (429) de la recherche | b3 / b2 | 2026-10-22 | 1 725 tests, analyse 0. Voir docs/verifications/T121b.md |
-| ☐ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | | |
+| 🔄 | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | | Backend ✅ 2026-10-22 : 1 678 tests, aucun N+1 (20 routes), 2 index, fil du forum réécrit, flux SSE : 1 connexion par agent ; voir T122-backend.md. Reste la partie mobile (b1) |
 | ☐ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | | |
 | ☐ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | |
 | ☐ | T125 | Recette finale contre le cahier de charge | orchestrateur seul | | |

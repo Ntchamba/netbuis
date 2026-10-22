@@ -32,7 +32,7 @@ DJANGO_SETTINGS_MODULE=config.settings.prod \
 
 - Si `DATABASE_URL` pointe sur PostgreSQL directement : rien à faire.
 - Si `DATABASE_URL` passe par un pool en mode transaction : définir `CALLS_LISTEN_DATABASE_URL` avec l'adresse **directe** de la même base (même format que `DATABASE_URL`). Les requêtes normales (dont `pg_notify`, qui part dans la transaction de l'appel) peuvent rester sur le pool.
-- Chaque flux ouvert garde **une** connexion `LISTEN` : prévoir `max_connections` de PostgreSQL ≥ (processus × connexions normales) + (agents connectés + appels en cours) + marge. Quelques dizaines suffisent pour une équipe de support.
+- Chaque flux ouvert garde **une** connexion `LISTEN` : prévoir `max_connections` de PostgreSQL ≥ (processus × connexions normales) + (agents connectés + appels en cours) + marge. Mesuré (T122) sur un vrai `uvicorn` : 50 agents connectés = environ 50 connexions de flux, environ 76 au total avec les appels, l'API et les connexions réservées ; le défaut de 100 suffit mais la marge est faible au-delà d'environ 80 flux : prévoir 200 ou plus. Mémoire : environ 0,75 Mo par flux. Voir `docs/verifications/T122-backend.md`.
 
 ## Tâche planifiée : fermer les sonneries oubliées
 

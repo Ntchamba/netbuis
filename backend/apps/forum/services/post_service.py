@@ -53,7 +53,32 @@ def parse_zone(raw):
     return zone
 
 
-def feed(user, zone=None):
+class FeedWindow:
+    """Le fil classé vu comme une liste paginable (T122).
+
+    Le tri (abonnés d'abord, plus récentes d'abord) se fait sur des colonnes ÉTROITES (les
+    identifiants seulement) et seule la page demandée est lue en entier, avec ses jointures et
+    son nombre de commentaires. Avant, chaque ligne du fil portait auteur, zone et produit dans
+    le tri, et le nombre de commentaires était calculé pour toutes les lignes sautées par la
+    pagination (page 100 : 220 ms sur 7 200 publications)."""
+
+    def __init__(self, user, sorted_rows):
+        self.user = user
+        self.sorted_rows = sorted_rows
+
+    def __len__(self) -> int:
+        return self.sorted_rows.count()
+
+    def __getitem__(self, key):
+        start, stop = key.start or 0, key.stop
+        ids = list(self.sorted_rows.values_list("pk", flat=True)[start:stop])
+        rows = _with_comments_count(
+            _related(Post.objects.visible_for(self.user).filter(pk__in=ids)), self.user
+        ).in_bulk()
+        return [rows[pk] for pk in ids if pk in rows]
+
+
+def feed(user, zone=None) -> FeedWindow:
     qs = Post.objects.visible_for(user)
     if zone is not None:
         qs = qs.filter(profile__zone_id__in=zone_subtree_ids(zone, zone_parents()))
@@ -61,10 +86,8 @@ def feed(user, zone=None):
         author_subscribed=Exists(
             active_subscription_queryset().filter(profile=OuterRef("profile_id"))
         )
-    )
-    return _with_comments_count(_related(qs), user).order_by(
-        "-author_subscribed", "-created_at", "-id"
-    )
+    ).order_by("-author_subscribed", "-created_at", "-id")
+    return FeedWindow(user, qs)
 
 
 def detail(user, pk):

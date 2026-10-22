@@ -84,6 +84,7 @@ class SessionEventsView(APIView):
     )
     def get(self, request, pk):
         session_service.get_caller_session(request.user, pk)  # 404 si ce n'est pas la mienne
+        streams.release_request_connection()
         response = StreamingHttpResponse(
             streams.caller_stream(request.user.pk, pk), content_type="text/event-stream"
         )

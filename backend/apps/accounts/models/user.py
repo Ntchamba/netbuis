@@ -40,6 +40,11 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 
     class Meta:
         verbose_name = "utilisateur"
+        indexes = [
+            # Liste admin des comptes : « du plus récent au plus ancien » sans trier toute la table
+            # (EXPLAIN T122 : 18 ms -> 0,1 ms pour la première page sur 5 000 comptes).
+            models.Index(fields=["-created_at", "-id"], name="accounts_user_recent_idx"),
+        ]
 
     def __str__(self):
         return self.name or f"Utilisateur {self.pk}"

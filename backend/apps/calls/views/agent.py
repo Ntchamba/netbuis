@@ -49,6 +49,7 @@ class AgentStreamView(APIView):
         ),
     )
     def get(self, request):
+        streams.release_request_connection()
         response = StreamingHttpResponse(
             streams.agent_stream(request.user.pk), content_type="text/event-stream"
         )

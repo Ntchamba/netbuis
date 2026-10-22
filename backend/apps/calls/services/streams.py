@@ -2,7 +2,10 @@
 
 Chaque flux ouvre SA connexion PostgreSQL directe et y fait `LISTEN` (aucun pool en mode
 transaction : voir docs/deployment/). Le nombre de connexions ouvertes = agents connectés +
-appels en cours : très faible ici.
+appels en cours, PLUS quelques connexions éphémères (au plus la taille du pool de threads,
+`min(32, cœurs + 4)`) le temps des lectures/écritures du battement toutes les 5 s.
+T122 : avant, chaque flux gardait aussi sa propre connexion Django (un thread par requête), soit
+DEUX connexions par flux : 50 agents occupaient les 100 connexions d'un PostgreSQL par défaut.
 
 Ordre voulu à l'ouverture : LISTEN d'abord, rejeu ensuite, pour ne perdre aucun événement.
 Le nom de salle et les jetons ne passent jamais par ces flux.
@@ -23,6 +26,32 @@ TICK_SECONDS = 5  # battement de cœur, présence, fermeture des sonneries expir
 RETRY_MS = 2000  # délai de reconnexion conseillé au navigateur
 
 _TERMINAL = {s.value for s in session_service.TERMINAL_STATES}
+
+
+def _db(func):
+    """Appel synchrone de base de données depuis un flux (T122) : exécuté dans un thread du pool
+    partagé, avec une connexion Django ouverte le temps de l'appel puis refermée. Un flux inactif
+    ne garde donc que sa connexion `LISTEN`."""
+
+    def run(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        finally:
+            connections.close_all()
+
+    return sync_to_async(run, thread_sensitive=False)
+
+
+def release_request_connection() -> None:
+    """À appeler dans la vue d'un flux, juste avant de renvoyer la réponse (T122).
+
+    Sous ASGI, Django n'envoie `request_finished` (qui ferme les connexions) qu'à la FIN de la
+    réponse, donc après des heures pour un flux : la connexion ouverte par l'authentification et
+    les droits resterait prise tout ce temps, en plus de la connexion `LISTEN`.
+    Une connexion au milieu d'une transaction n'est jamais fermée (cas des tests)."""
+    for connection in connections.all():
+        if not connection.in_atomic_block:
+            connection.close()
 
 
 def sse(event: str, data: dict) -> str:
@@ -63,13 +92,13 @@ async def agent_stream(user_id: int) -> AsyncIterator[str]:
     conn = await _listen()
     opened = False
     try:
-        user = await sync_to_async(_load_user)(user_id)
-        pres = await sync_to_async(presence.open_stream)(user)
+        user = await _db(_load_user)(user_id)
+        pres = await _db(presence.open_stream)(user)
         opened = True
         yield f"retry: {RETRY_MS}\n\n"
         yield sse("presence", {"available": pres.available})
         ringing_seen: set[str] = set()
-        for payload in await sync_to_async(session_service.ringing_sessions)():
+        for payload in await _db(session_service.ringing_sessions)():
             ringing_seen.add(payload["session_id"])
             yield sse(events.RINGING, payload)
         while True:
@@ -82,13 +111,13 @@ async def agent_stream(user_id: int) -> AsyncIterator[str]:
                             continue
                         ringing_seen.add(data["session_id"])
                     yield sse(name, data)
-            if not await sync_to_async(session_service.agent_tick)(user_id):
+            if not await _db(session_service.agent_tick)(user_id):
                 yield sse("closed", {"reason": "permission_removed"})
                 return
             yield sse_comment()
     finally:
         if opened:
-            await sync_to_async(presence.close_stream)(user_id)
+            await _db(presence.close_stream)(user_id)
         await conn.close()
 
 
@@ -108,7 +137,7 @@ async def caller_stream(user_id: int, session_id) -> AsyncIterator[str]:
     wanted = str(session_id)
     try:
         yield f"retry: {RETRY_MS}\n\n"
-        session = await sync_to_async(session_service.caller_tick)(user_id, session_id)
+        session = await _db(session_service.caller_tick)(user_id, session_id)
         if session is None:
             return
         yield sse("state", _caller_event(session))
@@ -125,7 +154,7 @@ async def caller_stream(user_id: int, session_id) -> AsyncIterator[str]:
                                         "reason": data.get("reason", "")})
                     if state in _TERMINAL:
                         return
-            session = await sync_to_async(session_service.caller_tick)(user_id, session_id)
+            session = await _db(session_service.caller_tick)(user_id, session_id)
             if session is None:
                 return
             if session.state in _TERMINAL:

@@ -90,6 +90,9 @@ class CallSession(models.Model):
         indexes = [
             models.Index(fields=["caller", "created_at"]),
             models.Index(fields=["state", "expires_at"]),
+            # Liste admin des appels : « du plus récent au plus ancien » sans trier toute la
+            # table (EXPLAIN T122 : 84 ms -> 0,3 ms pour la première page sur 20 000 sessions).
+            models.Index(fields=["-created_at", "-id"], name="calls_session_recent_idx"),
         ]
 
     def __str__(self) -> str:
