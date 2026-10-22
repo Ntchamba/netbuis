@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T096
-- **Prochaine tâche** : T100
+- **Tâche en cours** : T100
+- **Prochaine tâche** : T101
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -106,7 +106,7 @@
 | ✅ | T093 | Mobile : signaler | b3 | 2026-10-21 | docs/verifications/T093.md ; vérificateur CONFORME |
 | ✅ | T094 | Backend : modération | a3 + c2 | 2026-10-21 | docs/verifications/T094.md ; vérificateur CONFORME |
 | ✅ | T095 | Dashboard : modération du forum | c3 | 2026-10-21 | docs/verifications/T095.md ; vérificateur CONFORME |
-| ☐ | T096 | Vérification de tranche : forum | orchestrateur | | |
+| ✅ | T096 | Vérification de tranche : forum | orchestrateur | 2026-10-21 | docs/verifications/T096.md ; vérificateur CONFORME |
 | | | **PHASE 10 — Profil, aide, langue** | | | |
 | ☐ | T100 | Mobile : réglages (langue et thème) | b3 | | |
 | ☐ | T101 | Mobile : Aide et support | b3 | | |
