@@ -10,6 +10,7 @@ import { ReferentialsNav, RowActions, StatusBadge } from "../components/RowParts
 import { SearchBox, StatusFilterButtons } from "../components/Toolbar";
 import { ZoneTree } from "../components/ZoneTree";
 import { useReferentials } from "../hooks";
+import { isPageOutOfRange, usePageFallback } from "../../../lib/pagination";
 import {
   PAGE_SIZE,
   ZONE_LEVEL_LABEL,
@@ -78,11 +79,10 @@ export function ReferentialListPage({ config }: { config: RefConfig }) {
   const sectors = useReferentials("sectors", { page: 1, pageSize: 50, status: "all" }, type === "subcategories");
   const sectorName = (id: number) => (sectors.data?.results as AdminItem[] | undefined)?.find((s) => s.id === id)?.name ?? `n° ${id}`;
 
-  const data = query.data;
+  const outOfRange = isPageOutOfRange(query.error, page);
+  const data = outOfRange ? undefined : query.data;
   const pageCount = data ? Math.max(1, Math.ceil(data.count / PAGE_SIZE)) : 1;
-  useEffect(() => {
-    if (data && data.results.length === 0 && page > 1) setPage(page - 1);
-  }, [data, page]);
+  usePageFallback({ page, setPage, outOfRange, count: data?.count, pageSize: PAGE_SIZE, empty: data ? data.results.length === 0 : false });
 
   const actions = (row: RefRow) => (
     <RowActions
@@ -139,7 +139,7 @@ export function ReferentialListPage({ config }: { config: RefConfig }) {
   };
 
   const reset = () => setPage(1);
-  const showTable = !treeMode && !(query.isError && !data);
+  const showTable = !treeMode && !(query.isError && !data && !outOfRange);
   return (
     <section aria-label={config.title} className="flex flex-col gap-4 px-8 pb-7 pt-[18px]">
       <ReferentialsNav />
@@ -214,7 +214,7 @@ export function ReferentialListPage({ config }: { config: RefConfig }) {
         />
       )}
 
-      {!treeMode && query.isError && !data && (
+      {!treeMode && query.isError && !data && !outOfRange && (
         <div role="alert" className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-[13px] text-danger">Impossible de charger la liste.</p>
           <Button variant="secondary" onClick={() => void query.refetch()}>

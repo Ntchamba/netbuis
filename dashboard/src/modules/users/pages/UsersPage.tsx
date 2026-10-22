@@ -7,6 +7,7 @@ import { useAccountActions } from "../components/AccountActions";
 import { UserTable } from "../components/UserTable";
 import { useAccounts, useZoneOptions } from "../hooks";
 import { ACCOUNTS_PAGE_SIZE, type AccountFilter } from "../types";
+import { isPageOutOfRange, usePageFallback } from "../../../lib/pagination";
 
 const FILTERS: Array<{ key: AccountFilter; label: string }> = [
   { key: "all", label: "Tous" },
@@ -41,13 +42,12 @@ export function UsersPage() {
     return () => clearTimeout(t);
   }, [text, q]);
 
-  const data = query.data;
+  const outOfRange = isPageOutOfRange(query.error, page);
+  const data = outOfRange ? undefined : query.data;
   const pageCount = data ? Math.max(1, Math.ceil(data.count / ACCOUNTS_PAGE_SIZE)) : 1;
 
-  // Dernière ligne d'une page traitée : retour à la page précédente.
-  useEffect(() => {
-    if (data && data.results.length === 0 && page > 1) setPage(page - 1);
-  }, [data, page]);
+  // Page vide ou hors limites (404) : retour à la dernière page valide.
+  usePageFallback({ page, setPage, outOfRange, count: data?.count, pageSize: ACCOUNTS_PAGE_SIZE, empty: data ? data.results.length === 0 : false });
 
   return (
     <section aria-label="Comptes" className="flex flex-col gap-4 px-8 pb-7 pt-[18px]">
@@ -116,7 +116,7 @@ export function UsersPage() {
         </div>
       </div>
 
-      {query.isError && !data ? (
+      {query.isError && !data && !outOfRange ? (
         <div role="alert" className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-[13px] text-danger">Impossible de charger les comptes.</p>
           <Button variant="secondary" onClick={() => void query.refetch()}>

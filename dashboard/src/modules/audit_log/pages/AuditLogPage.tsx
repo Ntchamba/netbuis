@@ -6,6 +6,7 @@ import { auditError } from "../errors";
 import { useAdminOptions, useAudit } from "../hooks";
 import { ACTION_LABELS, AUDIT_PAGE_SIZE, EMPTY_FILTERS, type AuditFilters } from "../types";
 import { validateFilters } from "../validation";
+import { isPageOutOfRange, usePageFallback } from "../../../lib/pagination";
 
 const ACTION_OPTIONS = [
   { value: "", label: "Toutes les actions" },
@@ -30,11 +31,10 @@ export function AuditLogPage() {
     setPage(1);
   };
 
-  const data = valid ? query.data : undefined;
+  const outOfRange = valid && isPageOutOfRange(query.error, page);
+  const data = valid && !outOfRange ? query.data : undefined;
   const pageCount = data ? Math.max(1, Math.ceil(data.count / AUDIT_PAGE_SIZE)) : 1;
-  useEffect(() => {
-    if (data && data.results.length === 0 && page > 1) setPage(page - 1);
-  }, [data, page]);
+  usePageFallback({ page, setPage, outOfRange, count: data?.count, pageSize: AUDIT_PAGE_SIZE, empty: data ? data.results.length === 0 : false });
 
   const adminOptions = [{ value: "", label: "Tous les administrateurs" }, ...(admins.data ?? []).map((a) => ({ value: String(a.id), label: a.name }))];
 
@@ -58,7 +58,7 @@ export function AuditLogPage() {
         </div>
       </div>
 
-      {valid && query.isError && !data ? (
+      {valid && query.isError && !data && !outOfRange ? (
         <div role="alert" className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-[13px] text-danger">{auditError(query.error)}</p>
           <Button variant="secondary" onClick={() => void query.refetch()}>

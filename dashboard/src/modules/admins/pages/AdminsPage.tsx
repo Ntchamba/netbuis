@@ -7,6 +7,7 @@ import { useAdminActions } from "../components/AdminActions";
 import { CreateAdmin } from "../components/CreateAdmin";
 import { useAdmins } from "../hooks";
 import { ADMINS_PAGE_SIZE } from "../types";
+import { isPageOutOfRange, usePageFallback } from "../../../lib/pagination";
 
 const HEADERS = ["NOM", "TÉLÉPHONE", "RÔLE", "STATUT", "ACTIONS"];
 
@@ -16,12 +17,11 @@ export function AdminsPage() {
   const query = useAdmins(page);
   const actions = useAdminActions();
   const { me } = useAuth();
-  const data = query.data;
+  const outOfRange = isPageOutOfRange(query.error, page);
+  const data = outOfRange ? undefined : query.data;
   const pageCount = data ? Math.max(1, Math.ceil(data.count / ADMINS_PAGE_SIZE)) : 1;
 
-  useEffect(() => {
-    if (data && data.results.length === 0 && page > 1) setPage(page - 1);
-  }, [data, page]);
+  usePageFallback({ page, setPage, outOfRange, count: data?.count, pageSize: ADMINS_PAGE_SIZE, empty: data ? data.results.length === 0 : false });
 
   return (
     <section aria-label="Administrateurs" className="flex flex-col gap-4 px-8 pb-7 pt-[18px]">
@@ -32,7 +32,7 @@ export function AdminsPage() {
         </Can>
       </div>
 
-      {query.isError && !data ? (
+      {query.isError && !data && !outOfRange ? (
         <div role="alert" className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-[13px] text-danger">Impossible de charger les administrateurs.</p>
           <Button variant="secondary" onClick={() => void query.refetch()}>

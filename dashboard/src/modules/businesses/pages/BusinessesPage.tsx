@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button, ConfirmDialog, EmptyState, Pagination, Skeleton, useToast } from "../../../components/ui";
 import { IdDocumentModal, ValidationPanel, type DocumentKind } from "../components/ValidationPanel";
 import { useApproveRequest, useBusinessRequests, useIdDocument, useInvalidateRequests, useRejectRequest } from "../hooks";
 import { REASON_MAX_LENGTH, REQUESTS_PAGE_SIZE, type BusinessRequest } from "../types";
+import { isPageOutOfRange, usePageFallback } from "../../../lib/pagination";
 
 /** Message clair selon l'erreur du serveur ; `refresh` : la file doit être rechargée. */
 export function decisionError(err: unknown): { message: string; refresh: boolean } {
@@ -37,7 +38,8 @@ export function BusinessesPage() {
   const [docKind, setDocKind] = useState<DocumentKind | null>(null);
   const [reloading, setReloading] = useState(false);
 
-  const data = query.data;
+  const outOfRange = isPageOutOfRange(query.error, page);
+  const data = outOfRange ? undefined : query.data; // jamais de carte déjà traitée avec ses boutons
   const pageCount = data ? Math.max(1, Math.ceil(data.count / REQUESTS_PAGE_SIZE)) : 1;
   // Verrou immédiat (react-query signale « en cours » avec un léger retard) : pas de double envoi.
   const lock = useRef(false);
@@ -54,10 +56,8 @@ export function BusinessesPage() {
     setSending(false);
   };
 
-  // Dernière demande d'une page traitée : on revient à la page précédente.
-  useEffect(() => {
-    if (data && data.results.length === 0 && page > 1) setPage(page - 1);
-  }, [data, page]);
+  // Dernière demande d'une page traitée (page vide ou 404) : retour à la dernière page valide.
+  usePageFallback({ page, setPage, outOfRange, count: data?.count, pageSize: REQUESTS_PAGE_SIZE, empty: data ? data.results.length === 0 : false });
 
   const onApprove = (r: BusinessRequest) => {
     if (!begin()) return;
@@ -137,7 +137,7 @@ export function BusinessesPage() {
         </div>
       )}
 
-      {query.isError && !data && (
+      {query.isError && !data && !outOfRange && (
         <div role="alert" className="flex flex-col items-center gap-3 py-8 text-center">
           <p className="text-[13px] text-danger">Impossible de charger les demandes.</p>
           <Button variant="secondary" onClick={() => void query.refetch()}>
