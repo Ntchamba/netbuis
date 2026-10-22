@@ -112,3 +112,10 @@ Prévoir un compte business ACTIF, un compte EN ATTENTE et un compte REJETÉ (re
 9. Compte en attente : le nom se change sans avertissement.
 10. Limites à vérifier/connaître : le type de compte (Commerce, Entreprise…) et les choix de secteur / sous-catégories / forme juridique / détails d'établissement ne se modifient pas encore depuis cet écran ; le numéro n'est pas modifiable (D-08).
 11. Police agrandie à 130 %, thème sombre et clair, écran étroit : rien ne déborde, tout reste lisible.
+
+## T105 — Très demandé près de chez vous (téléphone Android réel, serveur branché ; à tester une fois la bande posée sur l'Accueil)
+1. Accueil, ville choisie avec des données de tendances (lancer le calcul côté serveur) : bande « Très demandé près de chez vous » avec 6 produits au plus (icône + mot), qui passent à la ligne sans défilement horizontal ; dessous « Commerces très contactés » avec 3 commerces au plus (nom + quartier). Aucun numéro de téléphone nulle part.
+2. Toucher un produit : l'écran de recherche s'ouvre avec ce mot déjà cherché, dans la ville choisie. Toucher un commerce : sa fiche publique s'ouvre.
+3. Ville sans tendances (ou mode avion, ou serveur arrêté) : la bande disparaît complètement, sans message d'erreur ni trou à l'écran.
+4. Changer de ville : la bande suit la nouvelle ville. Police à 130 %, thèmes clair et sombre, petit écran : rien ne déborde, cibles faciles à toucher.
+5. Accueil : la bande est le premier élément de la liste, juste sous les puces de secteurs ; elle défile avec les commerces (tirer vers le haut la fait disparaître, les commerces suivent). Si une ville n'a aucune tendance, la première carte commerce est tout en haut, sans trou.

@@ -16,13 +16,50 @@ import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
 import 'package:netbuis/features/home/presentation/widgets/category_chips.dart';
 import 'package:netbuis/features/home/presentation/widgets/invite_dialog.dart';
 import 'package:netbuis/features/search/data/search_cache.dart';
+import 'package:netbuis/features/search/presentation/widgets/result_card.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/data/models/search_query.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
 import 'package:netbuis/features/search/data/repositories/search_repository_fake.dart';
 import 'package:netbuis/core/data/referentials/referential_models.dart';
 
+import 'package:netbuis/features/trends/application/trends_controller.dart';
+import 'package:netbuis/features/trends/data/models/trend.dart';
+import 'package:netbuis/features/trends/data/repositories/trends_repository.dart';
+
 import '../auth/login_test_helpers.dart' show MemoryPrefs;
+
+/// Tendances de test : [n] produits, [nb] commerces ; [fail] = erreur réseau.
+class _Trends implements TrendsRepository {
+  _Trends({this.n = 0, this.nb = 0, this.fail = false});
+  final int n;
+  final int nb;
+  final bool fail;
+
+  @override
+  Future<Trends> getTrends(int zone) async {
+    if (fail) throw const ApiException(ApiErrorCode.network);
+    return Trends(
+      zoneId: zone,
+      zoneName: 'Maroua',
+      computedAt: DateTime.utc(2026, 1, 1),
+      periodDays: 7,
+      products: [
+        for (var i = 0; i < n; i++)
+          TrendProduct(id: i + 1, name: 'Produit ${i + 1}', rank: i + 1)
+      ],
+      businesses: [
+        for (var i = 0; i < nb; i++)
+          TrendBusiness(
+              id: 100 + i,
+              name: 'Commerce ${i + 1}',
+              zoneId: 17,
+              zoneName: 'Hardé',
+              rank: i + 1),
+      ],
+    );
+  }
+}
 
 class _Share implements ShareService {
   final List<String> shared = [];
@@ -44,16 +81,29 @@ class _Search extends SearchRepositoryFake {
   // Zones du faux référentiel : 17 Hardé, 18 Dougoï, 19 Domayo (quartiers de Maroua).
   static const _data = [
     SearchResult(
-        id: 1, name: 'Boutique Aminatou', kind: 'produit', secteur: 'Alimentation',
-        secteurCode: 'alimentation', zone: ResultZone(id: 17, name: 'Hardé'),
-        repere: 'Près du marché', descriptionActivite: 'Riz, huile et condiments'),
+        id: 1,
+        name: 'Boutique Aminatou',
+        kind: 'produit',
+        secteur: 'Alimentation',
+        secteurCode: 'alimentation',
+        zone: ResultZone(id: 17, name: 'Hardé'),
+        repere: 'Près du marché',
+        descriptionActivite: 'Riz, huile et condiments'),
     SearchResult(
-        id: 2, name: 'Pharmacie du Centre', kind: 'produit', secteur: 'Pharmacie & Santé',
-        secteurCode: 'pharmacie_sante', zone: ResultZone(id: 19, name: 'Domayo'),
+        id: 2,
+        name: 'Pharmacie du Centre',
+        kind: 'produit',
+        secteur: 'Pharmacie & Santé',
+        secteurCode: 'pharmacie_sante',
+        zone: ResultZone(id: 19, name: 'Domayo'),
         descriptionActivite: 'Médicaments et conseils'),
     SearchResult(
-        id: 3, name: 'Couturier Ibrahim', kind: 'service', secteur: 'Artisanat',
-        secteurCode: 'artisanat_services_domicile', zone: ResultZone(id: 18, name: 'Dougoï'),
+        id: 3,
+        name: 'Couturier Ibrahim',
+        kind: 'service',
+        secteur: 'Artisanat',
+        secteurCode: 'artisanat_services_domicile',
+        zone: ResultZone(id: 18, name: 'Dougoï'),
         descriptionActivite: 'Confection sur mesure'),
   ];
 
@@ -74,6 +124,7 @@ Future<void> _pump(
   VoidCallback? onOpenSearch,
   VoidCallback? onVoiceSearch,
   double textScale = 1.0,
+  TrendsRepository? trends,
 }) async {
   tester.view.physicalSize = const Size(360, 780);
   tester.view.devicePixelRatio = 1;
@@ -91,7 +142,16 @@ Future<void> _pump(
           ),
         ),
       ),
-      GoRoute(path: '/profile', builder: (_, __) => const Scaffold(body: Text('PAGE-PROFIL'))),
+      GoRoute(
+          path: '/search',
+          builder: (_, __) => const Scaffold(body: Text('PAGE-RECHERCHE'))),
+      GoRoute(
+          path: '/business/:id',
+          builder: (_, s) =>
+              Scaffold(body: Text('FICHE-${s.pathParameters['id']}'))),
+      GoRoute(
+          path: '/profile',
+          builder: (_, __) => const Scaffold(body: Text('PAGE-PROFIL'))),
     ],
   );
   addTearDown(router.dispose);
@@ -100,8 +160,11 @@ Future<void> _pump(
       appPrefsProvider.overrideWithValue(MemoryPrefs()),
       searchRepositoryProvider.overrideWithValue(search ?? _Search()),
       searchCacheProvider.overrideWithValue(MemorySearchCache()),
-      referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
-      accountRepositoryProvider.overrideWithValue(account ?? AccountRepositoryFake()),
+      trendsRepositoryProvider.overrideWithValue(trends ?? _Trends()),
+      referentialRepositoryProvider
+          .overrideWithValue(const ReferentialRepositoryFake()),
+      accountRepositoryProvider
+          .overrideWithValue(account ?? AccountRepositoryFake()),
       shareServiceProvider.overrideWithValue(share ?? _Share()),
     ],
     child: MaterialApp.router(
@@ -117,7 +180,8 @@ Future<void> _pump(
         GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: TextScaler.linear(textScale)),
         child: child!,
       ),
       routerConfig: router,
@@ -127,8 +191,121 @@ Future<void> _pump(
 }
 
 void main() {
+  group('bande « Très demandé près de chez vous »', () {
+    final results = find.byKey(const Key('home-results'));
+
+    testWidgets(
+        'avec tendances : deux blocs en tête de liste, 6 produits et 3 commerces au plus',
+        (tester) async {
+      await _pump(tester, trends: _Trends(n: 8, nb: 5));
+      expect(find.text('Très demandé près de chez vous'), findsOneWidget);
+      expect(find.text('Commerces très contactés'), findsOneWidget);
+      expect(find.text('Produit 6'), findsOneWidget);
+      expect(find.text('Produit 7'), findsNothing);
+      expect(find.text('Commerce 3'), findsOneWidget);
+      expect(find.text('Commerce 4'), findsNothing);
+      expect(find.text('Hardé'), findsWidgets);
+      // Placée sous les puces et avant la première carte de résultat.
+      final chips = tester.getBottomLeft(find.byType(CategoryChips)).dy;
+      final band = tester.getTopLeft(find.byKey(const Key('home-trends'))).dy;
+      expect(band, greaterThan(chips));
+      // La première carte vient après la bande : pas encore à l'écran, elle apparaît en défilant.
+      expect(find.text('Boutique Aminatou'), findsNothing);
+      await tester.scrollUntilVisible(find.text('Boutique Aminatou'), 200,
+          scrollable:
+              find.descendant(of: results, matching: find.byType(Scrollable)));
+      expect(
+          find.descendant(
+              of: results, matching: find.byKey(const Key('home-trends'))),
+          findsOneWidget);
+      expect(find.textContaining('+237'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'la bande défile avec les résultats : les cartes restent atteignables',
+        (tester) async {
+      await _pump(tester, trends: _Trends(n: 6, nb: 3), textScale: 1.3);
+      await tester.scrollUntilVisible(find.text('Couturier Ibrahim'), 200,
+          scrollable:
+              find.descendant(of: results, matching: find.byType(Scrollable)));
+      expect(find.text('Couturier Ibrahim'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('produits seuls : pas de rangée de commerces', (tester) async {
+      await _pump(tester, trends: _Trends(n: 2));
+      expect(find.text('Très demandé près de chez vous'), findsOneWidget);
+      expect(find.text('Commerces très contactés'), findsNothing);
+    });
+
+    testWidgets('aucune tendance : Accueil inchangé, sans espace ni texte',
+        (tester) async {
+      await _pump(tester);
+      // La première carte est collée en haut de la liste : aucun espace réservé à la bande.
+      expect(tester.getTopLeft(find.text('Boutique Aminatou')).dy,
+          greaterThan(tester.getTopLeft(results).dy));
+      expect(tester.getTopLeft(find.byType(ResultCard).first).dy,
+          tester.getTopLeft(results).dy);
+      expect(find.byKey(const Key('home-trends')), findsNothing);
+      expect(find.text('Très demandé près de chez vous'), findsNothing);
+      expect(find.text('Commerces très contactés'), findsNothing);
+    });
+
+    testWidgets(
+        'erreur du serveur de tendances : Accueil inchangé, aucun message',
+        (tester) async {
+      await _pump(tester, trends: _Trends(fail: true));
+      expect(find.byKey(const Key('home-trends')), findsNothing);
+      expect(find.textContaining('Très demandé'), findsNothing);
+      expect(find.text('Boutique Aminatou'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'toucher un produit lance la recherche de ce mot puis ouvre la recherche',
+        (tester) async {
+      final search = _Search();
+      await _pump(tester, trends: _Trends(n: 3, nb: 1), search: search);
+      await tester.tap(find.text('Produit 2'));
+      await tester.pumpAndSettle();
+      expect(find.text('PAGE-RECHERCHE'), findsOneWidget);
+      expect(
+          ProviderScope.containerOf(tester.element(find.text('PAGE-RECHERCHE')))
+              .read(searchControllerProvider)
+              .query
+              .q,
+          'Produit 2');
+    });
+
+    testWidgets('toucher un commerce ouvre sa fiche', (tester) async {
+      await _pump(tester, trends: _Trends(n: 1, nb: 2));
+      await tester.tap(find.text('Commerce 2'));
+      await tester.pumpAndSettle();
+      expect(find.text('FICHE-101'), findsOneWidget);
+    });
+
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      testWidgets('360 px, police 130 %, $mode : rien ne déborde',
+          (tester) async {
+        await _pump(tester,
+            mode: mode, textScale: 1.3, trends: _Trends(n: 6, nb: 3));
+        expect(find.text('Très demandé près de chez vous'), findsOneWidget);
+        final horizontal = tester
+            .widgetList<Scrollable>(find.byType(Scrollable))
+            .where((s) =>
+                s.axisDirection == AxisDirection.left ||
+                s.axisDirection == AxisDirection.right);
+        expect(horizontal, isEmpty);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
   group('structure de l\'Accueil', () {
-    testWidgets('logo, recherche, micro séparé, puces, résultats de la ville, encart', (tester) async {
+    testWidgets(
+        'logo, recherche, micro séparé, puces, résultats de la ville, encart',
+        (tester) async {
       await _pump(tester);
       expect(find.byType(NetBuisLogo), findsOneWidget);
       expect(find.text('Rechercher un produit, un service...'), findsOneWidget);
@@ -146,7 +323,8 @@ void main() {
       expect(find.text('Boutique Aminatou'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('Couturier Ibrahim'), 200,
           scrollable: find.descendant(
-              of: find.byKey(const Key('home-results')), matching: find.byType(Scrollable)));
+              of: find.byKey(const Key('home-results')),
+              matching: find.byType(Scrollable)));
       expect(find.text('Couturier Ibrahim'), findsOneWidget);
       // Bouton d'appel sans prix (CREDITS_ENABLED=False).
       expect(find.text('Appeler'), findsWidgets);
@@ -156,25 +334,33 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('les puces passent à la ligne : aucun défilement horizontal', (tester) async {
+    testWidgets('les puces passent à la ligne : aucun défilement horizontal',
+        (tester) async {
       await _pump(tester, textScale: 1.5);
       expect(find.byType(Wrap), findsWidgets);
-      final horizontal = tester.widgetList<Scrollable>(find.byType(Scrollable)).where(
-          (s) => s.axisDirection == AxisDirection.left || s.axisDirection == AxisDirection.right);
+      final horizontal = tester
+          .widgetList<Scrollable>(find.byType(Scrollable))
+          .where((s) =>
+              s.axisDirection == AxisDirection.left ||
+              s.axisDirection == AxisDirection.right);
       expect(horizontal, isEmpty);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('carte de résultat : badge, lieu « repère — zone », aucun numéro', (tester) async {
+    testWidgets(
+        'carte de résultat : badge, lieu « repère — zone », aucun numéro',
+        (tester) async {
       await _pump(tester);
       expect(find.text('Produit'), findsWidgets);
       await tester.scrollUntilVisible(find.text('Service'), 200,
           scrollable: find.descendant(
-              of: find.byKey(const Key('home-results')), matching: find.byType(Scrollable)));
+              of: find.byKey(const Key('home-results')),
+              matching: find.byType(Scrollable)));
       expect(find.text('Service'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('Près du marché — Hardé'), -200,
           scrollable: find.descendant(
-              of: find.byKey(const Key('home-results')), matching: find.byType(Scrollable)));
+              of: find.byKey(const Key('home-results')),
+              matching: find.byType(Scrollable)));
       expect(find.text('Près du marché — Hardé'), findsOneWidget);
       expect(find.textContaining('+237'), findsNothing);
     });
@@ -184,8 +370,13 @@ void main() {
         await _pump(tester, mode: mode);
         expect(find.text('Boutique Aminatou'), findsOneWidget);
         final scaffold = tester.widget<Scaffold>(find.byType(Scaffold).first);
-        expect(scaffold.backgroundColor ?? Theme.of(tester.element(find.byType(HomeScreen))).scaffoldBackgroundColor,
-            mode == ThemeMode.dark ? const Color(0xFF0D0D0F) : const Color(0xFFF7F7F8));
+        expect(
+            scaffold.backgroundColor ??
+                Theme.of(tester.element(find.byType(HomeScreen)))
+                    .scaffoldBackgroundColor,
+            mode == ThemeMode.dark
+                ? const Color(0xFF0D0D0F)
+                : const Color(0xFFF7F7F8));
         expect(tester.takeException(), isNull);
       });
     }
@@ -203,7 +394,8 @@ void main() {
       expect(find.text('Pharmacie du Centre'), findsOneWidget);
     });
 
-    testWidgets('« plus » ouvre la grille des 10 secteurs ; le choix filtre', (tester) async {
+    testWidgets('« plus » ouvre la grille des 10 secteurs ; le choix filtre',
+        (tester) async {
       await _pump(tester);
       await tester.tap(find.byKey(const Key('chip-more')));
       await tester.pumpAndSettle();
@@ -212,7 +404,8 @@ void main() {
       expect(grid, findsOneWidget);
       final sectors = await const ReferentialRepositoryFake().getSectors();
       expect(sectors.length, 10);
-      final santeName = sectors.firstWhere((s) => s.code == 'pharmacie_sante').name;
+      final santeName =
+          sectors.firstWhere((s) => s.code == 'pharmacie_sante').name;
       expect(find.text(santeName), findsOneWidget);
       await tester.tap(find.text(santeName));
       await tester.pumpAndSettle();
@@ -223,21 +416,30 @@ void main() {
       expect(find.text(santeName), findsOneWidget);
     });
 
-    test('visibleSectors : le secteur choisi prend la place de la dernière puce', () {
+    test(
+        'visibleSectors : le secteur choisi prend la place de la dernière puce',
+        () {
       final sectors = [
         for (var i = 0; i < 5; i++)
-          Sector(item: ReferentialItem(id: i, code: 'c$i', name: 'S$i', order: i), subcategories: const []),
+          Sector(
+              item: ReferentialItem(id: i, code: 'c$i', name: 'S$i', order: i),
+              subcategories: const []),
       ];
       expect(visibleSectors(sectors, null).map((s) => s.code), ['c0', 'c1']);
       expect(visibleSectors(sectors, 'c0').map((s) => s.code), ['c0', 'c1']);
       expect(visibleSectors(sectors, 'c4').map((s) => s.code), ['c0', 'c4']);
-      expect(visibleSectors(sectors, 'inconnu').map((s) => s.code), ['c0', 'c1']);
+      expect(
+          visibleSectors(sectors, 'inconnu').map((s) => s.code), ['c0', 'c1']);
     });
 
-    testWidgets('erreur réseau : message et « Réessayer » relance', (tester) async {
+    testWidgets('erreur réseau : message et « Réessayer » relance',
+        (tester) async {
       final search = _Search()..fail = true;
       await _pump(tester, search: search);
-      expect(find.text('Les commerces ne se chargent pas. Vérifiez votre connexion.'), findsOneWidget);
+      expect(
+          find.text(
+              'Les commerces ne se chargent pas. Vérifiez votre connexion.'),
+          findsOneWidget);
       expect(find.text('Boutique Aminatou'), findsNothing);
       search.fail = false;
       await tester.tap(find.byKey(const Key('home-retry')));
@@ -247,7 +449,8 @@ void main() {
 
     testWidgets('aucun commerce : message simple', (tester) async {
       await _pump(tester);
-      final container = ProviderScope.containerOf(tester.element(find.byType(HomeScreen)));
+      final container =
+          ProviderScope.containerOf(tester.element(find.byType(HomeScreen)));
       container.read(searchControllerProvider.notifier).submit('zzzzzz');
       await tester.pumpAndSettle();
       expect(find.text('Aucun commerce pour le moment.'), findsOneWidget);
@@ -255,16 +458,19 @@ void main() {
   });
 
   group('points d\'entrée', () {
-    testWidgets('barre de recherche et micro appellent les points d\'entrée', (tester) async {
+    testWidgets('barre de recherche et micro appellent les points d\'entrée',
+        (tester) async {
       var search = 0, voice = 0;
-      await _pump(tester, onOpenSearch: () => search++, onVoiceSearch: () => voice++);
+      await _pump(tester,
+          onOpenSearch: () => search++, onVoiceSearch: () => voice++);
       await tester.tap(find.byKey(const Key('home-search')));
       await tester.tap(find.byKey(const Key('home-voice')));
       expect(search, 1);
       expect(voice, 1);
     });
 
-    testWidgets('sans écran de recherche branché : « Bientôt disponible »', (tester) async {
+    testWidgets('sans écran de recherche branché : « Bientôt disponible »',
+        (tester) async {
       await _pump(tester);
       await tester.tap(find.byKey(const Key('home-search')));
       await tester.pump();
@@ -280,17 +486,22 @@ void main() {
   });
 
   group('Aidez NetBuis à grandir', () {
-    test('inviteSteps : parrain seulement si TEAM_ENABLED, business seulement sans compte', () {
+    test(
+        'inviteSteps : parrain seulement si TEAM_ENABLED, business seulement sans compte',
+        () {
       expect(inviteSteps(teamEnabled: false, hasBusiness: false),
           [InviteStep.business, InviteStep.share]);
       expect(inviteSteps(teamEnabled: true, hasBusiness: false),
           [InviteStep.sponsor, InviteStep.business, InviteStep.share]);
-      expect(inviteSteps(teamEnabled: false, hasBusiness: true), [InviteStep.share]);
+      expect(inviteSteps(teamEnabled: false, hasBusiness: true),
+          [InviteStep.share]);
       expect(inviteSteps(teamEnabled: true, hasBusiness: true),
           [InviteStep.sponsor, InviteStep.share]);
     });
 
-    testWidgets('Inviter : Parrain masqué (TEAM_ENABLED=False), puis Business, puis Partager', (tester) async {
+    testWidgets(
+        'Inviter : Parrain masqué (TEAM_ENABLED=False), puis Business, puis Partager',
+        (tester) async {
       final share = _Share();
       await _pump(tester, share: share);
       await tester.tap(find.byKey(const Key('home-invite')));
@@ -309,14 +520,17 @@ void main() {
       expect(find.byType(InviteDialog), findsNothing);
     });
 
-    testWidgets('TEAM_ENABLED=True : la feuille Devenir parrain vient en premier', (tester) async {
+    testWidgets(
+        'TEAM_ENABLED=True : la feuille Devenir parrain vient en premier',
+        (tester) async {
       await _pump(tester, teamEnabled: true);
       await tester.tap(find.byKey(const Key('home-invite')));
       await tester.pumpAndSettle();
       expect(find.text('Devenir parrain'), findsOneWidget);
     });
 
-    testWidgets('les feuilles défilent toutes seules, la dernière reste', (tester) async {
+    testWidgets('les feuilles défilent toutes seules, la dernière reste',
+        (tester) async {
       await _pump(tester);
       await tester.tap(find.byKey(const Key('home-invite')));
       await tester.pumpAndSettle();
@@ -345,14 +559,17 @@ void main() {
       expect(find.text('Partagez NetBuis'), findsOneWidget);
     });
 
-    testWidgets('partage impossible : message, pas de plantage', (tester) async {
+    testWidgets('partage impossible : message, pas de plantage',
+        (tester) async {
       final share = _Share()..fail = true;
-      await _pump(tester, share: share, account: AccountRepositoryFake()..markHasBusiness());
+      await _pump(tester,
+          share: share, account: AccountRepositoryFake()..markHasBusiness());
       await tester.tap(find.byKey(const Key('home-invite')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('invite-cta')));
       await tester.pumpAndSettle();
-      expect(find.text("Le partage n'a pas pu s'ouvrir. Réessayez."), findsOneWidget);
+      expect(find.text("Le partage n'a pas pu s'ouvrir. Réessayez."),
+          findsOneWidget);
     });
 
     testWidgets('fermer la feuille ou l\'encart', (tester) async {

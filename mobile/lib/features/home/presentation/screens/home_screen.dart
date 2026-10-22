@@ -19,6 +19,8 @@ import '../../../search/voice_search/application/voice_search_controller.dart';
 import '../../../search/voice_search/presentation/voice_button.dart';
 import '../../../search/voice_search/presentation/voice_listening_sheet.dart';
 import '../../../search/presentation/widgets/result_card.dart';
+import '../../../trends/application/trends_controller.dart';
+import '../../../trends/presentation/widgets/trending_section.dart';
 import '../../application/home_sectors.dart';
 import '../../application/invite_steps.dart';
 import '../../data/share_service.dart';
@@ -74,12 +76,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _soon() {
     final messenger = ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(SnackBar(content: Text(L10n.of(context).t('home.soon'))));
+    messenger
+        .showSnackBar(SnackBar(content: Text(L10n.of(context).t('home.soon'))));
   }
 
   /// Échec ou refus du micro : message simple, puis retour à la recherche écrite.
   void _onVoiceChange(VoiceState? previous, VoiceState next) {
-    if (next.phase != VoicePhase.failed || previous?.phase == VoicePhase.failed) {
+    if (next.phase != VoicePhase.failed ||
+        previous?.phase == VoicePhase.failed) {
       return;
     }
     final l10n = L10n.of(context);
@@ -94,7 +98,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _openSectors(List<Sector> sectors, String? selected) async {
-    final code = await showSectorsSheet(context, sectors: sectors, selected: selected);
+    final code =
+        await showSectorsSheet(context, sectors: sectors, selected: selected);
     if (code != null && mounted) {
       ref.read(searchControllerProvider.notifier).setSector(code);
     }
@@ -103,14 +108,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _invite() async {
     var hasBusiness = false;
     try {
-      hasBusiness = (await ref.read(accountControllerProvider.future)).hasBusiness;
+      hasBusiness =
+          (await ref.read(accountControllerProvider.future)).hasBusiness;
     } on Object {
       // Profil illisible : on propose la création du compte business.
     }
     if (!mounted) return;
     await showInviteDialog(
       context,
-      steps: inviteSteps(teamEnabled: widget.teamEnabled, hasBusiness: hasBusiness),
+      steps: inviteSteps(
+          teamEnabled: widget.teamEnabled, hasBusiness: hasBusiness),
       onSponsor: _soon,
       onBusiness: () => context.go(Routes.profile),
       onShare: _share,
@@ -121,9 +128,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = L10n.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(shareServiceProvider).shareText(l10n.t('home.invite.share.text'));
+      await ref
+          .read(shareServiceProvider)
+          .shareText(l10n.t('home.invite.share.text'));
     } on Object {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.t('home.invite.share.error'))));
+      messenger.showSnackBar(
+          SnackBar(content: Text(l10n.t('home.invite.share.error'))));
     }
   }
 
@@ -131,8 +141,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final search = ref.watch(searchControllerProvider);
     ref.listen(voiceSearchControllerProvider, _onVoiceChange);
-    final listening = ref.watch(
-        voiceSearchControllerProvider.select((v) => v.phase == VoicePhase.listening));
+    final listening = ref.watch(voiceSearchControllerProvider
+        .select((v) => v.phase == VoicePhase.listening));
     final sectors = ref.watch(homeSectorsProvider).value ?? const [];
     return SafeArea(
       child: Stack(
@@ -145,7 +155,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               right: 20,
               top: 138,
               child: VoiceListeningBanner(
-                onCancel: ref.read(voiceSearchControllerProvider.notifier).cancel,
+                onCancel:
+                    ref.read(voiceSearchControllerProvider.notifier).cancel,
               ),
             ),
         ],
@@ -153,58 +164,61 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, SearchState search, List<Sector> sectors) {
+  Widget _buildContent(
+      BuildContext context, SearchState search, List<Sector> sectors) {
     final c = AppColors.of(context);
     final l10n = L10n.of(context);
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const NetBuisLogo(),
-                IconButton(
-                  key: const Key('home-profile'),
-                  tooltip: l10n.t('home.profile'),
-                  onPressed: () => context.go(Routes.profile),
-                  style: IconButton.styleFrom(
-                    backgroundColor: c.card,
-                    side: BorderSide(color: c.border),
-                    minimumSize: const Size(48, 48),
-                  ),
-                  icon: Icon(Icons.person_outline, size: 20, color: c.textSecondary),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const NetBuisLogo(),
+              IconButton(
+                key: const Key('home-profile'),
+                tooltip: l10n.t('home.profile'),
+                onPressed: () => context.go(Routes.profile),
+                style: IconButton.styleFrom(
+                  backgroundColor: c.card,
+                  side: BorderSide(color: c.border),
+                  minimumSize: const Size(48, 48),
                 ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: SearchBarEntry(
-              onSearch: widget.onOpenSearch ?? _soon,
-              onVoice: widget.onVoiceSearch ?? () => startVoiceSearch(context, ref),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: CategoryChips(
-              sectors: sectors,
-              selected: search.query.sector,
-              onSelect: ref.read(searchControllerProvider.notifier).setSector,
-              onMore: () => _openSectors(sectors, search.query.sector),
-            ),
-          ),
-          Expanded(child: _Results(state: search, controller: _scroll)),
-          if (!_promoClosed)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: InviteBanner(
-                onInvite: _invite,
-                onClose: () => setState(() => _promoClosed = true),
+                icon: Icon(Icons.person_outline,
+                    size: 20, color: c.textSecondary),
               ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: SearchBarEntry(
+            onSearch: widget.onOpenSearch ?? _soon,
+            onVoice:
+                widget.onVoiceSearch ?? () => startVoiceSearch(context, ref),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: CategoryChips(
+            sectors: sectors,
+            selected: search.query.sector,
+            onSelect: ref.read(searchControllerProvider.notifier).setSector,
+            onMore: () => _openSectors(sectors, search.query.sector),
+          ),
+        ),
+        Expanded(child: _Results(state: search, controller: _scroll)),
+        if (!_promoClosed)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: InviteBanner(
+              onInvite: _invite,
+              onClose: () => setState(() => _promoClosed = true),
             ),
-        ],
+          ),
+      ],
     );
   }
 }
@@ -242,23 +256,34 @@ class _Results extends ConsumerWidget {
         return _Message(text: l10n.t('home.results.empty'));
       case SearchStatus.results:
         final extra = state.loadingMore || state.loadMoreFailed ? 1 : 0;
+        // Bande « Très demandé » : premier élément de la liste (elle défile avec les résultats),
+        // absente tant qu'il n'y a aucune tendance (pas d'espace vide).
+        final hasTrends =
+            !(ref.watch(cityTrendsProvider).value?.isEmpty ?? true);
+        final head = hasTrends ? 1 : 0;
         final offline = ref.watch(offlineProvider);
         final list = ListView.separated(
           key: const Key('home-results'),
           controller: controller,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          itemCount: state.items.length + extra,
+          itemCount: head + state.items.length + extra,
           separatorBuilder: (_, __) => const SizedBox(height: 14),
-          itemBuilder: (context, i) {
+          itemBuilder: (context, index) {
+            if (hasTrends && index == 0) {
+              return const KeyedSubtree(
+                  key: Key('home-trends'), child: TrendingSection());
+            }
+            final i = index - head;
             if (i < state.items.length) {
+              final item = state.items[i];
               return ResultCard(
-                result: state.items[i],
+                result: item,
                 offline: offline,
                 onCall: () => startCall(context,
-                    businessId: state.items[i].id, businessName: state.items[i].name),
+                    businessId: item.id, businessName: item.name),
                 onWhatsapp: () => startWhatsapp(context,
-                    businessId: state.items[i].id, businessName: state.items[i].name),
-                onOpen: () => context.push(Routes.businessDetailPath(state.items[i].id)),
+                    businessId: item.id, businessName: item.name),
+                onOpen: () => context.push(Routes.businessDetailPath(item.id)),
               );
             }
             if (state.loadMoreFailed) {
@@ -270,7 +295,8 @@ class _Results extends ConsumerWidget {
             }
             return Padding(
               padding: const EdgeInsets.all(12),
-              child: Center(child: CircularProgressIndicator(color: c.accentText)),
+              child:
+                  Center(child: CircularProgressIndicator(color: c.accentText)),
             );
           },
         );
@@ -298,13 +324,16 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(text, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
+            Text(text,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge),
             if (action != null) ...[
               const SizedBox(height: 12),
               OutlinedButton(
                 key: const Key('home-retry'),
                 onPressed: onAction,
-                style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
+                style:
+                    OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
                 child: Text(action!),
               ),
             ],

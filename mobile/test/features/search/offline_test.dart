@@ -1,6 +1,8 @@
 // T055 : dernier résultat hors connexion, appels et WhatsApp désactivés sans réseau.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:netbuis/features/trends/application/trends_controller.dart';
+import '../home/no_trends.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netbuis/core/data/referentials/referential_repository_fake.dart';
 import 'package:netbuis/core/di/providers.dart';
@@ -67,6 +69,7 @@ ProviderContainer _container(_Search repo, MemorySearchCache cache, {_Auth? auth
   final c = ProviderContainer(overrides: [
     searchRepositoryProvider.overrideWithValue(repo),
     searchCacheProvider.overrideWithValue(cache),
+    trendsRepositoryProvider.overrideWithValue(const NoTrendsRepository()),
     appPrefsProvider.overrideWithValue(MemoryPrefs(city: const SelectedCity(id: 16, name: 'Maroua'))),
     authControllerProvider.overrideWith(() => auth ?? _Auth()),
   ]);
@@ -206,6 +209,7 @@ void main() {
           appPrefsProvider.overrideWithValue(MemoryPrefs()),
           searchRepositoryProvider.overrideWithValue(repo),
           searchCacheProvider.overrideWithValue(cache),
+          trendsRepositoryProvider.overrideWithValue(const NoTrendsRepository()),
           authControllerProvider.overrideWith(_Auth.new),
           referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
           ...callOverrides(FakeCallChannel(), calls ?? FakeCallRepository()),

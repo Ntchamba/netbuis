@@ -161,6 +161,13 @@ class SearchController extends Notifier<SearchState> {
     _run(state.query.copyWith(q: text));
   }
 
+  /// Recherche neuve du terme [text] dans la zone [zone], sans secteur ni autre filtre résiduel
+  /// (ex. produit d'une tendance touché depuis l'Accueil).
+  void searchFresh(String text, {int? zone}) {
+    _timer?.cancel();
+    _run(SearchQuery(q: text, zone: zone));
+  }
+
   /// Change la zone (ville, quartier…) ; `null` = toutes les zones.
   void setZone(int? zone) {
     _timer?.cancel();

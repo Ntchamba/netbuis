@@ -900,5 +900,9 @@
   "business.edit.error.support": "This account can no longer be edited. Contact support.",
   "business.edit.error.photo": "A photo was refused (format, size or unreadable file). Pick another one.",
   "business.edit.error.subscription": "Limit reached: this change needs a subscription.",
-  "business.edit.error.server": "Saving failed. Your changes are kept: try again."
+  "business.edit.error.server": "Saving failed. Your changes are kept: try again.",
+  "trends.products.title": "In demand near you",
+  "trends.businesses.title": "Most contacted businesses",
+  "trends.product.semantic": "Search for {name}",
+  "trends.business.semantic": "Open the page of {name}, {zone}"
 }

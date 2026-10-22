@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:netbuis/features/trends/application/trends_controller.dart';
+import '../home/no_trends.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:netbuis/core/data/referentials/referential_repository_fake.dart';
@@ -114,6 +116,7 @@ Future<void> _pump(
   await tester.pumpWidget(ProviderScope(
     overrides: [
       appPrefsProvider.overrideWithValue(MemoryPrefs()),
+      trendsRepositoryProvider.overrideWithValue(const NoTrendsRepository()),
       searchRepositoryProvider.overrideWithValue(search),
       speechServiceProvider.overrideWithValue(speech),
       referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),

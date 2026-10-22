@@ -7,6 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
+import 'package:netbuis/features/trends/application/trends_controller.dart';
+import '../features/home/no_trends.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:netbuis/app.dart';
@@ -151,6 +153,7 @@ Future<void> pumpFlowApp(WidgetTester tester, FlowEnv env) async {
     referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
     searchRepositoryProvider.overrideWithValue(env.search),
     searchCacheProvider.overrideWithValue(env.cache),
+    trendsRepositoryProvider.overrideWithValue(const NoTrendsRepository()),
     speechServiceProvider.overrideWithValue(env.speech),
     shareServiceProvider.overrideWithValue(_NoShare()),
     publicBusinessRepositoryProvider.overrideWithValue(PublicBusinessRepositoryFake()),

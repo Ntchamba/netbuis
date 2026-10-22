@@ -14,3 +14,5 @@
 - T102b : type de compte, secteur, sous-catégories, forme juridique, RCCM et détails d'établissement non modifiables depuis « Modifier ma boutique » ; un rejet portant sur l'un d'eux ne se corrige pas dans l'application (prévoir un écran de correction réutilisant la création pré-remplie). Pas de test « rejeté + nom changé : aucun avertissement ». `business_edit_screen.dart` > 700 lignes (à découper).
 
 - T104 : `compute_trends` n'est planifiée nulle part (cron quotidien à installer au déploiement, reporté) ; l'API n'a pas de limite d'âge sur l'instantané (utiliser `computed_at`). Les 3 réglages `trends_*` doivent s'afficher sans plantage dans la page Réglages du dashboard (à vérifier en T106). Seuil de 3 appelants distincts aussi appliqué aux commerces.
+
+- T105 : pas de tirer-pour-actualiser sur l'Accueil (tendances rechargées au changement de ville ou à la reprise) ; la bande n'apparaît qu'avec des résultats affichés (pas pendant le chargement ni sans résultat) ; cache des tendances lié à la zone et non à l'utilisateur (sans sensibilité) ; pas de maquette de la bande (placement choisi par b2, à confirmer par Jeff).

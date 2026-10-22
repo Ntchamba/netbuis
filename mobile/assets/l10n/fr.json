@@ -900,5 +900,9 @@
   "business.edit.error.support": "Ce compte ne peut plus être modifié. Contactez le support.",
   "business.edit.error.photo": "Une photo est refusée (format, taille ou fichier illisible). Choisissez-en une autre.",
   "business.edit.error.subscription": "Limite atteinte : cette modification demande un abonnement.",
-  "business.edit.error.server": "L'enregistrement a échoué. Vos modifications sont conservées : réessayez."
+  "business.edit.error.server": "L'enregistrement a échoué. Vos modifications sont conservées : réessayez.",
+  "trends.products.title": "Très demandé près de chez vous",
+  "trends.businesses.title": "Commerces très contactés",
+  "trends.product.semantic": "Chercher {name}",
+  "trends.business.semantic": "Ouvrir la fiche de {name}, {zone}"
 }
