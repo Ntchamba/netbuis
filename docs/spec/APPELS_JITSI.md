@@ -46,10 +46,16 @@ Le code est écrit pour fonctionner avec les deux premières options : seuls les
 - Chaque appel est journalisé sans contenu (états, horodatages, agent) ; aucun jeton Jitsi ni nom de salle dans les journaux.
 - Les nouvelles routes sont couvertes par le test qui énumère toutes les routes (T121) et par les tests de droits.
 
+## Paiements : les packs de crédits via CamPay RESTENT (précisé par Jeff le 2026-10-22)
+- Rien dans cette décision ne retire CamPay ni l'achat de **packs de crédits**. Ils restent prévus et **reportés** comme avant (tâche V08, `CREDITS_ENABLED=False` tant que Jeff n'a pas donné son « go » ; code existant dans `backend/apps/payments/`, documentation dans `docs/payments/`). Aucun fichier de paiement n'est touché par la phase 13.
+- **Point d'accroche** : l'ancien quota d'appels (appels gratuits par jour, débit d'un crédit par appel, `free_call_available`, `credits_balance`) s'appliquait à `POST /api/calls/initiate/`. Il s'appliquera désormais à la **création d'une session** (`POST /api/calls/sessions/`), au même endroit, derrière le même interrupteur. T131 prévoit ce point d'accroche (une fonction unique « cet appelant a-t-il le droit d'appeler ? ») sans activer aucun débit.
+- **Question ouverte Q7 (à décider par Jeff avant V08)** : maintenant que l'appel va vers l'équipe NetBuis et non vers un commerçant, **qu'achète un pack de crédits** ? Pistes : (a) un crédit par appel à l'équipe (comme avant, mais l'équipe répond) ; (b) les packs servent à autre chose (mise en avant, abonnement) et l'appel reste gratuit ; (c) appels gratuits dans la limite quotidienne, crédits au-delà. Défaut retenu : **aucun débit** tant que Jeff n'a pas tranché ; le point d'accroche existe, rien n'est facturé.
+
 ## Questions ouvertes (défauts retenus, modifiables)
 - **Q1** Hébergement de Jitsi (JaaS ou auto-hébergé) : à décider avant tout essai réel. Défaut : code compatible avec les deux.
 - **Q2** WhatsApp reste-t-il (lien `wa.me` vers le commerçant) ? Défaut : inchangé.
 - **Q3** Vidéo : audio seul en v1. Défaut : oui.
 - **Q4** Qui répond : tous les agents disponibles sonnent, le premier gagne. Défaut : oui.
 - **Q5** Durée de sonnerie : 30 s. Défaut : oui.
+- **Q7** Que paient les packs de crédits CamPay avec les appels vers l'équipe ? Voir la section « Paiements ». Défaut : aucun débit pour l'instant.
 - **Q6** L'appelant sans compte (non connecté) ne peut pas appeler. Défaut : connexion obligatoire (comme avant).

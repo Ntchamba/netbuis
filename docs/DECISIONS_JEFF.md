@@ -33,6 +33,7 @@
 | D-26 | Latence | Sonnerie sur le tableau de bord en moins d'une seconde après le clic (p95), mesurée côté serveur par un test automatisé | décidé par Jeff le 2026-10-22 | cible serveur < 250 ms |
 | D-27 | Recherche par nom | La recherche trouve aussi un commerce par son **nom** | décidé par Jeff le 2026-10-22 | tâche T041b |
 | D-28 | Hébergement de Jitsi | JaaS (8x8) ou Jitsi auto-hébergé sur un serveur avec UDP | **à décider par Jeff** | code compatible avec les deux |
+| D-29 | Paiements CamPay (packs de crédits) | **Restent prévus**, toujours reportés (V08) ; l'accroche du quota passe de `initiate` à la création d'une session d'appel ; **à décider par Jeff : ce qu'achète un pack avec les appels vers l'équipe** | confirmé par Jeff le 2026-10-22 ; question Q7 ouverte | aucun débit tant que non tranché |
 
 ## Données à fournir par Jeff (le projet ne les invente pas)
 
