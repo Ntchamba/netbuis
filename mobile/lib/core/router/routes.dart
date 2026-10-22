@@ -59,6 +59,10 @@ class Routes {
   /// de connexion.
   static const editBusiness = '/edit-business';
 
+  /// « Bientôt disponible » : souscription pas encore ouverte (T111), ouvert depuis Profil ;
+  /// protégé par la garde de connexion.
+  static const subscriptionSoon = '/subscription-soon';
+
   /// Choix précis du lieu (ville/village, puis quartier), ouvert depuis le champ
   /// « Ville / Quartier » de l'écran Informations (T034). Ce ne sont pas des étapes.
   static const createBusinessLocation = '/create-business/location';

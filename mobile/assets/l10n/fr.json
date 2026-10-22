@@ -904,5 +904,15 @@
   "trends.products.title": "Très demandé près de chez vous",
   "trends.businesses.title": "Commerces très contactés",
   "trends.product.semantic": "Chercher {name}",
-  "trends.business.semantic": "Ouvrir la fiche de {name}, {zone}"
+  "trends.business.semantic": "Ouvrir la fiche de {name}, {zone}",
+  "subscription.card.title": "Vous recevez beaucoup d'appels",
+  "subscription.card.body": "Bravo, des clients vous contactent souvent. L'abonnement vous aidera à rester bien visible et à publier davantage, quand vous le souhaiterez.",
+  "subscription.card.button": "Souscrire",
+  "subscription.card.button.semantic": "Souscrire à l'abonnement",
+  "subscription.soon.title": "Bientôt disponible",
+  "subscription.soon.heading": "Contactez le support",
+  "subscription.soon.body": "La souscription à l'abonnement n'est pas encore ouverte. Écrivez-nous sur WhatsApp : nous vous répondrons dès que possible.",
+  "subscription.soon.whatsapp": "Écrire au support sur WhatsApp",
+  "subscription.soon.message": "Bonjour NetBuis, je souhaite en savoir plus sur l'abonnement.",
+  "subscription.soon.back": "Retour"
 }

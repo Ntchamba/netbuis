@@ -904,5 +904,15 @@
   "trends.products.title": "In demand near you",
   "trends.businesses.title": "Most contacted businesses",
   "trends.product.semantic": "Search for {name}",
-  "trends.business.semantic": "Open the page of {name}, {zone}"
+  "trends.business.semantic": "Open the page of {name}, {zone}",
+  "subscription.card.title": "You receive a lot of calls",
+  "subscription.card.body": "Well done, customers contact you often. The subscription will help you stay visible and publish more, whenever you wish.",
+  "subscription.card.button": "Subscribe",
+  "subscription.card.button.semantic": "Subscribe",
+  "subscription.soon.title": "Coming soon",
+  "subscription.soon.heading": "Contact support",
+  "subscription.soon.body": "Subscribing is not open yet. Write to us on WhatsApp: we will reply as soon as possible.",
+  "subscription.soon.whatsapp": "Write to support on WhatsApp",
+  "subscription.soon.message": "Hello NetBuis, I would like to know more about the subscription.",
+  "subscription.soon.back": "Back"
 }

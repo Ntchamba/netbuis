@@ -119,3 +119,9 @@ Prévoir un compte business ACTIF, un compte EN ATTENTE et un compte REJETÉ (re
 3. Ville sans tendances (ou mode avion, ou serveur arrêté) : la bande disparaît complètement, sans message d'erreur ni trou à l'écran.
 4. Changer de ville : la bande suit la nouvelle ville. Police à 130 %, thèmes clair et sombre, petit écran : rien ne déborde, cibles faciles à toucher.
 5. Accueil : la bande est le premier élément de la liste, juste sous les puces de secteurs ; elle défile avec les commerces (tirer vers le haut la fait disparaître, les commerces suivent). Si une ville n'a aucune tendance, la première carte commerce est tout en haut, sans trou.
+
+## T111 — Proposition d'abonnement (téléphone Android réel, serveur branché)
+1. Compte business ACTIF qui reçoit beaucoup d'appels (le serveur renvoie `suggest_subscription` vrai) : Profil > encart « Vous recevez beaucoup d'appels » avec un bouton « Souscrire », sans prix ni mot de paiement, ton bienveillant.
+2. Compte actif avec peu d'appels, compte EN ATTENTE, compte REJETÉ, compte sans business : l'encart n'apparaît pas.
+3. « Souscrire » ouvre « Bientôt disponible » : la souscription n'est pas encore ouverte, contactez le support. Tant que le numéro WhatsApp du support est `À REMPLACER` (D-06), le bouton est grisé avec « Coordonnées du support à venir » ; avec un vrai numéro, il ouvre WhatsApp avec un message déjà écrit (sans numéro de personne). Sans WhatsApp installé : message simple.
+4. Bouton « Retour » et flèche : retour au Profil. Police à 130 %, thèmes clair et sombre, petit écran : rien ne déborde.

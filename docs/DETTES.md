@@ -22,3 +22,5 @@
 - T106 : aucun test backend n'appelle `GET /api/trends/` avec un compte administrateur (la page Tendances du dashboard en dépend) : à ajouter dans `apps/trends/tests`.
 
 - T110 : pas de contrainte d'unicité en base « un seul abonnement actif par profil » (le verrou `select_for_update` ne protège que sous PostgreSQL) ; la regex du test de garde ne couvre pas `prefetch_related("subscriptions")` ni `.subscriptions.first()/count()` et `admin_panel/services/subscription_service.py` est en liste blanche entière ; `accord_abonnement` hors `ACTIONS_AVEC_MOTIF` (motif imposé par la route) ; « aujourd'hui » = jour calendaire Africa/Douala pour suggest_subscription, 24 h glissantes dans les stats admin ; `expire_subscriptions` à planifier au déploiement (reporté). Dashboard (T113) : liste GET sans détail de l'abonnement ; gérer 409 already_subscribed / business_not_active.
+
+- T111 : textes de l'encart d'abonnement et de l'écran « Bientôt disponible » écrits sans maquette (à relire par Jeff) ; bouton WhatsApp du support grisé tant que les coordonnées sont `À REMPLACER`.

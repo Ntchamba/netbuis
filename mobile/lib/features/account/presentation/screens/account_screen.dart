@@ -11,6 +11,7 @@ import '../../../../core/widgets/dashed_border.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../business/presentation/widgets/business_status_card.dart';
 import '../../../business/presentation/widgets/edit_business_entry.dart';
+import '../../../business/presentation/widgets/subscription_suggestion_card.dart';
 import '../../../merchant/presentation/screens/offers_screen.dart';
 import '../../../onboarding/application/city_controller.dart';
 import '../../../settings/application/settings_controller.dart';
@@ -109,6 +110,7 @@ class AccountScreen extends ConsumerWidget {
                 const MyProductsEntry(),
                 const SizedBox(height: 10),
                 const EditBusinessEntry(),
+                const SubscriptionSuggestionCard(),
                 const SizedBox(height: 16),
               ],
               DecoratedBox(

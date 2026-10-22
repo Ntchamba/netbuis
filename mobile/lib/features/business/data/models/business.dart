@@ -39,6 +39,7 @@ class MyBusiness {
     this.hasRepresentantPhoto = false,
     this.hasCni = false,
     this.hasDiplome = false,
+    this.suggestSubscription = false,
   });
 
   final BusinessStatus status;
@@ -61,6 +62,10 @@ class MyBusiness {
   final bool hasRepresentantPhoto;
   final bool hasCni;
   final bool hasDiplome;
+
+  /// `suggest_subscription` : le serveur juge que le compte reçoit beaucoup d'appels. Faux si le
+  /// champ est absent. L'encart du Profil ne s'en sert que pour un compte actif.
+  final bool suggestSubscription;
 
   /// Lève [FormatException] si la réponse n'a pas la forme du contrat.
   factory MyBusiness.fromJson(Map<String, dynamic> json) {
@@ -93,6 +98,7 @@ class MyBusiness {
       hasRepresentantPhoto: filled('representant_photo'),
       hasCni: json['has_cni'] == true,
       hasDiplome: filled('diplome_photo'),
+      suggestSubscription: json['suggest_subscription'] == true,
     );
   }
 }
