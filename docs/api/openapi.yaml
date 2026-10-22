@@ -4977,6 +4977,30 @@ components:
             est posé dans le cookie HttpOnly netbuis_refresh.
       required:
       - access
+    AccountAuditEntry:
+      type: object
+      properties:
+        action:
+          type: string
+        label:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+        admin_id:
+          type: integer
+        admin_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - action
+      - admin_id
+      - admin_name
+      - created_at
+      - label
+      - reason
     AccountDetail:
       type: object
       properties:
@@ -5052,12 +5076,12 @@ components:
         status_history:
           type: array
           items:
-            $ref: '#/components/schemas/AuditEntry'
+            $ref: '#/components/schemas/AccountAuditEntry'
           readOnly: true
         recent_audit:
           type: array
           items:
-            $ref: '#/components/schemas/AuditEntry'
+            $ref: '#/components/schemas/AccountAuditEntry'
           readOnly: true
       required:
       - blocked_at
@@ -5544,27 +5568,36 @@ components:
     AuditEntry:
       type: object
       properties:
-        action:
-          type: string
-        label:
-          type: string
-          readOnly: true
-        reason:
-          type: string
+        id:
+          type: integer
         admin_id:
           type: integer
         admin_name:
           type: string
+        action:
+          type: string
+        action_label:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: integer
+        reason:
+          type: string
+          readOnly: true
         created_at:
           type: string
           format: date-time
       required:
       - action
+      - action_label
       - admin_id
       - admin_name
       - created_at
-      - label
+      - id
       - reason
+      - target_id
+      - target_type
     BlankEnum:
       enum:
       - ''

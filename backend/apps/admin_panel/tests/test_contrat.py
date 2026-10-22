@@ -15,11 +15,20 @@ from rest_framework.test import APIClient
 
 from apps.admin_panel.models import AuditAction, AuditLog
 from apps.admin_panel.services import referential_service as svc
-from apps.business.models import AccountType
+from apps.business.models import AccountType, BusinessStatus
 from apps.business.services.storage_service import get_storage
 from apps.calls.models import CallChannel, CallLog, Platform
+from apps.catalog.models import Synonym
 from apps.search.models import SearchLog
-from tests.factories.business_factory import make_owner, make_profile, make_subscription
+from tests.factories.business_factory import (
+    get_sector,
+    get_service_category,
+    get_structure_type,
+    make_owner,
+    make_profile,
+    make_subscription,
+)
+from tests.factories.catalog_factory import make_product, make_subcategory
 from tests.factories.storage_factory import make_stored_file
 from tests.factories.user_factory import UserFactory
 
@@ -246,3 +255,60 @@ def test_creation_d_un_admin_en_no_store():
 def test_les_routes_no_store_existent_dans_le_registre():
     assert c.NO_STORE <= {t for (_m, t) in c.discovered()}
     assert Group.objects.filter(name=COMPLET).exists()
+
+
+# --- (f) la forme réelle des réponses GET = les `properties` du schéma openapi.yaml ------
+
+# Réponses qui ne sont pas du JSON objet/liste (fichier) : rien à comparer.
+NON_JSON = {"export/accounts.csv", "private-files/<str:token>/"}
+
+
+def _resolve(spec, schema):
+    while "$ref" in schema:
+        schema = spec["components"]["schemas"][schema["$ref"].rsplit("/", 1)[1]]
+    return schema
+
+
+def _schema_keys(spec, schema):
+    """Clés de l'objet décrit ; pour une liste paginée ou un tableau, celles d'un élément."""
+    schema = _resolve(spec, schema)
+    if schema.get("type") == "array":
+        return _schema_keys(spec, schema["items"])
+    props = schema.get("properties", {})
+    if "results" in props:
+        return _schema_keys(spec, props["results"])
+    return set(props)
+
+
+def _first(data, template):
+    if isinstance(data, dict) and "results" in data:
+        data = data["results"]
+    if isinstance(data, list):
+        assert data, f"base peuplée sans élément pour {template}"
+        data = data[0]
+    return data
+
+
+def test_forme_des_reponses_get_conforme_au_schema_openapi(peuplee):
+    make_subcategory(get_sector())
+    get_structure_type()
+    get_service_category()
+    make_profile(status=BusinessStatus.ACTIVE)
+    Synonym.objects.get_or_create(product=make_product("Banane"), term="Dessert")
+    spec = yaml.safe_load(OPENAPI.read_text(encoding="utf-8"))
+    by_path = {c.normalised(p): item for p, item in spec["paths"].items()}
+    client = api_as(peuplee["admin"])
+    ecarts = []
+    for template in sorted(t for (m, t) in c.discovered() if m == "get"):
+        if template in NON_JSON:
+            continue
+        operation = by_path[c.normalised("/" + c.PREFIX + template)]["get"]
+        schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        response = client.get(_fill(template, peuplee))
+        assert response.status_code == 200, (template, response.status_code)
+        reel = set(_first(response.json(), template))
+        attendu = _schema_keys(spec, schema)
+        if reel != attendu:
+            ecarts.append((template, "réponse seule", sorted(reel - attendu),
+                           "schéma seul", sorted(attendu - reel)))
+    assert ecarts == []

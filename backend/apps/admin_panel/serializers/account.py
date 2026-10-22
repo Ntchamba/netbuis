@@ -77,6 +77,11 @@ class AuditEntrySerializer(serializers.Serializer):
     def get_label(self, obj) -> str:
         return obj.get_action_display()
 
+    class Meta:
+        # Nom distinct de celui du journal d'audit (serializers/audit.py) : sinon les deux
+        # schémas se confondent dans openapi.yaml.
+        ref_name = "AccountAuditEntry"
+
 
 class AccountDetailSerializer(AccountListSerializer):
     phone = serializers.SerializerMethodField(
