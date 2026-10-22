@@ -10,7 +10,6 @@ import 'package:netbuis/features/account/data/repositories/account_repository_fa
 import 'package:netbuis/features/business/application/public_business_controller.dart';
 import 'package:netbuis/features/business/data/repositories/public_business_repository_fake.dart';
 import 'package:netbuis/features/business/presentation/screens/business_detail_screen.dart';
-import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
@@ -20,17 +19,18 @@ import '../auth/login_test_helpers.dart' show MemoryPrefs;
 import 'call_test_helpers.dart';
 
 void main() {
-  testWidgets('fiche publique : Appeler ouvre la feuille avec le nom du commerce, sans numéro',
+  testWidgets('fiche publique : Appeler ouvre l\'écran d\'appel à l\'équipe, sans numéro',
       (tester) async {
     final channel = FakeCallChannel();
     final repo = FakeCallRepository();
+    final jitsi = FakeJitsiService();
     tester.view.physicalSize = const Size(360, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(ProviderScope(
       overrides: [
         publicBusinessRepositoryProvider.overrideWithValue(PublicBusinessRepositoryFake()),
-        ...callOverrides(channel, repo),
+        ...callOverrides(channel, repo, jitsi: jitsi),
       ],
       child: testApp(const BusinessDetailScreen(businessId: 1)),
     ));
@@ -42,21 +42,20 @@ void main() {
         find.descendant(of: find.byKey(const Key('detail-call')), matching: find.byType(FilledButton)));
     expect(button.onPressed, isNotNull);
     await tapAndSettle(tester, find.byKey(const Key('detail-call')));
-    expect(find.byKey(const Key('call-choose')), findsOneWidget);
-    expect(find.descendant(of: find.byKey(const Key('call-sheet')), matching: find.text('Boutique Aminatou')),
-        findsOneWidget);
-    expect(repo.requests, isEmpty);
-    await tapAndSettle(tester, find.byKey(const Key('call-orange')));
-    expect(repo.requests, [(businessId: 1, line: CallLine.orange)]);
-    expect(channel.placed.single.accountId, 'tel|orange');
+    expect(find.byKey(const Key('call-running')), findsOneWidget);
+    expect(find.text('Au sujet de Boutique Aminatou'), findsOneWidget);
+    expect(repo.requests, [1]);
+    expect(jitsi.joinedDomains, hasLength(1));
     expectNoPhoneOnScreen(tester);
-    await closeSheet(tester);
-    expect(find.byKey(const Key('call-sheet')), findsNothing);
+    await tester.tap(find.byKey(const Key('call-cancel')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('call-screen')), findsNothing);
   });
 
   testWidgets('Accueil : la carte de résultat appelle le bon commerce', (tester) async {
     final channel = FakeCallChannel();
     final repo = FakeCallRepository();
+    final jitsi = FakeJitsiService();
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -70,25 +69,25 @@ void main() {
               id: 4, name: 'Pharmacie du Centre', kind: 'produit', zone: ResultZone(id: 19, name: 'Domayo')),
         ])),
         referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
-        ...callOverrides(channel, repo),
+        ...callOverrides(channel, repo, jitsi: jitsi),
       ],
       child: testApp(const Scaffold(body: HomeScreen())),
     ));
     await tester.pumpAndSettle();
     expect(find.text('Pharmacie du Centre'), findsOneWidget);
     await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler'));
-    expect(find.byKey(const Key('call-choose')), findsOneWidget);
-    await tapAndSettle(tester, find.byKey(const Key('call-mtn')));
-    expect(repo.requests, [(businessId: 4, line: CallLine.mtn)]);
-    expect(channel.placed.single.accountId, 'tel|mtn');
+    expect(find.byKey(const Key('call-running')), findsOneWidget);
+    expect(repo.requests, [4]);
     expectNoPhoneOnScreen(tester);
-    await closeSheet(tester);
+    await tester.tap(find.byKey(const Key('call-cancel')));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('Accueil : le bouton WhatsApp de la carte ouvre WhatsApp pour le bon commerce',
       (tester) async {
     final channel = FakeCallChannel();
     final repo = FakeCallRepository();
+    final jitsi = FakeJitsiService();
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -102,7 +101,7 @@ void main() {
               id: 4, name: 'Pharmacie du Centre', kind: 'produit', zone: ResultZone(id: 19, name: 'Domayo')),
         ])),
         referentialRepositoryProvider.overrideWithValue(const ReferentialRepositoryFake()),
-        ...callOverrides(channel, repo),
+        ...callOverrides(channel, repo, jitsi: jitsi),
       ],
       child: testApp(const Scaffold(body: HomeScreen())),
     ));
@@ -113,5 +112,23 @@ void main() {
     expect(channel.whatsappOpened, [kFakeWaUrl]);
     expect(repo.requests, isEmpty);
     expectNoPhoneOnScreen(tester);
+  });
+
+  testWidgets('ouverture de la fiche : la connexion est réchauffée une fois (avant le clic)',
+      (tester) async {
+    final repo = FakeCallRepository();
+    tester.view.physicalSize = const Size(360, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        publicBusinessRepositoryProvider.overrideWithValue(PublicBusinessRepositoryFake()),
+        ...callOverrides(FakeCallChannel(), repo),
+      ],
+      child: testApp(const BusinessDetailScreen(businessId: 1)),
+    ));
+    await tester.pumpAndSettle();
+    expect(repo.warmUps, 1);
+    expect(repo.requests, isEmpty, reason: 'réchauffer n\'appelle personne');
   });
 }

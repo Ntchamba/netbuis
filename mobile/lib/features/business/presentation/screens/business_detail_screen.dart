@@ -1,5 +1,5 @@
 // Fiche publique d'un commerce (T047). Écran non maquetté : éléments de Main/Quartier
-// (cartes, badges, bouton d'accent). Appeler : T052. Aucun numéro : il ne sort que de POST /api/calls/initiate/.
+// (cartes, badges, bouton d'accent). Appeler : T133 (équipe NetBuis, Jitsi). Aucun numéro de commerçant ici.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,10 +57,12 @@ class BusinessDetailScreen extends ConsumerWidget {
                   action: l10n.t('business.detail.retry'),
                   onAction: () => ref.invalidate(publicBusinessProvider(businessId)),
                 ),
-          data: (b) => _Content(
-            business: b,
-            offline: ref.watch(offlineProvider),
-            reported: ref.watch(reportsProvider).businesses.contains(b.id),
+          data: (b) => CallWarmUp(
+            child: _Content(
+              business: b,
+              offline: ref.watch(offlineProvider),
+              reported: ref.watch(reportsProvider).businesses.contains(b.id),
+            ),
           ),
         ),
       ),

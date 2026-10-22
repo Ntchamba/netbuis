@@ -11,6 +11,7 @@ import 'package:netbuis/features/forum/application/forum_services.dart';
 import 'package:netbuis/features/forum/data/models/report.dart';
 import 'package:netbuis/features/search/application/offline_controller.dart';
 import 'package:netbuis/features/call/data/models/call_history_entry.dart';
+import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository_api.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository_fake.dart';
@@ -32,6 +33,16 @@ Map<String, Object?> _row(int id, {String type = 'call', String name = 'Chez Ami
       'type': type,
       'feedback': null,
     };
+
+CallHistoryEntry _session(String id, CallState state) => CallHistoryEntry(
+      sessionId: id,
+      businessId: 5,
+      businessName: 'Chez Aminatou',
+      zone: 'Hardé',
+      date: DateTime(2026, 10, 20, 9, 14),
+      type: HistoryType.call,
+      state: state,
+    );
 
 CallHistoryEntry _entry(int id, {HistoryType type = HistoryType.call, DateTime? date}) =>
     CallHistoryEntry(
@@ -161,9 +172,9 @@ void main() {
       expect(find.text('Hardé · Aujourd\'hui, 09:14'), findsOneWidget);
       expect(find.text('Hardé · Hier, 17:40'), findsOneWidget);
       expect(find.textContaining('11:02'), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('history-badge-1')),
+      expect(find.descendant(of: find.byKey(const ValueKey('history-badge-w1')),
           matching: find.text('Appel')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const ValueKey('history-badge-2')),
+      expect(find.descendant(of: find.byKey(const ValueKey('history-badge-w2')),
           matching: find.text('WhatsApp')), findsOneWidget);
       expectNoPhoneOnScreen(tester);
     });
@@ -207,14 +218,15 @@ void main() {
     testWidgets('pagination infinie : la page 2 arrive en bas de liste', (tester) async {
       final repo = CallHistoryRepositoryFake(now: () => _now);
       await _pump(tester, repo, FakeCallRepository(), FakeCallChannel());
-      expect(find.byKey(const ValueKey('history-name-1000')), findsOneWidget);
-      expect(find.byKey(const ValueKey('history-name-975')), findsNothing);
+      const first = ValueKey('history-name-s00000000-0000-4000-8000-000000000000');
+      expect(find.byKey(first), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-name-w978')), findsNothing);
       await tester.drag(find.byKey(const Key('history-list')), const Offset(0, -6000));
       await tester.pump();
       await tester.pump();
       await tester.drag(find.byKey(const Key('history-list')), const Offset(0, -6000));
       await tester.pump();
-      expect(find.byKey(const ValueKey('history-name-976')), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-name-w978')), findsOneWidget);
     });
 
     testWidgets('échec de la page 2 : la liste reste, Réessayer', (tester) async {
@@ -227,7 +239,7 @@ void main() {
       repo.error = const ApiException(ApiErrorCode.network);
       await container.read(callHistoryControllerProvider.notifier).loadMore();
       await tester.pump();
-      expect(find.byKey(const ValueKey('history-name-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-name-w1')), findsOneWidget);
       expect(find.byKey(const Key('history-retry-more')), findsOneWidget);
 
       repo.error = null;
@@ -235,41 +247,59 @@ void main() {
       await tester.tap(find.byKey(const Key('history-retry-more')));
       await tester.pump();
       await tester.pump();
-      expect(find.byKey(const ValueKey('history-name-2')), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-name-w2')), findsOneWidget);
       expect(repo.asked, [1, 2, 2]);
     });
 
-    testWidgets('Rappeler : feuille Orange / MTN, ligne redemandée, rien d\'appelé avant le choix',
-        (tester) async {
+    testWidgets('Rappeler : relance un appel à l\'équipe au sujet du même commerce', (tester) async {
       final repo = _ScriptedHistory([
-        CallHistoryPage(count: 1, hasNext: false, results: [_entry(1)]),
+        CallHistoryPage(count: 1, hasNext: false, results: [_session('s-1', CallState.ended)]),
       ]);
       final calls = FakeCallRepository();
       final channel = FakeCallChannel();
       await _pump(tester, repo, calls, channel);
 
-      await tester.tap(find.byKey(const ValueKey('history-recall-1')));
-      await settleSheet(tester);
-      expect(find.text('Orange'), findsWidgets);
-      expect(find.text('MTN'), findsWidgets);
       expect(calls.requests, isEmpty);
-      expect(channel.placed, isEmpty);
-      expectNoPhoneOnScreen(tester);
-
-      await tester.tap(find.text('MTN').first);
+      await tester.tap(find.byKey(const ValueKey('history-recall-ss-1')));
       await settleSheet(tester);
-      expect(calls.requests.single.businessId, 5);
-      expect(calls.requests.single.line?.value, 'mtn');
-      expect(channel.placed, hasLength(1));
-      await closeSheet(tester);
-      await dismissFeedback(tester);
-
-      // Second rappel : la feuille revient (D-22), le choix n'est pas gardé.
-      await tester.tap(find.byKey(const ValueKey('history-recall-1')));
-      await settleSheet(tester);
-      expect(find.text('Orange'), findsWidgets);
-      expect(calls.requests, hasLength(1));
+      expect(find.byKey(const Key('call-running')), findsOneWidget);
+      expect(find.text('Orange'), findsNothing);
+      expect(calls.requests, [5]);
       expectNoPhoneOnScreen(tester);
+      await tester.tap(find.byKey(const Key('call-cancel')));
+      await tester.pumpAndSettle();
+
+      // Second rappel : un nouvel appel est lancé.
+      await tester.tap(find.byKey(const ValueKey('history-recall-ss-1')));
+      await settleSheet(tester);
+      expect(calls.requests, hasLength(2));
+      await tester.tap(find.byKey(const Key('call-cancel')));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('sessions : badge selon l\'état, ligne sans commerce sans bouton Rappeler',
+        (tester) async {
+      final repo = _ScriptedHistory([
+        CallHistoryPage(count: 4, hasNext: false, results: [
+          _session('a', CallState.ended),
+          _session('b', CallState.missed),
+          _session('c', CallState.unavailable),
+          CallHistoryEntry(
+              sessionId: 'd', date: DateTime(2026, 10, 20, 9), type: HistoryType.call, state: CallState.declined),
+        ]),
+      ]);
+      await _pump(tester, repo, FakeCallRepository(), FakeCallChannel());
+      tester.view.physicalSize = const Size(360, 1800);
+      await tester.pump();
+      Finder badge(String k) => find.descendant(
+          of: find.byKey(ValueKey('history-badge-s$k')), matching: find.byType(Text));
+      expect(tester.widget<Text>(badge('a')).data, 'Appel');
+      expect(tester.widget<Text>(badge('b')).data, 'Appel manqué');
+      expect(tester.widget<Text>(badge('c')).data, 'Équipe indisponible');
+      expect(tester.widget<Text>(badge('d')).data, 'Appel refusé');
+      expect(find.text('Équipe NetBuis'), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-recall-sd')), findsNothing);
+      expect(find.byKey(const ValueKey('history-recall-sa')), findsOneWidget);
     });
   });
 
@@ -283,22 +313,22 @@ void main() {
     final channel = FakeCallChannel();
     await _pump(tester, repo, calls, channel);
 
-    // « Rappeler » reste un appel : feuille Orange / MTN, rien d'envoyé avant le choix.
-    expect(find.byKey(const ValueKey('history-recall-2')), findsOneWidget);
-    expect(find.byKey(const ValueKey('history-whatsapp-2')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('history-recall-2')));
+    // « Rappeler » appelle l'équipe NetBuis ; rien n'est demandé à WhatsApp.
+    expect(find.byKey(const ValueKey('history-recall-w2')), findsOneWidget);
+    expect(find.byKey(const ValueKey('history-whatsapp-w2')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('history-recall-w2')));
     await settleSheet(tester);
-    expect(find.byKey(const Key('call-choose')), findsOneWidget);
+    expect(find.byKey(const Key('call-running')), findsOneWidget);
     expect(calls.whatsappRequests, isEmpty);
     await tester.tap(find.byKey(const Key('call-cancel')));
-    await settleSheet(tester);
+    await tester.pumpAndSettle();
 
     // Le bouton WhatsApp ouvre WhatsApp pour ce commerce, sans rien afficher du lien.
-    await tester.tap(find.byKey(const ValueKey('history-whatsapp-2')));
+    await tester.tap(find.byKey(const ValueKey('history-whatsapp-w2')));
     await settleSheet(tester);
     await tester.pump(const Duration(milliseconds: 500));
     expect(calls.whatsappRequests, [5]);
-    expect(calls.requests, isEmpty);
+    expect(calls.requests, [5], reason: 'seul le rappel a lancé un appel');
     expect(channel.whatsappOpened, [kFakeWaUrl]);
     expectNoPhoneOnScreen(tester);
   });
@@ -359,7 +389,7 @@ void main() {
         (tester) async {
       final reports = await open(tester);
       expect(find.text('Signaler ce commerce'), findsNWidgets(2));
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       for (final label in ['Spam', 'Arnaque', 'Contenu inapproprié', 'Autre']) {
         expect(find.text(label), findsOneWidget);
       }
@@ -372,53 +402,53 @@ void main() {
       ));
       expect(find.text('Merci, votre signalement a été envoyé.'), findsOneWidget);
       expect(find.text('Déjà signalé'), findsOneWidget);
-      expect(enabled(tester, 'history-report-1'), isFalse);
+      expect(enabled(tester, 'history-report-w1'), isFalse);
       // L'autre commerce reste signalable ; les boutons Rappeler restent là.
-      expect(enabled(tester, 'history-report-2'), isTrue);
-      expect(find.byKey(const ValueKey('history-recall-1')), findsOneWidget);
+      expect(enabled(tester, 'history-report-w2'), isTrue);
+      expect(find.byKey(const ValueKey('history-recall-w1')), findsOneWidget);
     });
 
     testWidgets('annuler : rien n\'est envoyé', (tester) async {
       final reports = await open(tester);
-      await tapKey(tester, const ValueKey('history-report-2'));
+      await tapKey(tester, const ValueKey('history-report-w2'));
       await tapKey(tester, const Key('report-cancel'));
       expect(reports.calls, isEmpty);
-      expect(enabled(tester, 'history-report-2'), isTrue);
+      expect(enabled(tester, 'history-report-w2'), isTrue);
     });
 
     testWidgets('409 : « Déjà signalé » sans erreur', (tester) async {
       final reports = await open(tester);
       reports.error = kAlreadyReported;
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       await tapKey(tester, const Key('report-reason-spam'));
       expect(find.text('Vous avez déjà signalé ce contenu.'), findsOneWidget);
-      expect(enabled(tester, 'history-report-1'), isFalse);
+      expect(enabled(tester, 'history-report-w1'), isFalse);
     });
 
     testWidgets('own_content : message clair', (tester) async {
       final reports = await open(tester);
       reports.error = kOwnContent;
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       await tapKey(tester, const Key('report-reason-spam'));
       expect(find.text('Vous ne pouvez pas signaler votre propre contenu.'),
           findsOneWidget);
       await tapKey(tester, const Key('report-close'));
-      expect(enabled(tester, 'history-report-1'), isTrue);
+      expect(enabled(tester, 'history-report-w1'), isTrue);
     });
 
     testWidgets('404 : « plus disponible »', (tester) async {
       final reports = await open(tester);
       reports.error = kGone;
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       await tapKey(tester, const Key('report-reason-autre'));
       expect(find.text('Ce commerce n\'est plus disponible.'), findsOneWidget);
-      expect(enabled(tester, 'history-report-1'), isTrue);
+      expect(enabled(tester, 'history-report-w1'), isTrue);
     });
 
     testWidgets('réseau : message + Réessayer', (tester) async {
       final reports = await open(tester);
       reports.error = const ApiException(ApiErrorCode.network);
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       await tapKey(tester, const Key('report-reason-spam'));
       expect(find.byKey(const Key('report-error')), findsOneWidget);
       expect(find.text('Réessayer'), findsOneWidget);
@@ -428,13 +458,13 @@ void main() {
           .set(false);
       await tapKey(tester, const Key('report-retry'));
       expect(reports.calls.length, 2);
-      expect(enabled(tester, 'history-report-1'), isFalse);
+      expect(enabled(tester, 'history-report-w1'), isFalse);
     });
 
     testWidgets('double envoi impossible', (tester) async {
       final reports = await open(tester);
       reports.gate = Completer<void>();
-      await tapKey(tester, const ValueKey('history-report-1'));
+      await tapKey(tester, const ValueKey('history-report-w1'));
       await tester.tap(find.byKey(const Key('report-reason-spam')));
       await tester.pump();
       await tester.tap(find.byKey(const Key('report-reason-spam')), warnIfMissed: false);
@@ -449,7 +479,7 @@ void main() {
     testWidgets('hors connexion : bouton désactivé avec « Hors connexion »',
         (tester) async {
       final reports = await open(tester, offline: true);
-      expect(enabled(tester, 'history-report-1'), isFalse);
+      expect(enabled(tester, 'history-report-w1'), isFalse);
       expect(find.text('Signaler ce commerce · Hors connexion'), findsNWidgets(2));
       expect(reports.calls, isEmpty);
     });

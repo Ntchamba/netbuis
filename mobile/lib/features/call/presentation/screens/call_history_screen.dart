@@ -1,5 +1,5 @@
 // Historique de mes appels (maquette Historique) : nom, zone, date, badge de type, « Rappeler ».
-// Aucun numéro ici : l'API n'en renvoie pas, et « Rappeler » repasse par la feuille Orange / MTN.
+// Aucun numéro ici : l'API n'en renvoie pas. « Rappeler » relance un appel à l'équipe NetBuis.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../search/application/offline_controller.dart';
 import '../../application/call_history_controller.dart';
 import '../../data/models/call_history_entry.dart';
+import '../../data/models/call_session.dart';
 import '../../../business/presentation/widgets/contact_actions.dart'
     show ReportBusinessButton;
 import '../../../forum/application/report_controller.dart';
@@ -221,8 +222,15 @@ class _HistoryCard extends ConsumerWidget {
     final isWhatsapp = entry.type == HistoryType.whatsapp;
     final date =
         formatHistoryDate(context, entry.date, ref.watch(historyNowProvider)());
-    final typeLabel =
-        l10n.t(isWhatsapp ? 'history.badge.whatsapp' : 'history.badge.call');
+    final callState = entry.state;
+    final typeLabel = isWhatsapp
+        ? l10n.t('history.badge.whatsapp')
+        : l10n.t(callState == null || callState == CallState.ended || callState == CallState.answered
+            ? 'history.badge.call'
+            : 'history.state.${callState.value}');
+    final name = entry.businessName ?? l10n.t('history.team');
+    final businessId = entry.businessId;
+    final zoneLine = entry.zone.isEmpty ? date : '${entry.zone} · $date';
     // Couleurs de badge de la maquette : vert (réussite) pour WhatsApp, accent pour l'appel.
     final badgeBg = isWhatsapp
         ? (dark ? const Color(0xFF1E2E22) : const Color(0xFFE3F5E7))
@@ -264,7 +272,7 @@ class _HistoryCard extends ConsumerWidget {
                     excludeSemantics: true,
                     label: l10n
                         .t('history.entry')
-                        .replaceAll('{name}', entry.businessName)
+                        .replaceAll('{name}', name)
                         .replaceAll('{zone}', entry.zone)
                         .replaceAll('{date}', date)
                         .replaceAll('{type}', typeLabel),
@@ -272,14 +280,14 @@ class _HistoryCard extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          entry.businessName,
-                          key: ValueKey('history-name-${entry.id}'),
+                          name,
+                          key: ValueKey('history-name-${entry.key}'),
                           style: const TextStyle(
                               fontSize: 14, fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 1),
                         Text(
-                          '${entry.zone} · $date',
+                          zoneLine,
                           style:
                               TextStyle(fontSize: 12, color: c.textSecondary),
                         ),
@@ -287,7 +295,7 @@ class _HistoryCard extends ConsumerWidget {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            key: ValueKey('history-badge-${entry.id}'),
+                            key: ValueKey('history-badge-${entry.key}'),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 9, vertical: 4),
                             decoration: BoxDecoration(
@@ -306,46 +314,49 @@ class _HistoryCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  ReportBusinessButton(
-                    buttonKey: ValueKey('history-report-${entry.id}'),
-                    reported: reported,
-                    offline: offline,
-                    onReport: () => openReport(context,
-                        target: ReportTarget.business, id: entry.businessId),
-                  ),
+                  if (businessId != null)
+                    ReportBusinessButton(
+                      buttonKey: ValueKey('history-report-${entry.key}'),
+                      reported: reported,
+                      offline: offline,
+                      onReport: () => openReport(context,
+                          target: ReportTarget.business, id: businessId),
+                    ),
                 ],
               ),
             ),
+            if (businessId != null)
             IconButton(
-              key: ValueKey('history-recall-${entry.id}'),
+              key: ValueKey('history-recall-${entry.key}'),
               tooltip: offline
-                  ? '${l10n.t('history.callAgain').replaceAll('{name}', entry.businessName)}, ${l10n.t('offline.label')}'
+                  ? '${l10n.t('history.callAgain').replaceAll('{name}', name)}, ${l10n.t('offline.label')}'
                   : l10n
                       .t('history.callAgain')
-                      .replaceAll('{name}', entry.businessName),
+                      .replaceAll('{name}', name),
               onPressed: offline
                   ? null
                   : () => startCall(
                         context,
-                        businessId: entry.businessId,
-                        businessName: entry.businessName,
+                        businessId: businessId,
+                        businessName: name,
                       ),
               style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: Icon(Icons.phone, color: c.accentText),
             ),
+            if (businessId != null)
             IconButton(
-              key: ValueKey('history-whatsapp-${entry.id}'),
+              key: ValueKey('history-whatsapp-${entry.key}'),
               tooltip: offline
-                  ? '${l10n.t('history.whatsappAgain').replaceAll('{name}', entry.businessName)}, ${l10n.t('offline.label')}'
+                  ? '${l10n.t('history.whatsappAgain').replaceAll('{name}', name)}, ${l10n.t('offline.label')}'
                   : l10n
                       .t('history.whatsappAgain')
-                      .replaceAll('{name}', entry.businessName),
+                      .replaceAll('{name}', name),
               onPressed: offline
                   ? null
                   : () => startWhatsapp(
                         context,
-                        businessId: entry.businessId,
-                        businessName: entry.businessName,
+                        businessId: businessId,
+                        businessName: name,
                       ),
               style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
               icon: Icon(Icons.chat_outlined, color: c.accentText),

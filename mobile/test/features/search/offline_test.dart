@@ -302,9 +302,9 @@ void main() {
           .set(true);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('history-offline')), findsOneWidget);
-      expect(tester.widget<IconButton>(find.byKey(const ValueKey('history-recall-1'))).onPressed,
+      expect(tester.widget<IconButton>(find.byKey(const ValueKey('history-recall-w1'))).onPressed,
           isNull);
-      expect(tester.widget<IconButton>(find.byKey(const ValueKey('history-whatsapp-1'))).onPressed,
+      expect(tester.widget<IconButton>(find.byKey(const ValueKey('history-whatsapp-w1'))).onPressed,
           isNull);
     });
 

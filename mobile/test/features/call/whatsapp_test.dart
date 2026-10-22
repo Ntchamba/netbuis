@@ -15,6 +15,7 @@ import 'package:netbuis/features/call/data/models/call_feedback.dart';
 import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/call/data/repositories/call_repository_api.dart';
 import 'package:netbuis/features/call/data/repositories/call_repository_fake.dart';
+import 'package:netbuis/features/call/presentation/widgets/feedback_sheet.dart';
 import 'package:netbuis/features/call/presentation/widgets/whatsapp_button.dart';
 import 'package:netbuis/features/search/data/models/search_result.dart';
 import 'package:netbuis/features/search/presentation/widgets/result_card.dart';
@@ -105,15 +106,15 @@ void main() {
   });
 
   group('dépôt api', () {
-    test('POST /calls/initiate/ {business_id, channel=whatsapp, platform} et lien lu', () async {
+    test('POST /calls/whatsapp/ {business_id, platform} et lien lu', () async {
       final a = FakeAdapter(
           (r) => FakeAdapter.reply(200, {'call_id': 12, 'wa_url': kFakeWaUrl}));
       final l = await _repo(a).initiateWhatsapp(businessId: 5);
       expect(a.seen.single.method, 'POST');
-      expect(a.seen.single.path, '/calls/initiate/');
+      expect(a.seen.single.path, '/calls/whatsapp/');
       final body = a.seen.single.body as Map;
       expect(body['business_id'], 5);
-      expect(body['channel'], 'whatsapp');
+      expect(body.containsKey('channel'), isFalse);
       expect(body['platform'], anyOf('android', 'ios'));
       expect(body.containsKey('operator'), isFalse);
       expect(l.callId, 12);
@@ -231,9 +232,8 @@ void main() {
       await settleSheet(tester);
       await afterClose(tester);
       expect(repo.whatsappRequests, [5]);
-      expect(repo.requests, isEmpty, reason: 'ce n\'est pas un appel');
+      expect(repo.requests, isEmpty, reason: 'ce n\'est pas un appel à l\'équipe');
       expect(channel.whatsappOpened, [kFakeWaUrl]);
-      expect(channel.placed, isEmpty);
       expect(channel.dialed, isEmpty);
       expect(find.byKey(const Key('whatsapp-sheet')), findsNothing);
       expect(find.byKey(const Key('feedback-sheet')), findsNothing,
@@ -396,11 +396,29 @@ void main() {
   });
 
   group('« ça a abouti ? » après un appel', () {
+    // La feuille reste disponible pour le journal WhatsApp / anciens appels (POST /calls/{id}/feedback/) ;
+    // l'appel à l'équipe (Jitsi) ne la montre plus.
     Future<void> callAndClose(WidgetTester tester) async {
-      await pumpCallHost(tester, channel: channel, repo: repo);
+      tester.view.physicalSize = const Size(360, 780);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(ProviderScope(
+        overrides: callOverrides(channel, repo),
+        child: testApp(Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: FilledButton(
+                key: kOpenCall,
+                onPressed: () => showCallFeedback(Navigator.of(context),
+                    callId: 7, businessName: 'Chez Aminatou'),
+                child: const Text('Retour'),
+              ),
+            ),
+          ),
+        )),
+      ));
+      await tester.pumpAndSettle();
       await tapAndSettle(tester, find.byKey(kOpenCall));
-      await tapAndSettle(tester, find.byKey(const Key('call-orange')));
-      await closeSheet(tester);
     }
 
     testWidgets('la feuille s\'ouvre après l\'appel : 3 gros boutons avec icône, fermable',
@@ -459,7 +477,7 @@ void main() {
       expect(repo.feedbacks, isEmpty);
       // L'écran de départ répond de nouveau.
       await tapAndSettle(tester, find.byKey(kOpenCall));
-      expect(find.byKey(const Key('call-choose')), findsOneWidget);
+      expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
     });
 
     testWidgets('double toucher sur une réponse : un seul envoi', (tester) async {
@@ -484,32 +502,6 @@ void main() {
       await tapAndSettle(tester, find.byKey(const Key('feedback-no-answer')));
       expect(repo.feedbacks, [(callId: 7, outcome: CallOutcome.noAnswer)]);
       expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-    });
-
-    testWidgets('appel refusé par le serveur ou impossible : pas de question « ça a abouti ? »',
-        (tester) async {
-      repo.error = _refused('RATE_LIMITED', 429);
-      await pumpCallHost(tester, channel: channel, repo: repo);
-      await tapAndSettle(tester, find.byKey(kOpenCall));
-      await tapAndSettle(tester, find.byKey(const Key('call-orange')));
-      expect(find.byKey(const Key('call-error')), findsOneWidget);
-      await tapAndSettle(tester, find.byKey(const Key('call-close')));
-      expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-
-      repo.error = null;
-      channel.placeResult = PlaceCallResult.failed;
-      await tapAndSettle(tester, find.byKey(kOpenCall));
-      await tapAndSettle(tester, find.byKey(const Key('call-orange')));
-      await tapAndSettle(tester, find.byKey(const Key('call-close')));
-      expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-    });
-
-    testWidgets('« Annuler » avant l\'appel : pas de question non plus', (tester) async {
-      await pumpCallHost(tester, channel: channel, repo: repo);
-      await tapAndSettle(tester, find.byKey(kOpenCall));
-      await tapAndSettle(tester, find.byKey(const Key('call-cancel')));
-      expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-      expect(repo.requests, isEmpty);
     });
   });
 

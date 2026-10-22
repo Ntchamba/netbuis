@@ -10,7 +10,6 @@ import 'package:netbuis/core/di/providers.dart';
 import 'package:netbuis/core/l10n/l10n.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
-import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/home/presentation/screens/home_screen.dart';
 import 'package:netbuis/features/search/data/search_cache.dart';
 import 'package:netbuis/features/search/application/search_controller.dart';
@@ -152,7 +151,7 @@ void main() {
     expect(find.textContaining('+237'), findsNothing);
   });
 
-  testWidgets('le bouton Appeler est activé (T052) : ouvre la feuille Orange / MTN du commerce',
+  testWidgets('le bouton Appeler est activé (T133) : appelle l\'équipe NetBuis au sujet du commerce',
       (tester) async {
     final call = FakeCallRepository();
     await _pump(tester, call: call);
@@ -162,17 +161,12 @@ void main() {
     await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byKey(const Key('call-choose')), findsOneWidget);
-    expect(find.text('Boutique Aminatou'), findsWidgets);
-    expect(find.text('Orange'), findsOneWidget);
-    expect(find.text('MTN'), findsOneWidget);
-    expect(call.requests, isEmpty, reason: 'rien n\'est demandé avant le choix de la ligne');
-    await tester.tap(find.byKey(const Key('call-mtn')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(call.requests, [(businessId: 1, line: CallLine.mtn)]);
-    await tester.pump(const Duration(seconds: 3));
-    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(const Key('call-running')), findsOneWidget);
+    expect(find.text('Au sujet de Boutique Aminatou'), findsOneWidget);
+    expect(call.requests, [1]);
+    await tester.tap(find.byKey(const Key('call-cancel')));
+    await tester.pumpAndSettle();
+    expect(call.cancels, hasLength(1));
   });
 
   testWidgets('le bouton WhatsApp (T054) de la carte ouvre WhatsApp pour ce commerce', (tester) async {

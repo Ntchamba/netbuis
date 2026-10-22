@@ -8,7 +8,6 @@ import 'package:netbuis/core/l10n/l10n.dart';
 import 'package:netbuis/core/network/api_exception.dart';
 import 'package:netbuis/core/router/routes.dart';
 import 'package:netbuis/core/theme/app_theme.dart';
-import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/maps/application/map_controller.dart';
 import 'package:netbuis/features/maps/data/map_repository.dart';
 import 'package:netbuis/features/maps/data/models/map_models.dart';
@@ -165,23 +164,18 @@ void main() {
     expect(find.byKey(const Key('area-crumb-country')), findsOneWidget);
   });
 
-  testWidgets('appel : feuille Orange/MTN, la ligne choisie est transmise',
+  testWidgets('appel : écran d\'appel à l\'équipe, le commerce est transmis comme contexte',
       (tester) async {
     final calls = FakeCallRepository();
     final channel = FakeCallChannel();
     await _pump(tester, repo: _Repo(), channel: channel, calls: calls);
     await tester.tap(find.byType(FilledButton).first);
     await settleSheet(tester);
-    expect(find.byKey(const Key('call-choose')), findsOneWidget);
-    expect(calls.requests, isEmpty);
-    await tester.tap(find.byKey(const Key('call-mtn')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(calls.requests, [(businessId: 100, line: CallLine.mtn)]);
-    expect(channel.placed.single.accountId, 'tel|mtn');
+    expect(find.byKey(const Key('call-running')), findsOneWidget);
+    expect(calls.requests, [100]);
     expectNoPhoneOnScreen(tester);
-    await closeSheet(tester);
-    await dismissFeedback(tester);
+    await tester.tap(find.byKey(const Key('call-cancel')));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('tap sur une carte : fiche publique du commerce', (tester) async {

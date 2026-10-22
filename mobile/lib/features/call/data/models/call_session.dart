@@ -1,47 +1,164 @@
-// Réponse de POST /api/calls/initiate/ (canal « call ») et lignes proposées.
-// ZONE SENSIBLE : le numéro du commerçant ne doit être ni affiché, ni journalisé, ni stocké.
+// Appel à l'équipe NetBuis (D-25) : réponses de POST /api/calls/sessions/ et du suivi de la session,
+// puis lien WhatsApp (POST /api/calls/whatsapp/).
+import '../../../../core/network/api_exception.dart';
 
-/// Les deux lignes proposées (D-22 : redemandée à chaque appel). La valeur est celle de l'API.
-enum CallLine {
-  orange('orange'),
-  mtn('mtn');
+// ZONE SENSIBLE : le nom de la salle et le jeton Jitsi ne doivent être ni affichés, ni journalisés,
+// ni stockés. Aucun numéro de commerçant n'existe dans les appels à l'équipe.
 
-  const CallLine(this.value);
+/// États d'une session d'appel, tels que l'API les écrit (`state`).
+enum CallState {
+  ringing('ringing'),
+  answered('answered'),
+  ended('ended'),
+  missed('missed'),
+  declined('declined'),
+  unavailable('unavailable'),
+  cancelled('cancelled');
+
+  const CallState(this.value);
   final String value;
 
-  CallLine get other => this == orange ? mtn : orange;
+  /// Vrai quand plus rien ne peut changer.
+  bool get isFinal =>
+      this != CallState.ringing && this != CallState.answered;
+
+  /// Lève [FormatException] si la valeur n'est pas dans le contrat.
+  static CallState parse(Object? value) {
+    for (final s in CallState.values) {
+      if (s.value == value) return s;
+    }
+    throw const FormatException('état inconnu');
+  }
 }
 
-/// Un appel autorisé par le serveur. Objet à vie courte : il va du dépôt au code natif
-/// et n'est jamais gardé dans un état, une liste ou un stockage.
-class CallSession {
-  const CallSession({required this.callId, required String phone}) : _phone = phone;
+/// De quoi rejoindre la salle Jitsi. Objet à vie courte : il va du dépôt au service Jitsi et
+/// n'est jamais gardé dans un état, une liste, un stockage, un message d'erreur ou un journal.
+class JitsiAccess {
+  const JitsiAccess(
+      {required this.domain, required String room, required String jwt})
+      : _room = room,
+        _jwt = jwt;
 
-  /// Lit `{call_id, phone}`. Lève [FormatException] si l'un des deux manque ou est vide.
-  factory CallSession.fromJson(Object? json) {
+  /// Lit `{domain, room, jwt}`. Lève [FormatException] (sans détail) si l'un manque ou est vide.
+  factory JitsiAccess.fromJson(Object? json) {
     if (json is! Map) throw const FormatException('réponse inattendue');
-    final id = json['call_id'];
-    final phone = json['phone'];
-    if (id is! int || phone is! String || phone.isEmpty) {
+    final domain = json['domain'];
+    final room = json['room'];
+    final jwt = json['jwt'];
+    if (domain is! String ||
+        room is! String ||
+        jwt is! String ||
+        domain.isEmpty ||
+        room.isEmpty ||
+        jwt.isEmpty) {
       throw const FormatException('réponse incomplète');
     }
-    return CallSession(callId: id, phone: phone);
+    return JitsiAccess(domain: domain, room: room, jwt: jwt);
   }
 
-  final int callId;
-  final String _phone;
+  /// Domaine du serveur Jitsi (sans `https://`).
+  final String domain;
+  final String _room;
+  final String _jwt;
 
-  /// À passer au code natif uniquement.
-  String get phone => _phone;
+  /// À passer au service Jitsi uniquement.
+  String get room => _room;
 
-  /// Jamais le numéro : ce texte peut finir dans un message d'erreur ou un journal.
+  /// À passer au service Jitsi uniquement.
+  String get jwt => _jwt;
+
+  /// Adresse du serveur pour le SDK.
+  String get serverUrl => 'https://$domain';
+
+  /// Jamais la salle ni le jeton : ce texte peut finir dans un message d'erreur ou un journal.
   @override
-  String toString() => 'CallSession(callId: $callId)';
+  String toString() => 'JitsiAccess($domain)';
 }
 
-/// Un lien WhatsApp autorisé par le serveur (canal `whatsapp`). Le lien `https://wa.me/237…`
-/// CONTIENT le numéro du commerçant : mêmes règles que le numéro. Objet à vie courte, qui va
-/// du dépôt au code natif ; jamais affiché, journalisé, stocké, ni mis dans une erreur.
+/// Réponse de `POST /api/calls/sessions/`.
+class CallStart {
+  const CallStart({
+    required this.sessionId,
+    required this.state,
+    required this.ringSeconds,
+    this.code,
+    this.jitsi,
+  });
+
+  /// Lit la réponse. Un appel qui sonne DOIT porter de quoi rejoindre la salle.
+  factory CallStart.fromJson(Object? json) {
+    if (json is! Map) throw const FormatException('réponse inattendue');
+    final id = json['session_id'];
+    final ring = json['ring_seconds'];
+    final code = json['code'];
+    final state = CallState.parse(json['state']);
+    if (id is! String || id.isEmpty || ring is! int) {
+      throw const FormatException('réponse incomplète');
+    }
+    final raw = json['jitsi'];
+    final jitsi = raw == null ? null : JitsiAccess.fromJson(raw);
+    if (state == CallState.ringing && jitsi == null) {
+      throw const FormatException('salle manquante');
+    }
+    return CallStart(
+      sessionId: id,
+      state: state,
+      ringSeconds: ring,
+      code: code is String ? code : null,
+      jitsi: jitsi,
+    );
+  }
+
+  final String sessionId;
+  final CallState state;
+
+  /// Durée de sonnerie annoncée par le serveur (0 si personne n'est disponible).
+  final int ringSeconds;
+  final String? code;
+  final JitsiAccess? jitsi;
+
+  @override
+  String toString() => 'CallStart($state)';
+}
+
+/// État d'une session (flux `state` ou `GET /api/calls/sessions/{id}/`).
+class CallStatus {
+  const CallStatus({required this.sessionId, required this.state, this.reason = ''});
+
+  factory CallStatus.fromJson(Object? json) {
+    if (json is! Map) throw const FormatException('réponse inattendue');
+    final id = json['session_id'];
+    if (id is! String || id.isEmpty) {
+      throw const FormatException('réponse incomplète');
+    }
+    final reason = json['end_reason'] ?? json['reason'];
+    return CallStatus(
+      sessionId: id,
+      state: CallState.parse(json['state']),
+      reason: reason is String ? reason : '',
+    );
+  }
+
+  final String sessionId;
+  final CallState state;
+
+  /// Motif de fin (`caller_hangup`, `timeout`…), vide si absent.
+  final String reason;
+}
+
+/// 409 `call_already_active` : une session de cet appelant est encore en cours. [sessionId] est
+/// celle du serveur (vide si elle n'a pas été donnée).
+class ActiveCallException extends ApiException {
+  const ActiveCallException(this.sessionId)
+      : super(ApiErrorCode.unknown,
+            statusCode: 409, serverCode: 'call_already_active');
+
+  final String sessionId;
+}
+
+/// Un lien WhatsApp autorisé par le serveur (`POST /api/calls/whatsapp/`). Le lien
+/// `https://wa.me/237…` CONTIENT le numéro du commerçant : objet à vie courte, qui va du dépôt
+/// au code natif ; jamais affiché, journalisé, stocké, ni mis dans une erreur.
 class WhatsappLink {
   const WhatsappLink({required this.callId, required String url}) : _url = url;
 

@@ -31,9 +31,8 @@ import 'package:netbuis/features/business/presentation/screens/service_category_
 import 'package:netbuis/features/business/presentation/screens/structure_details_screen.dart';
 import 'package:netbuis/features/business/presentation/screens/structure_type_screen.dart';
 import 'package:netbuis/features/business/presentation/screens/subscription_soon_screen.dart';
-import 'package:netbuis/features/call/data/call_channel.dart';
 import 'package:netbuis/features/call/presentation/screens/call_history_screen.dart';
-import 'package:netbuis/features/call/presentation/widgets/call_sheet.dart';
+import 'package:netbuis/features/call/presentation/widgets/call_screen.dart';
 import 'package:netbuis/features/forum/presentation/screens/forum_screen.dart';
 import 'package:netbuis/features/forum/presentation/screens/my_posts_screen.dart';
 import 'package:netbuis/features/forum/presentation/screens/post_screen.dart';
@@ -377,10 +376,10 @@ final List<A11yScreen> a11yScreens = [
       overrides: _withBusiness(BusinessStatus.active),
       numericKeys: const [ValueKey('offer-price')],
       prepare: (t) => _pushWidget(t, const EditOfferScreen())),
-  A11yScreen('Fiche publique : choix de la ligne', Routes.businessDetailPath(1),
-      CallSheet,
+  A11yScreen('Fiche publique : appel à l\'équipe', Routes.businessDetailPath(1),
+      CallScreen,
       mockup: false,
-      overrides: [callChannelProvider.overrideWithValue(FakeCallChannel())],
+      overrides: callOverrides(FakeCallChannel(), FakeCallRepository()),
       prepare: _openCall),
   A11yScreen('Fiche publique : signaler (fenêtre)',
       Routes.businessDetailPath(1), ReportSheet,

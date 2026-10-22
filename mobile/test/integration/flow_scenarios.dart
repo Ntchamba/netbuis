@@ -21,7 +21,6 @@ import 'package:netbuis/features/business/application/public_business_controller
 import 'package:netbuis/features/business/data/repositories/public_business_repository_fake.dart';
 import 'package:netbuis/features/business/presentation/screens/business_detail_screen.dart';
 import 'package:netbuis/features/call/application/call_history_controller.dart';
-import 'package:netbuis/features/call/data/models/call_feedback.dart';
 import 'package:netbuis/features/call/data/models/call_history_entry.dart';
 import 'package:netbuis/features/call/data/models/call_session.dart';
 import 'package:netbuis/features/call/data/repositories/call_history_repository.dart';
@@ -116,9 +115,10 @@ class FlowHistory implements CallHistoryRepository {
             zone: 'Hardé', date: DateTime(2026, 10, 21, 11), type: HistoryType.whatsapp),
       for (var i = calls.requests.length - 1; i >= 0; i--)
         CallHistoryEntry(
-            id: 100 + i, businessId: calls.requests[i].businessId,
-            businessName: _names[calls.requests[i].businessId] ?? 'Commerce',
-            zone: 'Hardé', date: DateTime(2026, 10, 21, 10), type: HistoryType.call),
+            sessionId: 'session-$i', businessId: calls.requests[i],
+            businessName: _names[calls.requests[i]] ?? 'Commerce',
+            zone: 'Hardé', date: DateTime(2026, 10, 21, 10), type: HistoryType.call,
+            state: CallState.ended),
     ];
     return CallHistoryPage(count: all.length, hasNext: false, results: all);
   }
@@ -132,6 +132,7 @@ class FlowEnv {
   }
 
   final channel = FakeCallChannel();
+  final jitsi = FakeJitsiService();
   final speech = FlowSpeech();
   final search = FlowSearch();
   final cache = MemorySearchCache();
@@ -159,7 +160,7 @@ Future<void> pumpFlowApp(WidgetTester tester, FlowEnv env) async {
     publicBusinessRepositoryProvider.overrideWithValue(PublicBusinessRepositoryFake()),
     callHistoryRepositoryProvider.overrideWithValue(env.history),
     historyNowProvider.overrideWithValue(() => DateTime(2026, 10, 21, 12)),
-    ...callOverrides(env.channel, env.calls),
+    ...callOverrides(env.channel, env.calls, jitsi: env.jitsi),
   ];
   await tester.pumpWidget(ProviderScope(
     overrides: overrides,
@@ -197,45 +198,32 @@ Future<void> _openDetailFromCard(WidgetTester tester, String name) async {
   expectNoPhoneOnScreen(tester);
 }
 
-/// Fiche → Appeler → feuille Orange/MTN → ligne choisie → « Appel en cours » → fermeture.
-Future<void> _callFromDetail(WidgetTester tester, FlowEnv env, {required bool orange}) async {
+/// Fiche → Appeler → écran d'appel à l'équipe → l'équipe répond → on raccroche → fermeture.
+Future<void> _callFromDetail(WidgetTester tester, FlowEnv env) async {
   await tester.scrollUntilVisible(find.byKey(const Key('detail-call')), 300,
       scrollable: find.byType(Scrollable).first);
   await tapAndSettle(tester, find.byKey(const Key('detail-call')));
-  await _chooseLineAndClose(tester, env, orange: orange);
+  await _talkAndHangUp(tester, env);
 }
 
-Future<void> _chooseLineAndClose(WidgetTester tester, FlowEnv env,
-    {required bool orange, int businessId = 1}) async {
-  expect(find.byKey(const Key('call-choose')), findsOneWidget);
-  expect(find.byKey(const Key('call-orange')), findsOneWidget);
-  expect(find.byKey(const Key('call-mtn')), findsOneWidget);
-  expect(env.calls.requests, isEmpty, reason: 'rien n\'est demandé avant le choix de la ligne');
-  expect(env.channel.placed, isEmpty);
-  expectNoPhoneOnScreen(tester);
-  await tapAndSettle(tester, find.byKey(Key(orange ? 'call-orange' : 'call-mtn')));
-  expect(env.calls.requests, [
-    (businessId: businessId, line: orange ? CallLine.orange : CallLine.mtn)
-  ]);
-  expect(env.channel.placed, [(phone: kFakePhone, accountId: orange ? 'tel|orange' : 'tel|mtn')],
-      reason: 'la ligne choisie est transmise au code natif');
+Future<void> _talkAndHangUp(WidgetTester tester, FlowEnv env, {int businessId = 1}) async {
   expect(find.byKey(const Key('call-running')), findsOneWidget);
+  expect(find.text('Appel en cours...'), findsOneWidget);
+  expect(find.byKey(const Key('call-notice')), findsOneWidget);
+  expect(env.calls.requests, [businessId], reason: 'le commerce est transmis comme contexte');
+  expect(env.jitsi.joinedDomains, hasLength(1), reason: 'la salle est rejointe dès l\'envoi');
   expectNoPhoneOnScreen(tester);
-  await closeSheet(tester);
-  expect(find.byKey(const Key('call-sheet')), findsNothing);
-}
-
-/// Au retour : « ça a abouti ? » puis la réponse.
-Future<void> _answerFeedback(WidgetTester tester, FlowEnv env, String key, CallOutcome outcome) async {
-  expect(find.byKey(const Key('feedback-sheet')), findsOneWidget);
-  expect(find.textContaining('a-t-il abouti ?'), findsOneWidget);
-  expectNoPhoneOnScreen(tester);
-  await tester.tap(find.byKey(Key(key)));
+  env.calls.push(CallState.answered);
+  await tester.pump(const Duration(seconds: 2));
+  expect(find.byKey(const Key('call-connected')), findsOneWidget);
+  await tester.tap(find.byKey(const Key('call-hangup')));
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 600));
+  await tester.pump();
+  expect(find.byKey(const Key('call-ended')), findsOneWidget);
+  expect(env.calls.ends, hasLength(1));
+  await tester.tap(find.byKey(const Key('call-close')));
   await tester.pumpAndSettle();
-  expect(env.calls.feedbacks, [(callId: 7, outcome: outcome)]);
-  expect(find.byKey(const Key('feedback-sheet')), findsNothing);
+  expect(find.byKey(const Key('call-screen')), findsNothing);
 }
 
 Future<void> _openHistory(WidgetTester tester) async {
@@ -248,7 +236,7 @@ Future<void> _openHistory(WidgetTester tester) async {
 
 // ---------------------------------------------------------------- scénarios
 
-/// Écrit : Accueil → recherche « riz » → fiche → Appeler (Orange) → « Abouti » → historique.
+/// Écrit : Accueil → recherche « riz » → fiche → Appeler l'équipe → réponse → raccrocher → historique.
 Future<void> scenarioWrittenSearchCall(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
@@ -268,20 +256,19 @@ Future<void> scenarioWrittenSearchCall(WidgetTester tester) async {
   expectNoPhoneOnScreen(tester);
 
   await _openDetailFromCard(tester, 'Boutique Aminatou');
-  await _callFromDetail(tester, env, orange: true);
-  await _answerFeedback(tester, env, 'feedback-answered', CallOutcome.answered);
+  await _callFromDetail(tester, env);
   expectNoPhoneOnScreen(tester);
 
   await _back(tester, find.byType(BusinessDetailScreen));
   await _back(tester, find.byKey(const Key('search-field')));
   await _openHistory(tester);
-  expect(find.byKey(const ValueKey('history-name-100')), findsOneWidget);
+  expect(find.byKey(const ValueKey('history-name-ssession-0')), findsOneWidget);
   expect(find.text('Boutique Aminatou'), findsOneWidget);
   expect(env.calls.whatsappRequests, isEmpty);
 }
 
-/// Vocal : Accueil → micro → « du riz » → résultat → Appeler depuis la carte (MTN) →
-/// « Pas de réponse » → historique.
+/// Vocal : Accueil → micro → « du riz » → résultat → Appeler depuis la carte →
+/// l'équipe répond → historique.
 Future<void> scenarioVoiceSearchCall(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
@@ -299,12 +286,11 @@ Future<void> scenarioVoiceSearchCall(WidgetTester tester) async {
   expectNoPhoneOnScreen(tester);
 
   await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
-  await _chooseLineAndClose(tester, env, orange: false);
-  await _answerFeedback(tester, env, 'feedback-no-answer', CallOutcome.noAnswer);
+  await _talkAndHangUp(tester, env);
 
   await _openHistory(tester);
-  expect(find.byKey(const ValueKey('history-name-100')), findsOneWidget);
-  expect(find.byKey(const ValueKey('history-badge-100')), findsOneWidget);
+  expect(find.byKey(const ValueKey('history-name-ssession-0')), findsOneWidget);
+  expect(find.byKey(const ValueKey('history-badge-ssession-0')), findsOneWidget);
 }
 
 /// WhatsApp : fiche → WhatsApp → le lien part au canal natif (jamais affiché) → historique.
@@ -321,20 +307,16 @@ Future<void> scenarioWhatsappFlow(WidgetTester tester) async {
   expect(env.calls.whatsappRequests, [1]);
   expect(env.channel.whatsappOpened, [kFakeWaUrl]);
   expect(env.calls.requests, isEmpty, reason: 'WhatsApp ne lance pas d\'appel');
-  expect(env.channel.placed, isEmpty);
   expectNoPhoneOnScreen(tester);
   await tester.pumpAndSettle();
 
-  // Retour de WhatsApp : si la question « ça a abouti ? » s'affiche, on la ferme sans répondre.
-  if (find.byKey(const Key('feedback-sheet')).evaluate().isNotEmpty) {
-    await dismissFeedback(tester);
-  }
+  expect(find.byKey(const Key('feedback-sheet')), findsNothing);
   expectNoPhoneOnScreen(tester);
 
   await _back(tester, find.byType(BusinessDetailScreen));
   await _openHistory(tester);
-  expect(find.byKey(const ValueKey('history-name-501')), findsOneWidget);
-  expect(find.byKey(const ValueKey('history-whatsapp-501')), findsOneWidget);
+  expect(find.byKey(const ValueKey('history-name-w501')), findsOneWidget);
+  expect(find.byKey(const ValueKey('history-whatsapp-w501')), findsOneWidget);
 }
 
 /// Un commerce sans WhatsApp : le bouton est grisé, rien ne part.
@@ -367,9 +349,8 @@ Future<void> scenarioOffline(WidgetTester tester) async {
   expect(find.byKey(const Key('card-call-offline')), findsWidgets);
   final call = tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Appeler').first);
   expect(call.onPressed, isNull);
-  expect(find.byKey(const Key('call-sheet')), findsNothing);
+  expect(find.byKey(const Key('call-screen')), findsNothing);
   expect(env.calls.requests, isEmpty);
-  expect(env.channel.placed, isEmpty);
   expectNoPhoneOnScreen(tester);
 
   // La fiche est lisible, ses boutons sont désactivés avec un message.
@@ -403,26 +384,23 @@ Future<void> scenarioOffline(WidgetTester tester) async {
   final back = tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Appeler').first);
   expect(back.onPressed, isNotNull);
   await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
-  await _chooseLineAndClose(tester, env, orange: true);
-  await dismissFeedback(tester);
+  await _talkAndHangUp(tester, env);
 }
 
 /// Cas d'échec : le serveur ne donne pas la ligne (réseau perdu au moment d'appeler) ->
-/// message simple, aucun appel natif, aucune question « ça a abouti ? », aucun numéro.
+/// message simple, aucune salle rejointe, aucun numéro.
 Future<void> scenarioCallRefused(WidgetTester tester) async {
   final env = FlowEnv();
   await pumpFlowApp(tester, env);
   env.calls.error = const ApiException(ApiErrorCode.network);
   await tapAndSettle(tester, find.widgetWithText(FilledButton, 'Appeler').first);
-  await tapAndSettle(tester, find.byKey(const Key('call-orange')));
   expect(env.calls.requests, hasLength(1));
   expect(find.byKey(const Key('call-error')), findsOneWidget);
-  expect(env.channel.placed, isEmpty);
+  expect(env.jitsi.joinedDomains, isEmpty);
   expect(find.byKey(const Key('call-running')), findsNothing);
   expectNoPhoneOnScreen(tester);
   await tester.tap(find.byKey(const Key('call-close')));
   await settleSheet(tester);
   await tester.pump(const Duration(seconds: 1));
   expect(find.byKey(const Key('feedback-sheet')), findsNothing);
-  expect(env.calls.feedbacks, isEmpty);
 }

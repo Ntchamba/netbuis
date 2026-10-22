@@ -15,7 +15,7 @@ const Set<String> _sameOnPurpose = {
   'business.recap.rccm', 'business.recap.photos', 'business.recap.cuisine',
   'business.recap.standing', 'business.detail.cuisine', 'business.detail.standing',
   'business.detail.price', 'business.detail.whatsapp', 'history.badge.whatsapp',
-  'home.card.whatsapp', 'call.line.orange', 'call.line.mtn', 'history.entry',
+  'home.card.whatsapp', 'history.entry',
   'offers.form.description', 'search.suggestions.label', 'report.reason.spam',
   'home.card.service', 'about.version', 'home.chip.allIcon', 'home.chip.moreIcon',
   // Noms de langue écrits dans leur propre langue.

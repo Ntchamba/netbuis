@@ -1,6 +1,8 @@
-// Déroulé d'un appel : autorisations -> choix de la ligne -> POST /calls/initiate/ -> appel natif.
-// ZONE SENSIBLE : le numéro reçu passe de [CallRepository] à [CallChannel] dans [_run] et
-// nulle part ailleurs : jamais dans l'état, jamais affiché, jamais journalisé.
+// Appel à l'équipe NetBuis (D-25) : micro -> POST /calls/sessions/ -> salle Jitsi rejointe dès
+// l'envoi -> suivi de l'état (flux temps réel, repli par consultation) -> fin.
+// ZONE SENSIBLE : la salle et le jeton Jitsi passent du dépôt au service Jitsi dans [_createSession]
+// et nulle part ailleurs : jamais dans l'état, jamais affichés, jamais journalisés. Aucun numéro
+// de commerçant n'existe dans ce parcours.
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -10,11 +12,11 @@ import '../../../core/config/env.dart';
 import '../../../core/di/providers.dart';
 import '../../../core/network/api_exception.dart';
 import '../data/call_channel.dart';
+import '../data/jitsi_service.dart';
 import '../data/models/call_session.dart';
 import '../data/repositories/call_repository.dart';
 import '../data/repositories/call_repository_api.dart';
 import '../data/repositories/call_repository_fake.dart';
-import 'call_plan.dart';
 
 /// Dépôt d'appel : factice si `USE_FAKE_API=true`, sinon relié à l'API.
 final callRepositoryProvider = Provider<CallRepository>((ref) {
@@ -22,43 +24,52 @@ final callRepositoryProvider = Provider<CallRepository>((ref) {
   return CallRepositoryApi(ref.read(dioProvider));
 });
 
-/// Plateforme de l'appareil (remplaçable dans les tests). L'appel direct est Android seulement.
+/// Plateforme de l'appareil (remplaçable dans les tests). L'appel est Android seulement (V07).
 final callPlatformProvider = Provider<TargetPlatform>((ref) => defaultTargetPlatform);
 
-/// Temps pendant lequel « Appel en cours… » reste affiché avant la fermeture.
-final callCloseDelayProvider = Provider<Duration>((ref) => const Duration(milliseconds: 1500));
+/// Intervalle de la consultation de repli quand le flux temps réel est coupé.
+final callPollIntervalProvider = Provider<Duration>((ref) => const Duration(seconds: 2));
+
+/// Nombre d'échecs de consultation de suite avant de déclarer la connexion perdue.
+const int kCallPollFailuresBeforeLost = 5;
 
 enum CallPhase {
   idle,
 
-  /// Vérification des autorisations et lecture des lignes.
+  /// Vérification du micro, puis création de la session.
   preparing,
 
-  /// Explication avant la demande Android (CALL_PHONE).
-  rationale,
+  /// Explication avant la demande Android (RECORD_AUDIO).
+  micRationale,
 
-  /// Feuille « Avec quelle ligne voulez-vous appeler ? ».
-  chooseLine,
+  /// Micro refusé : l'appel ne peut pas partir.
+  micDenied,
 
-  /// La ligne choisie n'existe pas dans ce téléphone ; on propose l'autre.
-  lineAbsent,
+  /// « Appel en cours... » : l'équipe sonne, la salle est rejointe, [CallFlowState.seconds] compte.
+  ringing,
 
-  /// Repli : noms de SIM donnés par le système.
-  pickSim,
+  /// L'équipe a répondu : conversation en cours, [CallFlowState.seconds] compte depuis la réponse.
+  connected,
 
-  /// Repli : composeur du téléphone, avec avertissement.
-  dialWarning,
+  /// Appel terminé (par l'équipe ou par l'utilisateur).
+  ended,
 
-  /// « Appel en cours… ».
-  running,
+  /// Personne n'est disponible : réponse immédiate du serveur.
+  unavailable,
+
+  /// Sonnerie sans réponse.
+  missed,
+
+  /// L'équipe a refusé.
+  declined,
 
   /// Refus ou panne : voir [CallFlowState.error].
   error,
 
-  /// Appel d'iPhone / autre plateforme : pas disponible dans cette version.
+  /// iPhone / autre plateforme : pas disponible dans cette version.
   unsupported,
 
-  /// Terminé : la feuille se ferme.
+  /// Terminé : l'écran d'appel se ferme.
   done,
 }
 
@@ -69,11 +80,20 @@ enum CallError {
   ownBusiness,
   rateLimited,
   channelUnavailable,
+
+  /// Jitsi n'est pas configuré côté serveur (503).
+  serviceUnavailable,
+
+  /// Une session de cet utilisateur est encore en cours (409).
+  alreadyActive,
   network,
   generic,
 
-  /// Le téléphone n'a pas pu lancer l'appel.
-  placeFailed,
+  /// La salle n'a pas pu être rejointe (SDK, jeton refusé, serveur Jitsi injoignable).
+  joinFailed,
+
+  /// Le réseau a été coupé pendant l'appel.
+  connectionLost,
 
   /// Le téléphone n'a pas pu ouvrir WhatsApp.
   whatsappFailed,
@@ -84,55 +104,36 @@ class CallFlowState {
     this.phase = CallPhase.idle,
     this.businessId = 0,
     this.businessName = '',
-    this.line,
-    this.runningLabel = '',
-    this.absentLine,
-    this.sims = const [],
     this.error,
-    this.placedCallId,
+    this.seconds = 0,
   });
 
   final CallPhase phase;
   final int businessId;
   final String businessName;
-
-  /// Ligne choisie (Orange / MTN), si elle est connue.
-  final CallLine? line;
-
-  /// Texte « ligne X » quand [line] est inconnue (nom de SIM donné par le système).
-  final String runningLabel;
-
-  /// Phase [CallPhase.lineAbsent] : la ligne demandée est [absentLine], on propose son autre.
-  final CallLine? absentLine;
-  final List<SimAccount> sims;
   final CallError? error;
 
-  /// Numéro (identifiant, pas le téléphone) de l'appel lancé : sert au retour « ça a abouti ? ».
-  final int? placedCallId;
+  /// Minuteur : secondes de sonnerie (phase [CallPhase.ringing]) ou de conversation
+  /// ([CallPhase.connected], [CallPhase.ended]).
+  final int seconds;
 
-  CallFlowState copyWith({
-    CallPhase? phase,
-    CallLine? line,
-    String? runningLabel,
-    CallLine? absentLine,
-    List<SimAccount>? sims,
-    CallError? error,
-    int? placedCallId,
-  }) =>
+  CallFlowState copyWith({CallPhase? phase, CallError? error, int? seconds}) =>
       CallFlowState(
         phase: phase ?? this.phase,
         businessId: businessId,
         businessName: businessName,
-        line: line ?? this.line,
-        runningLabel: runningLabel ?? this.runningLabel,
-        absentLine: absentLine ?? this.absentLine,
-        sims: sims ?? this.sims,
         error: error ?? this.error,
-        placedCallId: placedCallId ?? this.placedCallId,
+        seconds: seconds ?? this.seconds,
       );
 
   /// Vrai quand un appel est déjà en cours de traitement (protection du double clic).
   bool get busy => phase != CallPhase.idle;
+
+  /// Vrai tant que l'appel est vivant (liaison, sonnerie ou conversation).
+  bool get live =>
+      phase == CallPhase.preparing ||
+      phase == CallPhase.ringing ||
+      phase == CallPhase.connected;
 
   @override
   String toString() => 'CallFlowState($phase)';
@@ -142,11 +143,13 @@ final callFlowProvider = NotifierProvider<CallFlow, CallFlowState>(CallFlow.new)
 
 /// Traduit un refus du serveur en message simple.
 CallError callErrorFor(Object e) {
+  if (e is ActiveCallException) return CallError.alreadyActive;
   if (e is! ApiException) return CallError.generic;
   switch (e.serverCode) {
     case 'NOT_AUTHENTICATED':
       return CallError.notAuthenticated;
     case 'ACCOUNT_BLOCKED':
+    case 'account_blocked':
       return CallError.accountBlocked;
     case 'BUSINESS_NOT_ACTIVE':
       return CallError.businessNotActive;
@@ -156,6 +159,8 @@ CallError callErrorFor(Object e) {
       return CallError.rateLimited;
     case 'CHANNEL_UNAVAILABLE':
       return CallError.channelUnavailable;
+    case 'jitsi_not_configured':
+      return CallError.serviceUnavailable;
   }
   if (e.code == ApiErrorCode.network) return CallError.network;
   switch (e.statusCode) {
@@ -165,18 +170,29 @@ CallError callErrorFor(Object e) {
       return CallError.rateLimited;
     case 404:
       return CallError.businessNotActive;
+    case 503:
+      return CallError.serviceUnavailable;
   }
   return CallError.generic;
 }
 
 class CallFlow extends Notifier<CallFlowState> {
   bool _disposed = false;
-  CallPlan? _plan;
+  String? _sessionId;
+  Timer? _ticker;
+  Timer? _poller;
+  StreamSubscription<CallStatus>? _watch;
+  StreamSubscription<JitsiEvent>? _jitsiEvents;
+  int _pollFailures = 0;
+  bool _minimized = false;
 
   @override
   CallFlowState build() {
     _disposed = false;
-    ref.onDispose(() => _disposed = true);
+    ref.onDispose(() {
+      _disposed = true;
+      _stopWatching();
+    });
     return const CallFlowState();
   }
 
@@ -184,169 +200,291 @@ class CallFlow extends Notifier<CallFlowState> {
     if (!_disposed) state = s;
   }
 
-  /// Démarre un appel. Faux (et rien ne se passe) si un appel est déjà en cours :
+  CallRepository get _repo => ref.read(callRepositoryProvider);
+  JitsiService get _jitsi => ref.read(jitsiServiceProvider);
+
+  /// Démarre un appel à l'équipe. Faux (et rien ne se passe) si un appel est déjà en cours :
   /// c'est la protection contre le double clic.
   bool begin(int businessId, String businessName) {
     if (state.busy) return false;
-    _plan = null;
     _set(CallFlowState(
         phase: CallPhase.preparing, businessId: businessId, businessName: businessName));
     unawaited(_prepare());
     return true;
   }
 
-  /// Après la fermeture de la feuille : prêt pour un nouvel appel (la ligne est redemandée, D-22).
+  /// Après la fermeture de l'écran : prêt pour un nouvel appel. Si l'appel vivait encore, il est
+  /// raccroché des deux côtés.
   void reset() {
-    _plan = null;
+    if (state.live) _leaveSilently();
+    _stopWatching();
+    _sessionId = null;
     _set(const CallFlowState());
   }
+
+  // --- Micro -------------------------------------------------------------------------------
 
   Future<void> _prepare() async {
     if (ref.read(callPlatformProvider) != TargetPlatform.android) {
       _set(state.copyWith(phase: CallPhase.unsupported));
       return;
     }
-    CallPermissions perms;
+    MicPermission mic;
     try {
-      perms = await ref.read(callChannelProvider).permissions();
-    } on CallChannelException {
-      _set(state.copyWith(phase: CallPhase.dialWarning));
+      mic = await ref.read(callChannelProvider).microphone();
+    } on Object {
+      _set(state.copyWith(phase: CallPhase.error, error: CallError.generic));
       return;
     }
-    if (perms.granted) {
-      await _readSims();
+    if (mic.granted) {
+      await _createSession();
     } else {
-      _set(state.copyWith(phase: perms.asked ? CallPhase.dialWarning : CallPhase.rationale));
+      _set(state.copyWith(
+          phase: mic.asked ? CallPhase.micDenied : CallPhase.micRationale));
     }
   }
 
-  /// « Continuer » après l'explication : Android affiche sa demande.
-  Future<void> confirmRationale() async {
-    if (state.phase != CallPhase.rationale) return;
+  /// « Continuer » après l'explication, ou « Réessayer » après un refus : Android affiche sa demande.
+  Future<void> requestMicrophone() async {
+    if (state.phase != CallPhase.micRationale && state.phase != CallPhase.micDenied) {
+      return;
+    }
     _set(state.copyWith(phase: CallPhase.preparing));
     var granted = false;
     try {
-      granted = await ref.read(callChannelProvider).requestPermissions();
-    } on CallChannelException {
-      // Traité comme un refus : repli sur le composeur.
+      granted = await ref.read(callChannelProvider).requestMicrophone();
+    } on Object {
+      // Traité comme un refus.
     }
     if (granted) {
-      await _readSims();
+      await _createSession();
     } else {
-      _set(state.copyWith(phase: CallPhase.dialWarning));
+      _set(state.copyWith(phase: CallPhase.micDenied));
     }
   }
 
-  Future<void> _readSims() async {
+  // --- Création de la session et salle -----------------------------------------------------
+
+  Future<void> _createSession() async {
+    final CallStart start;
     try {
-      final plan = planFor(await ref.read(callChannelProvider).listSims());
-      _plan = plan;
-      switch (plan) {
-        case PlanNoSim():
-          _set(state.copyWith(phase: CallPhase.dialWarning));
-        case PlanSingle(:final sim):
-          // Une seule SIM : pas de question, l'appel part tout de suite.
-          await _run(sim: sim, line: lineOf(sim));
-        case PlanSheet():
-          _set(state.copyWith(phase: CallPhase.chooseLine));
-        case PlanNames(:final sims):
-          _set(state.copyWith(phase: CallPhase.pickSim, sims: sims));
-      }
-    } on CallChannelException {
-      _set(state.copyWith(phase: CallPhase.dialWarning));
-    }
-  }
-
-  /// Le choix de la ligne EST la confirmation : l'appel part immédiatement.
-  Future<void> chooseLine(CallLine line) async {
-    final plan = _plan;
-    if (state.phase != CallPhase.chooseLine || plan is! PlanSheet) return;
-    final sim = plan.of(line);
-    if (sim == null) {
-      _set(state.copyWith(phase: CallPhase.lineAbsent, absentLine: line));
+      start = await _repo.startSession(businessId: state.businessId);
+    } on ActiveCallException catch (e) {
+      // Une session oubliée (application fermée en plein appel) : on la ferme pour que le
+      // prochain essai passe.
+      if (e.sessionId.isNotEmpty) await _release(e.sessionId);
+      _set(state.copyWith(phase: CallPhase.error, error: CallError.alreadyActive));
       return;
-    }
-    await _run(sim: sim, line: line);
-  }
-
-  /// « Appeler avec l'autre ligne » après [CallPhase.lineAbsent].
-  Future<void> chooseOtherLine() async {
-    final plan = _plan;
-    final absent = state.absentLine;
-    if (state.phase != CallPhase.lineAbsent || plan is! PlanSheet || absent == null) return;
-    final other = absent.other;
-    final sim = plan.of(other);
-    if (sim == null) return;
-    await _run(sim: sim, line: other);
-  }
-
-  /// Repli « noms de SIM » : l'utilisateur choisit la SIM par le nom du système.
-  Future<void> pickSim(SimAccount sim) async {
-    if (state.phase != CallPhase.pickSim) return;
-    await _run(sim: sim, line: lineOf(sim), label: sim.displayName);
-  }
-
-  /// Avertissement lu : on ouvre le composeur du téléphone (le numéro y sera visible).
-  Future<void> confirmDial() async {
-    if (state.phase != CallPhase.dialWarning) return;
-    await _run();
-  }
-
-  /// Annuler / fermer. Sans effet pendant la préparation ou l'appel.
-  void cancel() {
-    switch (state.phase) {
-      case CallPhase.rationale:
-      case CallPhase.chooseLine:
-      case CallPhase.lineAbsent:
-      case CallPhase.pickSim:
-      case CallPhase.dialWarning:
-      case CallPhase.error:
-      case CallPhase.unsupported:
-        _set(state.copyWith(phase: CallPhase.done));
-      case CallPhase.idle:
-      case CallPhase.preparing:
-      case CallPhase.running:
-      case CallPhase.done:
-        break;
-    }
-  }
-
-  /// [sim] null = repli composeur. Le numéro n'existe que dans cette méthode.
-  Future<void> _run({SimAccount? sim, CallLine? line, String label = ''}) async {
-    _set(state.copyWith(phase: CallPhase.running, line: line, runningLabel: label));
-    final CallSession session;
-    try {
-      session = await ref
-          .read(callRepositoryProvider)
-          .initiate(businessId: state.businessId, line: line);
     } on Object catch (e) {
       _set(state.copyWith(phase: CallPhase.error, error: callErrorFor(e)));
       return;
     }
-    bool ok;
-    try {
-      final channel = ref.read(callChannelProvider);
-      if (sim == null) {
-        ok = await channel.dial(session.phone);
-      } else {
-        ok = await channel.placeCall(phone: session.phone, accountId: sim.id) ==
-            PlaceCallResult.placed;
-      }
-    } on Object {
-      ok = false;
-    }
-    if (!ok) {
-      _set(state.copyWith(phase: CallPhase.error, error: CallError.placeFailed));
+    if (_disposed) return;
+    if (start.state.isFinal) {
+      _set(state.copyWith(phase: _phaseOf(start.state)));
       return;
     }
-    _set(state.copyWith(placedCallId: session.callId));
-    await Future<void>.delayed(ref.read(callCloseDelayProvider));
+    final access = start.jitsi;
+    if (access == null) {
+      _set(state.copyWith(phase: CallPhase.error, error: CallError.generic));
+      return;
+    }
+    _sessionId = start.sessionId;
+    _pollFailures = 0;
+    _minimized = false;
+    _set(state.copyWith(phase: CallPhase.ringing, seconds: 0));
+    _startTicker();
+    _listen(start.sessionId);
+    _jitsiEvents?.cancel();
+    _jitsiEvents = _jitsi.events.listen(_onJitsi);
+    final joined = await _jitsi.join(access);
+    if (!joined && state.live) {
+      await _fail(CallError.joinFailed);
+    }
+  }
+
+  CallPhase _phaseOf(CallState s) => switch (s) {
+        CallState.ringing => CallPhase.ringing,
+        CallState.answered => CallPhase.connected,
+        CallState.ended => CallPhase.ended,
+        CallState.missed => CallPhase.missed,
+        CallState.declined => CallPhase.declined,
+        CallState.unavailable => CallPhase.unavailable,
+        CallState.cancelled => CallPhase.done,
+      };
+
+  /// Ferme une session restée ouverte : annulation si elle sonne, sinon raccrochage.
+  Future<void> _release(String sessionId) async {
+    try {
+      await _repo.cancel(sessionId);
+    } on Object {
+      try {
+        await _repo.end(sessionId);
+      } on Object {
+        // Le serveur la fermera de lui-même (sonnerie expirée, durée maximale).
+      }
+    }
+  }
+
+  // --- Suivi de l'état ---------------------------------------------------------------------
+
+  void _startTicker() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (state.phase == CallPhase.ringing || state.phase == CallPhase.connected) {
+        _set(state.copyWith(seconds: state.seconds + 1));
+      }
+    });
+  }
+
+  void _listen(String sessionId) {
+    _watch?.cancel();
+    _watch = _repo.watch(sessionId).listen(
+          _onStatus,
+          onError: (Object _) => _startPolling(sessionId),
+          onDone: () {
+            if (state.phase == CallPhase.ringing || state.phase == CallPhase.connected) {
+              _startPolling(sessionId);
+            }
+          },
+          cancelOnError: true,
+        );
+  }
+
+  /// Repli : consultation courte tant que le flux est coupé.
+  void _startPolling(String sessionId) {
+    if (_poller != null || _disposed) return;
+    _poller = Timer.periodic(ref.read(callPollIntervalProvider), (_) async {
+      if (!state.live) return;
+      try {
+        _onStatus(await _repo.status(sessionId));
+        _pollFailures = 0;
+      } on Object {
+        _pollFailures++;
+        if (_pollFailures >= kCallPollFailuresBeforeLost && state.live) {
+          await _fail(CallError.connectionLost);
+        }
+      }
+    });
+  }
+
+  void _onStatus(CallStatus s) {
+    if (_disposed) return;
+    final phase = state.phase;
+    if (phase != CallPhase.ringing && phase != CallPhase.connected) return;
+    switch (s.state) {
+      case CallState.ringing:
+        break;
+      case CallState.answered:
+        if (phase == CallPhase.ringing) {
+          _set(state.copyWith(phase: CallPhase.connected, seconds: 0));
+        }
+      case CallState.ended:
+      case CallState.missed:
+      case CallState.declined:
+      case CallState.unavailable:
+      case CallState.cancelled:
+        _stopWatching();
+        unawaited(_jitsi.hangUp());
+        _set(state.copyWith(phase: _phaseOf(s.state)));
+    }
+  }
+
+  void _onJitsi(JitsiEvent e) {
+    if (_disposed || !state.live) return;
+    switch (e) {
+      case JitsiEvent.joined:
+        if (!_minimized) {
+          _minimized = true;
+          unawaited(_jitsi.minimize());
+        }
+      case JitsiEvent.left:
+        // L'utilisateur a quitté depuis l'écran Jitsi : c'est un raccrochage.
+        unawaited(hangUp());
+      case JitsiEvent.failed:
+        unawaited(_fail(CallError.joinFailed));
+    }
+  }
+
+  void _stopWatching() {
+    _ticker?.cancel();
+    _ticker = null;
+    _poller?.cancel();
+    _poller = null;
+    _watch?.cancel();
+    _watch = null;
+    _jitsiEvents?.cancel();
+    _jitsiEvents = null;
+  }
+
+  /// Panne pendant l'appel : on raccroche la salle et on prévient le serveur si on peut.
+  Future<void> _fail(CallError error) async {
+    final id = _sessionId;
+    _stopWatching();
+    unawaited(_jitsi.hangUp());
+    _set(state.copyWith(phase: CallPhase.error, error: error));
+    if (id != null) await _release(id);
+  }
+
+  /// Fermeture sans changer l'écran (écran déjà parti).
+  void _leaveSilently() {
+    final id = _sessionId;
+    unawaited(_jitsi.hangUp());
+    if (id != null) unawaited(_release(id));
+  }
+
+  // --- Actions de l'utilisateur ------------------------------------------------------------
+
+  /// « Annuler » pendant la sonnerie. Si l'équipe vient de répondre, l'appel est raccroché.
+  Future<void> cancel() async {
+    if (state.phase != CallPhase.ringing) return;
+    final id = _sessionId;
+    _stopWatching();
+    unawaited(_jitsi.hangUp());
+    _set(state.copyWith(phase: CallPhase.done));
+    if (id == null) return;
+    try {
+      await _repo.cancel(id);
+    } on ApiException catch (e) {
+      if (e.serverCode == 'call_not_ringing') {
+        try {
+          await _repo.end(id);
+        } on Object {
+          // Le serveur fermera l'appel de lui-même.
+        }
+      }
+    } on Object {
+      // Pas de réseau : la sonnerie expire côté serveur.
+    }
+  }
+
+  /// « Raccrocher » pendant la conversation (ou sortie de l'écran Jitsi).
+  Future<void> hangUp() async {
+    final phase = state.phase;
+    if (phase == CallPhase.ringing) return cancel();
+    if (phase != CallPhase.connected) return;
+    final id = _sessionId;
+    final seconds = state.seconds;
+    _stopWatching();
+    unawaited(_jitsi.hangUp());
+    _set(state.copyWith(phase: CallPhase.ended, seconds: seconds));
+    if (id == null) return;
+    try {
+      await _repo.end(id);
+    } on Object {
+      // Le serveur fermera l'appel de lui-même (salle vide, durée maximale).
+    }
+  }
+
+  /// Fermer l'écran d'un état final ou d'une erreur. Sans effet pendant l'appel.
+  void close() {
+    if (state.live || state.phase == CallPhase.idle) return;
     _set(state.copyWith(phase: CallPhase.done));
   }
 }
 
 // ---------------------------------------------------------------------------------------------
-// WhatsApp : POST /calls/initiate/ (canal whatsapp) -> ouverture du lien wa.me par le code natif.
+// WhatsApp : POST /calls/whatsapp/ -> ouverture du lien wa.me par le code natif.
 // ZONE SENSIBLE : le lien reçu contient le numéro. Il passe de [CallRepository] à [CallChannel]
 // dans [WhatsappFlow._open] et nulle part ailleurs : jamais dans l'état, affiché, journalisé.
 // ---------------------------------------------------------------------------------------------

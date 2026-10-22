@@ -120,12 +120,12 @@ class CallHistoryController extends Notifier<HistoryState> {
     try {
       final page = await _repo.history(page: s.page + 1);
       if (!ref.mounted || ticket != _ticket) return;
-      final known = {for (final r in s.items) r.id};
+      final known = {for (final r in s.items) r.key};
       state = state.copyWith(
         items: [
           ...s.items,
           for (final r in page.results)
-            if (!known.contains(r.id)) r
+            if (!known.contains(r.key)) r
         ],
         page: s.page + 1,
         hasMore: page.hasNext && page.results.isNotEmpty,

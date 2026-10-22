@@ -6,15 +6,15 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private var callChannel: CallChannel? = null
+    private var appChannel: AppChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Appel direct (T052) : permissions, lignes (SIM), TelecomManager.placeCall.
-        val calls = CallChannel(this)
-        callChannel = calls
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CallChannel.NAME)
-            .setMethodCallHandler(calls)
+        // Micro, WhatsApp et composeur du support (les appels passent par Jitsi, D-25).
+        val channel = AppChannel(this)
+        appChannel = channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AppChannel.NAME)
+            .setMethodCallHandler(channel)
         // Partage : ouvre la feuille de partage Android avec un texte.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "cm.netbuis/share")
             .setMethodCallHandler { call, result ->
@@ -42,6 +42,6 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        callChannel?.onRequestPermissionsResult(requestCode, grantResults)
+        appChannel?.onRequestPermissionsResult(requestCode, grantResults)
     }
 }
