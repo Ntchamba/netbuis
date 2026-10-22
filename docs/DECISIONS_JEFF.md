@@ -56,3 +56,6 @@
 | `VITE_USE_MOCKS` | `false` | dashboard | données factices |
 
 Un statut **« ouvert »** signifie : Jeff n'a pas répondu, le défaut s'applique et reste modifiable. **« décidé par défaut »** : choix de l'orchestrateur, modifiable. **« décidé »** : choix de Jeff ou imposé par un document du Projet.
+
+## D-30 — Le numéro du commerce visé s'affiche sur le tableau de bord pendant l'appel (2026-10-22)
+Jeff : le numéro de téléphone doit figurer sur le tableau de bord pendant l'appel. Il est visible seulement par le membre de l'équipe qui a décroché, tant que l'appel est en cours (route dédiée de T132b), jamais dans la sonnerie, la liste, l'historique, les journaux ni l'application mobile. Remplace, pour cette seule route, la règle « aucune route ne renvoie le numéro d'un commerçant ».
