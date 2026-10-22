@@ -137,7 +137,7 @@
 | ✅ | T121b | Mobile : valider le domaine Jitsi (comme le dashboard), traiter le code `throttled` (429) de la recherche | b3 / b2 | 2026-10-22 | 1 725 tests, analyse 0. Voir docs/verifications/T121b.md |
 | ✅ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | 2026-10-22 | Serveur : 1 678 tests, 2 index, flux SSE corrigé ; mobile : 1 730 tests, 5 tests de liste. À mesurer sur téléphone : TESTS_JEFF.md. Voir T122-backend.md et T122-mobile.md |
 | ✅ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | 2026-10-22 | Serveur 1 699 tests (couverture 99 %), tableau de bord 347 tests + 2 essais navigateur, mobile 1 743 tests (couverture 95,4 %) ; workflow .github/workflows/ci.yml (non exécuté sur GitHub). Voir T123-*.md |
-| ☐ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | |
+| 🔄 | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | | Documentation ✅ (README, backend/README, mobile/README, docs/RECETTE.md). ✘ APK : `flutter build apk --release` impossible ici (pas de SDK Android, téléchargement bloqué par le proxy) : à faire par Jeff ou en CI |
 | ☐ | T125 | Recette finale contre le cahier de charge | orchestrateur seul | | |
 
 ## Cahier de charge → tâches → preuve (rempli à T125)

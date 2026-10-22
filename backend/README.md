@@ -60,3 +60,17 @@ Les clients et les commerçants n'ont **pas** de mot de passe : ils se connecten
 - `PATCH` : nom et langue (`fr` ou `en`).
 - `DELETE` : suppression **douce** (D-09) — le compte est marqué supprimé, ses jetons sont
   invalidés, ses données restent ; une reconnexion avec ce numéro reçoit « Contactez le support ».
+
+## Appels Jitsi vers l'équipe (D-25)
+
+Les routes d'appel sont sous `/api/calls/…` et `/api/admin/calls/…`. Le temps réel passe par un flux SSE (PostgreSQL `LISTEN/NOTIFY`) : en production, servir avec `uvicorn config.asgi:application` (voir `docs/deployment/APPELS_ASGI.md`). Variables : `JITSI_DOMAIN`, `JITSI_APP_ID`, `JITSI_JWT_SECRET` (au moins 32 caractères ; absent = appels refusés). Tâche périodique : `python manage.py expire_calls --loop 30`. Exploitation de Jitsi : `docs/deployment/JITSI.md`.
+
+## Sauvegarde de la base
+
+Depuis une machine qui peut joindre la base (l'adresse vient de `DATABASE_URL`, jamais écrite dans un fichier) :
+
+```
+pg_dump "$DATABASE_URL" --format=custom --file=netbuis-$(date +%F).dump
+```
+
+Restaurer dans une base vide : `pg_restore --clean --if-exists --no-owner --dbname "$DATABASE_URL" netbuis-AAAA-MM-JJ.dump`. Garder les sauvegardes hors du dépôt et chiffrées ; elles contiennent des numéros de téléphone. Les photos privées (pièces d'identité) se trouvent dans le stockage privé (`PRIVATE_MEDIA_ROOT`) : le sauvegarder aussi. Tester une restauration avant la mise en service. Sur Railway, activer les sauvegardes de la base fournies par la plateforme en plus.

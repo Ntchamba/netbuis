@@ -1,17 +1,19 @@
 # NetBuis — application mobile (Flutter, Android)
 
-## Première tâche (B.1)
-
-Les dossiers `lib/` et `assets/` existent déjà. Il manque les dossiers de plateforme (`android/`, etc.).
-Depuis ce dossier :
+## Installer
 
 ```
-flutter create --org cm.netbuis --platforms=android .
 flutter pub get
+flutter analyze && flutter test --dart-define=USE_FAKE_API=true
 ```
 
-Vérifier ensuite avec `git status` que `lib/main.dart`, `lib/app.dart` et `pubspec.yaml` n'ont pas été écrasés
-(sinon les restaurer avec `git checkout`).
+## Construire l'APK (Android)
+
+```
+flutter build apk --release --dart-define=API_URL=https://VOTRE-SERVEUR/api --dart-define=SUPPORT_WHATSAPP=… --dart-define=SUPPORT_PHONE=… --dart-define=SUPPORT_EMAIL=…
+```
+
+Prérequis : le SDK Android (variable `ANDROID_HOME`), Java 17. L'APK se signe pour l'instant avec la **clé de débogage** : avant toute publication il faut créer une vraie clé de signature, gardée hors du dépôt. En release, l'adresse du serveur doit être en `https`. Le SDK Jitsi alourdit l'APK (WebRTC pour toutes les architectures) : mesurer la taille et envisager `--split-per-abi`.
 
 ## Lancer avec de fausses données (sans backend)
 
