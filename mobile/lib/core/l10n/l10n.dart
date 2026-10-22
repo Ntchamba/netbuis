@@ -23,10 +23,10 @@ class L10n {
   }
 
   static Future<L10n> load(Locale locale) async {
-    final raw = await rootBundle.loadString(
-      'assets/l10n/${locale.languageCode}.json',
-      cache: false, // chargé une seule fois par langue ; évite un Future partagé entre tests
-    );
+    // Pas loadString : au-delà de 50 Ko Flutter décode en tâche de fond (compute), et
+    // pumpAndSettle n'attend pas ce décodage, donc les tests ne verraient aucun texte.
+    final data = await rootBundle.load('assets/l10n/${locale.languageCode}.json');
+    final raw = utf8.decode(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
     final map = (json.decode(raw) as Map<String, dynamic>).cast<String, String>();
     return L10n(locale, map);
   }

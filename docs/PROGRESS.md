@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T092
-- **Prochaine tâche** : T093
+- **Tâche en cours** : T093
+- **Prochaine tâche** : T094
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -102,7 +102,7 @@
 | | | **PHASE 9 — Forum : publications et commentaires (Étape 7)** | | | |
 | ✅ | T090 | Backend : publications, commentaires, signalements | a3 | 2026-10-21 | docs/verifications/T090.md ; vérificateur CONFORME |
 | ✅ | T091 | Mobile : Publier et Mes publications | b3 | 2026-10-21 | docs/verifications/T091.md ; vérificateur CONFORME |
-| ☐ | T092 | Mobile : Forum et page d'une publication | b3 | | |
+| ✅ | T092 | Mobile : Forum et page d'une publication | b3 | 2026-10-21 | docs/verifications/T092.md ; vérificateur CONFORME |
 | ☐ | T093 | Mobile : signaler | b3 | | |
 | ☐ | T094 | Backend : modération | a3 + c2 | | |
 | ☐ | T095 | Dashboard : modération du forum | c3 | | |

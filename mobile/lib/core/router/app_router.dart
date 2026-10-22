@@ -19,7 +19,9 @@ import '../../features/business/presentation/screens/service_category_screen.dar
 import '../../features/business/presentation/screens/structure_details_screen.dart';
 import '../../features/business/presentation/screens/structure_type_screen.dart';
 import '../../features/call/presentation/screens/call_history_screen.dart';
+import '../../features/forum/presentation/screens/forum_screen.dart';
 import '../../features/forum/presentation/screens/my_posts_screen.dart';
+import '../../features/forum/presentation/screens/post_screen.dart';
 import '../../features/forum/presentation/screens/publish_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/maps/presentation/screens/area_screen.dart';
@@ -111,6 +113,15 @@ GoRouter buildRouter({
       ),
       GoRoute(path: Routes.publish, builder: (context, state) => const PublishScreen()),
       GoRoute(path: Routes.myPosts, builder: (context, state) => const MyPostsScreen()),
+      GoRoute(
+        path: Routes.forumPost,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          return id == null
+              ? const Scaffold(body: _TabScreen(titleKey: 'forum.title'))
+              : PostScreen(postId: id);
+        },
+      ),
       GoRoute(path: Routes.search, builder: (context, state) => const SearchScreen()),
       GoRoute(
         path: Routes.businessDetail,
@@ -156,7 +167,7 @@ GoRouter buildRouter({
             ],
           ),
           StatefulShellBranch(
-            routes: [tab(Routes.forum, const _TabScreen(titleKey: 'forum.title'))],
+            routes: [tab(Routes.forum, const ForumScreen())],
           ),
           StatefulShellBranch(
             routes: [tab(Routes.profile, const AccountScreen())],

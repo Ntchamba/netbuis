@@ -21,6 +21,9 @@ class Routes {
   static const businessDetail = '/business/:id';
   static String businessDetailPath(int id) => '/business/$id';
   static const forum = '/forum';
+  /// Page d'une publication du Forum (T092).
+  static const forumPost = '/forum/post/:id';
+  static String forumPostPath(int id) => '/forum/post/$id';
   /// Publier (T091) et Mes publications (T091), ouverts depuis Profil.
   static const publish = '/publish';
   static const myPosts = '/my-posts';
