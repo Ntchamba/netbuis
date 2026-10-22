@@ -44,6 +44,7 @@ ROUTES: dict[tuple[str, str], str | None] = {
     ("get", "analytics/searches/"): r.VOIR_COMPTES,
     ("get", "analytics/calls/"): r.VOIR_COMPTES,
     ("get", "subscriptions/"): r.VOIR_COMPTES,
+    ("post", "subscriptions/"): r.ACCORDER_ABONNEMENT,
     ("get", "audit/"): r.VOIR_COMPTES,
     ("get", "export/accounts.csv"): r.EXPORTER,
     ("get", "referentials/free-values/"): r.GERER_REFERENTIELS,

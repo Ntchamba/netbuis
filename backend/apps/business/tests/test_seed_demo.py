@@ -270,3 +270,21 @@ def test_invalid_profile_cannot_be_built_by_the_helper():
     profile = BusinessProfile(owner=make_owner(), **values)
     with pytest.raises(ValidationError):
         profile.clean()
+
+
+def test_abonnements_de_demonstration_actif_expire_et_echu_non_traite():
+    from apps.business.models import Subscription, SubscriptionStatus
+    from apps.business.services.subscription import is_subscribed
+
+    run("--count", "5")
+    subs = Subscription.objects.select_related("profile__owner")
+    by_name = {s.profile.owner.name: s for s in subs}
+    assert len(by_name) == 3
+    actif, expire, echu = (by_name[f"{demo_data.OWNER_PREFIX}{i:02d}"] for i in (1, 2, 3))
+    assert actif.status == SubscriptionStatus.ACTIVE and is_subscribed(actif.profile)
+    assert expire.status == SubscriptionStatus.EXPIRED and not is_subscribed(expire.profile)
+    assert echu.status == SubscriptionStatus.ACTIVE and not is_subscribed(echu.profile)
+    run("--count", "5")  # relançable : pas de doublon
+    assert Subscription.objects.count() == 3
+    run("--flush")
+    assert Subscription.objects.count() == 0

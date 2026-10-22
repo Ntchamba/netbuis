@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.admin_panel.serializers.account import masked
+from apps.admin_panel.services import audit_service, subscription_service
 
 
 class SubscriptionRowSerializer(serializers.Serializer):
@@ -29,3 +30,26 @@ class SubscriptionRowSerializer(serializers.Serializer):
 
     def get_high_traffic(self, obj) -> bool:
         return (not obj.is_subscribed) and obj.calls_last_day > self.context["threshold"]
+
+
+class SubscriptionGrantSerializer(serializers.Serializer):
+    business_id = serializers.IntegerField(
+        min_value=1, help_text="Identifiant du compte business (profil) à abonner")
+    duration_days = serializers.IntegerField(
+        min_value=subscription_service.MIN_DAYS, max_value=subscription_service.MAX_DAYS,
+        help_text="Durée en jours entiers, de 1 à 366, à partir de maintenant")
+    reason = serializers.CharField(
+        trim_whitespace=True, max_length=audit_service.MAX_REASON,
+        help_text="Motif obligatoire (1000 caractères au plus), écrit dans le journal d'audit")
+
+
+class SubscriptionGrantedSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    business_id = serializers.IntegerField(source="profile_id")
+    business_name = serializers.CharField(source="profile.name")
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
+    status = serializers.CharField()
+    source = serializers.CharField()
+    granted_by_id = serializers.IntegerField()
+    granted_by_name = serializers.CharField(source="granted_by.name")

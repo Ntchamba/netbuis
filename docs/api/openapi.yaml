@@ -3843,6 +3843,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Droit manquant
+    post:
+      operationId: admin_subscriptions_grant
+      description: 'Accorde un abonnement à la main (aucun paiement), à partir de
+        maintenant, pour 1 à 366 jours. Administrateur complet seulement ; motif obligatoire
+        ; audit `accord_abonnement` (cible : l''abonnement) écrit dans la même transaction.
+        Effet immédiat : plafonds levés, commerce classé avant les autres. Le compte
+        doit être actif (409 `business_not_active`) et sans abonnement en cours (409
+        `already_subscribed` : aucune prolongation ni cumul). Aucun numéro dans la
+        réponse.'
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionGrant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionGrant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionGrant'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionGranted'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: validation_error (durée, motif, identifiant)
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Jeton absent ou invalide
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Droit manquant
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: not_found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: business_not_active / already_subscribed
   /api/auth/admin/login/:
     post:
       operationId: auth_admin_login_create
@@ -6681,6 +6743,12 @@ components:
           type: integer
           readOnly: true
           title: Vues de la fiche
+        suggest_subscription:
+          type: boolean
+          readOnly: true
+          description: 'Vrai si le commerce n''est pas abonné et que ses appels reçus
+            aujourd''hui dépassent le seuil `seuil_appels_abonnement` : l''application
+            propose l''abonnement. Ne bloque jamais un appel ; aucun numéro ni appelant.'
         created_at:
           type: string
           format: date-time
@@ -6699,6 +6767,7 @@ components:
       - name
       - phone_masked
       - status
+      - suggest_subscription
       - type_compte
       - updated_at
       - views_count
@@ -8254,6 +8323,12 @@ components:
           type: integer
           readOnly: true
           title: Vues de la fiche
+        suggest_subscription:
+          type: boolean
+          readOnly: true
+          description: 'Vrai si le commerce n''est pas abonné et que ses appels reçus
+            aujourd''hui dépassent le seuil `seuil_appels_abonnement` : l''application
+            propose l''abonnement. Ne bloque jamais un appel ; aucun numéro ni appelant.'
         created_at:
           type: string
           format: date-time
@@ -9251,6 +9326,60 @@ components:
       - code
       - name
       - sector
+    SubscriptionGrant:
+      type: object
+      properties:
+        business_id:
+          type: integer
+          minimum: 1
+          description: Identifiant du compte business (profil) à abonner
+        duration_days:
+          type: integer
+          maximum: 366
+          minimum: 1
+          description: Durée en jours entiers, de 1 à 366, à partir de maintenant
+        reason:
+          type: string
+          description: Motif obligatoire (1000 caractères au plus), écrit dans le
+            journal d'audit
+          maxLength: 1000
+      required:
+      - business_id
+      - duration_days
+      - reason
+    SubscriptionGranted:
+      type: object
+      properties:
+        id:
+          type: integer
+        business_id:
+          type: integer
+        business_name:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        status:
+          type: string
+        source:
+          type: string
+        granted_by_id:
+          type: integer
+        granted_by_name:
+          type: string
+      required:
+      - business_id
+      - business_name
+      - end
+      - granted_by_id
+      - granted_by_name
+      - id
+      - source
+      - start
+      - status
     SubscriptionRow:
       type: object
       properties:

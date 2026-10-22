@@ -89,8 +89,13 @@ def test_permissions_par_route(url):
         assert response["Cache-Control"] == "no-store"
 
 
-@pytest.mark.parametrize("url", ROUTES)
-@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+# POST sur /subscriptions/ accorde un abonnement depuis T110 (test_subscription_grant.py).
+ECRITURES_REFUSEES = [(url, method) for url in ROUTES
+                      for method in ("post", "put", "patch", "delete")
+                      if (url, method) != (SUBS, "post")]
+
+
+@pytest.mark.parametrize(("url", "method"), ECRITURES_REFUSEES)
 def test_lecture_seule_405(url, method):
     client = api_as(admin_in(COMPLET))
     assert getattr(client, method)(url, {}, format="json").status_code == 405

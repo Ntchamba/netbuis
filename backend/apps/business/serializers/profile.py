@@ -22,6 +22,7 @@ from rest_framework import serializers
 
 from apps.business.models import Aisle, Amenity, BusinessProfile, Speciality
 from apps.business.services.storage_service import StorageError, get_storage, parse_key
+from apps.business.services.subscription_suggestion import suggest_subscription
 from apps.catalog.models import Sector, ServiceCategory, StructureType, Subcategory
 from apps.core.utils.phone import mask_phone
 from apps.geo.models import Zone
@@ -124,6 +125,11 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         help_text="Numéro masqué : seuls le premier et les deux derniers chiffres restent"
     )
     has_cni = serializers.SerializerMethodField(help_text="Vrai si une CNI a été envoyée")
+    suggest_subscription = serializers.SerializerMethodField(
+        help_text="Vrai si le commerce n'est pas abonné et que ses appels reçus aujourd'hui "
+                  "dépassent le seuil `seuil_appels_abonnement` : l'application propose "
+                  "l'abonnement. Ne bloque jamais un appel ; aucun numéro ni appelant."
+    )
 
     class Meta:
         model = BusinessProfile
@@ -138,11 +144,11 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "horaires", "standing", "nombre_chambres", "equipements", "numero_agrement",
             "specialites",
             "secteur", "secteur_libre", "sous_categories", "description_activite",
-            "calls_count", "views_count", "created_at", "updated_at",
+            "calls_count", "views_count", "suggest_subscription", "created_at", "updated_at",
         )
         read_only_fields = (
             "id", "status", "motif_rejet", "cni_verifiee", "calls_count", "views_count",
-            "created_at", "updated_at",
+            "suggest_subscription", "created_at", "updated_at",
         )
 
     def validate_sous_categories(self, value):
@@ -157,3 +163,6 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
 
     def get_has_cni(self, obj) -> bool:
         return bool(obj.cni_photo)
+
+    def get_suggest_subscription(self, obj) -> bool:
+        return suggest_subscription(obj)

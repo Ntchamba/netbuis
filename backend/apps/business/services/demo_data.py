@@ -24,11 +24,19 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import timedelta
 
 from django.db import transaction
+from django.utils import timezone
 
 from apps.accounts.models import User
-from apps.business.models import AccountType, BusinessProfile, BusinessStatus
+from apps.business.models import (
+    AccountType,
+    BusinessProfile,
+    BusinessStatus,
+    Subscription,
+    SubscriptionStatus,
+)
 from apps.business.models.profile import (
     SECTOR_TYPES,
     Aisle,
@@ -212,6 +220,28 @@ def demo_profile_values(i: int, refs: Referentials) -> tuple[dict, list]:
     return values, subcategories
 
 
+def add_subscription(profile: BusinessProfile, i: int) -> str | None:
+    """Abonnement fictif (T110) pour un commerce NEUF, selon l'index : 1 -> actif ; 2 -> expiré
+    (statut `expire`, fin passée) ; 3 -> échu mais encore `actif` (la commande
+    `expire_subscriptions` ne l'a pas encore traité). Retourne le cas, ou None. Aucun paiement."""
+    now = timezone.now()
+    if i % 10 == 1:
+        values, case = (now - timedelta(days=10), now + timedelta(days=20), "actif"), "actif"
+    elif i % 10 == 2:
+        values, case = (
+            now - timedelta(days=60), now - timedelta(days=30), SubscriptionStatus.EXPIRED
+        ), "expire"
+    elif i % 10 == 3:
+        values, case = (
+            now - timedelta(days=40), now - timedelta(days=5), SubscriptionStatus.ACTIVE
+        ), "echu"
+    else:
+        return None
+    start, end, status = values
+    Subscription.objects.create(profile=profile, start=start, end=end, status=status)
+    return case
+
+
 def create_demo_profile(i: int, refs: Referentials) -> tuple[BusinessProfile | None, bool]:
     """Crée le commerce n° `i` s'il n'existe pas. Retourne (profil, créé).
 
@@ -235,6 +265,7 @@ def create_demo_profile(i: int, refs: Referentials) -> tuple[BusinessProfile | N
         profile.save()  # clean() : le profil est valide par construction
         if subcategories:
             profile.sous_categories.set(subcategories)
+        add_subscription(profile, i)
     return profile, True
 
 
