@@ -383,7 +383,7 @@ class _Tabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9),
                 onTap: onTap,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 44),
+                  constraints: const BoxConstraints(minHeight: 48),
                   child: Center(
                     child: Text(text,
                         style: TextStyle(

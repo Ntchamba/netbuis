@@ -165,6 +165,7 @@ class AccountScreen extends ConsumerWidget {
               SettingsCard(children: [
                 _DangerRow(
                   inkKey: const ValueKey('profile-delete'),
+                  icon: Icons.delete_outline,
                   label: l10n.t('profile.delete'),
                   onTap: () => _deleteAccount(context, ref),
                 ),
@@ -228,11 +229,12 @@ class _ProfileError extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        TextButton(
+        TextButton.icon(
           key: const ValueKey('profile-retry'),
           onPressed: onRetry,
           style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-          child: Text(l10n.t('profile.retry')),
+          icon: const Icon(Icons.refresh, size: 18),
+          label: Text(l10n.t('profile.retry')),
         ),
       ],
     );
@@ -241,9 +243,12 @@ class _ProfileError extends StatelessWidget {
 
 /// Ligne d'action sensible (déconnexion, suppression), en couleur d'erreur.
 class _DangerRow extends StatelessWidget {
-  const _DangerRow({required this.inkKey, required this.label, required this.onTap});
+  const _DangerRow({required this.inkKey, required this.label, required this.onTap, this.icon});
 
   final Key inkKey;
+
+  /// Icône devant le mot (absente pour « Se déconnecter », texte seul dans la maquette Profil).
+  final IconData? icon;
 
   final String label;
   final VoidCallback onTap;
@@ -265,7 +270,16 @@ class _DangerRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(label, style: TextStyle(fontSize: 14, color: color)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: color),
+                    const SizedBox(width: 8),
+                  ],
+                  Flexible(child: Text(label, style: TextStyle(fontSize: 14, color: color))),
+                ],
+              ),
             ),
           ),
         ),

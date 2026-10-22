@@ -88,10 +88,15 @@ class FeedPostCard extends StatelessWidget {
                 ],
               ),
             ),
-            InkWell(
-              key: ValueKey('feed-open-${post.id}'),
-              onTap: onOpen,
-              child: PostMedia(type: post.mediaType, url: post.mediaUrl),
+            Semantics(
+              button: true,
+              label: l10n.t('forum.card.open'),
+              excludeSemantics: true,
+              child: InkWell(
+                key: ValueKey('feed-open-${post.id}'),
+                onTap: onOpen,
+                child: PostMedia(type: post.mediaType, url: post.mediaUrl),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),

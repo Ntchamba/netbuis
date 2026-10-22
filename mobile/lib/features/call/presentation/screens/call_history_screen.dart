@@ -226,9 +226,9 @@ class _HistoryCard extends ConsumerWidget {
     // Couleurs de badge de la maquette : vert (réussite) pour WhatsApp, accent pour l'appel.
     final badgeBg = isWhatsapp
         ? (dark ? const Color(0xFF1E2E22) : const Color(0xFFE3F5E7))
-        : (dark ? const Color(0xFF262620) : const Color(0xFFFBE7C8));
+        : (dark ? const Color(0xFF262620) : const Color(0xFFFEF3E2));
     final badgeFg = isWhatsapp
-        ? (dark ? const Color(0xFF5FBE7A) : const Color(0xFF1E8A3C))
+        ? (dark ? const Color(0xFF5FBE7A) : const Color(0xFF1A7A34))
         : c.accentText;
 
     return DecoratedBox(
@@ -246,7 +246,7 @@ class _HistoryCard extends ConsumerWidget {
               height: 38,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: dark ? const Color(0xFF262620) : const Color(0xFFFBE7C8),
+                color: dark ? const Color(0xFF262620) : const Color(0xFFFEF3E2),
               ),
               child: Icon(
                 isWhatsapp ? Icons.chat_bubble_outline : Icons.phone_outlined,

@@ -40,7 +40,9 @@ class CategoryChips extends StatelessWidget {
     final l10n = L10n.of(context);
     return Wrap(
       spacing: 8,
-      runSpacing: 8,
+      // Puces de 48 dp de haut (cible tactile) : l'espace entre les lignes est réduit pour que
+      // la zone des résultats garde sa hauteur.
+      runSpacing: 4,
       children: [
         SectorChip(
           label: l10n.t('home.chip.all'),
@@ -102,7 +104,7 @@ class SectorChip extends StatelessWidget {
           customBorder: const StadiumBorder(),
           onTap: onTap,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44),
+            constraints: const BoxConstraints(minHeight: 48),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(

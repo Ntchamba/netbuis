@@ -168,6 +168,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       BuildContext context, SearchState search, List<Sector> sectors) {
     final c = AppColors.of(context);
     final l10n = L10n.of(context);
+    // Police agrandie : l'encart ne reste pas collé en bas (il prendrait la place des
+    // résultats) ; il défile avec eux.
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 14 * 1.15;
+    final promo = _promoClosed
+        ? null
+        : InviteBanner(
+            onInvite: _invite,
+            onClose: () => setState(() => _promoClosed = true),
+          );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -176,7 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const NetBuisLogo(),
+              const Flexible(child: NetBuisLogo()),
               IconButton(
                 key: const Key('home-profile'),
                 tooltip: l10n.t('home.profile'),
@@ -209,14 +218,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onMore: () => _openSectors(sectors, search.query.sector),
           ),
         ),
-        Expanded(child: _Results(state: search, controller: _scroll)),
-        if (!_promoClosed)
+        Expanded(
+          child: _Results(
+            state: search,
+            controller: _scroll,
+            footer: largeText ? promo : null,
+          ),
+        ),
+        if (!largeText && promo != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-            child: InviteBanner(
-              onInvite: _invite,
-              onClose: () => setState(() => _promoClosed = true),
-            ),
+            // Marges réduites de 8 dp : les boutons ont gagné 8 dp (48 dp de haut), la zone
+            // des résultats ne doit pas rétrécir.
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+            child: promo,
           ),
       ],
     );
@@ -225,10 +239,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Zone des résultats : chargement, erreur, vide ou liste de cartes.
 class _Results extends ConsumerWidget {
-  const _Results({required this.state, required this.controller});
+  const _Results({required this.state, required this.controller, this.footer});
 
   final SearchState state;
   final ScrollController controller;
+
+  /// Encart placé sous le contenu, dans la zone qui défile (police agrandie).
+  final Widget? footer;
+
+  /// Message seul, ou message suivi de [footer] dans une zone qui défile.
+  Widget _framed(Widget body) {
+    final footer = this.footer;
+    if (footer == null) return body;
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              body,
+              const SizedBox(height: 8),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: footer),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -238,24 +278,25 @@ class _Results extends ConsumerWidget {
     switch (state.status) {
       case SearchStatus.idle:
         // La ville n'est pas encore connue : rien à montrer, la recherche part dès qu'elle l'est.
-        return const SizedBox.shrink();
+        return _framed(const SizedBox.shrink());
       case SearchStatus.loading:
-        return Center(
+        return _framed(Center(
           child: Semantics(
             label: l10n.t('home.results.loading'),
             child: const CircularProgressIndicator(),
           ),
-        );
+        ));
       case SearchStatus.error:
-        return _Message(
+        return _framed(_Message(
           text: l10n.t('home.results.error'),
           action: l10n.t('home.results.retry'),
           onAction: notifier.retry,
-        );
+        ));
       case SearchStatus.empty:
-        return _Message(text: l10n.t('home.results.empty'));
+        return _framed(_Message(text: l10n.t('home.results.empty')));
       case SearchStatus.results:
-        final extra = state.loadingMore || state.loadMoreFailed ? 1 : 0;
+        final extra = (state.loadingMore || state.loadMoreFailed ? 1 : 0) +
+            (footer == null ? 0 : 1);
         // Bande « Très demandé » : premier élément de la liste (elle défile avec les résultats),
         // absente tant qu'il n'y a aucune tendance (pas d'espace vide).
         final hasTrends =
@@ -285,6 +326,9 @@ class _Results extends ConsumerWidget {
                     businessId: item.id, businessName: item.name),
                 onOpen: () => context.push(Routes.businessDetailPath(item.id)),
               );
+            }
+            if (footer != null && i == state.items.length + extra - 1) {
+              return footer!;
             }
             if (state.loadMoreFailed) {
               return _Message(
@@ -318,26 +362,36 @@ class _Message extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(text,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge),
-            if (action != null) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(
-                key: const Key('home-retry'),
-                onPressed: onAction,
-                style:
-                    OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
-                child: Text(action!),
+    // Défile si la place manque (petite zone, police agrandie) au lieu de déborder.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+              minHeight: constraints.hasBoundedHeight ? constraints.maxHeight : 0),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(text,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  if (action != null) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const Key('home-retry'),
+                      onPressed: onAction,
+                      style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(48, 48)),
+                      icon: const Icon(Icons.refresh, size: 18),
+                      label: Text(action!),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
+            ),
+          ),
         ),
       ),
     );

@@ -489,6 +489,7 @@ class _EditFormState extends ConsumerState<_EditForm> {
                   ? 'business.edit.saving'
                   : (_rejected ? 'business.edit.save.rejected' : 'business.edit.save')),
               loading: saving,
+              icon: Icons.check,
               onPressed: dirty ? _save : null,
             ),
           ],

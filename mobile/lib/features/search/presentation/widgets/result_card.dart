@@ -102,12 +102,9 @@ class ResultCard extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: SizedBox(
-                height: 48,
+              _ActionsLayout(
+                call: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
                 child: FilledButton.icon(
                   onPressed: offline ? null : onCall,
                   style: FilledButton.styleFrom(
@@ -140,23 +137,47 @@ class ResultCard extends StatelessWidget {
                   ),
                 ),
               ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 4,
-                    child: WhatsappButton(
+                whatsapp: WhatsappButton(
                       key: const Key('card-whatsapp'),
                       businessName: result.name,
                       available: result.whatsappAvailable,
                       offline: offline,
                       onPressed: onWhatsapp,
                     ),
-                  ),
-                ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// « Appeler » et « WhatsApp » côte à côte ; l'un sous l'autre quand la police du téléphone est
+/// très agrandie (chaque bouton garde alors toute la largeur et une hauteur de 48 dp au moins).
+class _ActionsLayout extends StatelessWidget {
+  const _ActionsLayout({required this.call, required this.whatsapp});
+
+  final Widget call;
+  final Widget whatsapp;
+
+  @override
+  Widget build(BuildContext context) {
+    final stacked = MediaQuery.textScalerOf(context).scale(14) >= 14 * 1.5;
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [call, const SizedBox(height: 10), whatsapp],
+      );
+    }
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 5, child: call),
+          const SizedBox(width: 10),
+          Expanded(flex: 4, child: whatsapp),
+        ],
       ),
     );
   }

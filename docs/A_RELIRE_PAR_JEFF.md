@@ -67,3 +67,6 @@ Décisions à valider : le Validateur NE modère PAS (spec) ; un contenu signal�
 
 ## T095 — modération du forum (dashboard)
 Fichiers à relire : dashboard/src/routes/index.tsx (route gardée par peut_moderer_contenu), src/layouts/nav.ts, src/modules/forum_moderation/components/ModerationActions.tsx (actionsFor, motif obligatoire pour supprimer, verrou anti double clic), components/ReportQueue.tsx (aperçu en texte simple, numéro masqué), types.ts (aucun champ de signalant).
+
+## T120 — Accessibilité : couleurs ajoutées (extension de D-20, à valider)
+Pour atteindre le contraste 4,5:1 en thème clair, trois couleurs ont été ajoutées ou modifiées par rapport aux maquettes : rouge d'erreur `#C93E28` (au lieu de `#D1452F`, 4,26:1), fond des badges orange `#FEF3E2` avec texte `#A85A00` (4,64:1), vert du badge WhatsApp de l'Historique `#1A7A34` (4,93:1). À confirmer ou à refuser. Propositions non réalisées (hors maquette) : raccourci « parler à quelqu'un » sur l'Accueil, dictée vocale des champs libres, « Écouter » sur les textes longs restants.

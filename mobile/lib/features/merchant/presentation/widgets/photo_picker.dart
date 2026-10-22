@@ -95,7 +95,8 @@ class OfferPhotoPicker extends ConsumerWidget {
                   onTap: () => _add(context, ref),
                   child: Container(
                     width: 84,
-                    height: 100,
+                    // Au moins 100 ; plus haut quand la police du téléphone est agrandie.
+                    constraints: const BoxConstraints(minHeight: 100),
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: c.card,
@@ -141,7 +142,7 @@ class _Thumb extends StatelessWidget {
     );
     return SizedBox(
       width: 84,
-      height: 100,
+      height: 104,
       child: Column(
         children: [
           ClipRRect(
@@ -160,11 +161,11 @@ class _Thumb extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 44,
+            height: 48,
             child: TextButton(
               onPressed: onRemove,
               style: TextButton.styleFrom(
-                minimumSize: const Size(84, 44),
+                minimumSize: const Size(84, 48),
                 padding: EdgeInsets.zero,
               ),
               child: Text(removeLabel, style: const TextStyle(fontSize: 12)),

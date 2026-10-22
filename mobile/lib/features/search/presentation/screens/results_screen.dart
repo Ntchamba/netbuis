@@ -62,11 +62,12 @@ class SearchResultsView extends ConsumerWidget {
               : l10n.t('search.empty.titleFor').replaceAll('{q}', q),
           lines: [l10n.t('search.empty.tipShorter'), l10n.t('search.empty.tipPlace')],
           actions: [
-            OutlinedButton(
+            OutlinedButton.icon(
               key: const Key('search-change-city'),
               onPressed: onChangeCity,
               style: OutlinedButton.styleFrom(minimumSize: const Size(48, 48)),
-              child: Text(l10n.t('search.empty.changeCity')),
+              icon: const Icon(Icons.location_city, size: 18),
+              label: Text(l10n.t('search.empty.changeCity')),
             ),
             if (state.query.sector != null)
               TextButton(

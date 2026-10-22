@@ -726,6 +726,7 @@
   "forum.publish.aria": "Publier une annonce",
   "forum.card.comments.one": "1 commentaire · écrire un commentaire",
   "forum.card.comments.other": "{n} commentaires · écrire un commentaire",
+  "forum.card.open": "Ouvrir la publication",
   "forum.video.play": "Voir la vidéo",
   "forum.video.error": "Impossible d'ouvrir la vidéo.",
   "forum.post.gone": "Cette publication n'est plus disponible.",

@@ -34,8 +34,8 @@ class WhatsappButton extends StatelessWidget {
     final off = l10n.t(offline ? 'offline.label' : 'home.card.whatsappOff');
     final label = l10n.t('home.card.whatsapp');
     final enabled = available && !offline;
-    return SizedBox(
-      height: 48,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
       child: OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: OutlinedButton.styleFrom(

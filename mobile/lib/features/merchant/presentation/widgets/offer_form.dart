@@ -149,6 +149,7 @@ class _OfferFormState extends State<OfferForm> {
           key: const ValueKey('offer-save'),
           label: l10n.t('offers.form.save'),
           loading: widget.saving,
+          icon: Icons.check,
           onPressed: _submit,
         ),
       ],

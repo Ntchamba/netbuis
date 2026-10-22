@@ -91,11 +91,11 @@ class ProductTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final text = dark ? AppColors.accent : const Color(0xFFA6650A);
+    final text = AppColors.of(context).accentText;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF262620) : const Color(0xFFFBE7C8),
+        color: dark ? const Color(0xFF262620) : const Color(0xFFFEF3E2),
         border: Border.all(
             color: dark ? const Color(0xFF3A3A2E) : const Color(0xFFF0D6A3)),
         borderRadius: BorderRadius.circular(999),

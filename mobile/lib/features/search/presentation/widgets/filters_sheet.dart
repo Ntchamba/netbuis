@@ -84,10 +84,11 @@ class FiltersSheet extends ConsumerWidget {
             SizedBox(
               width: double.infinity,
               height: 48,
-              child: FilledButton(
+              child: FilledButton.icon(
                 key: const Key('filters-apply'),
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.t('search.filters.apply')),
+                icon: const Icon(Icons.search, size: 20),
+                label: Text(l10n.t('search.filters.apply')),
               ),
             ),
           ],

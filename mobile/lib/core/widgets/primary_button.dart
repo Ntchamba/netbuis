@@ -8,11 +8,15 @@ class PrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.loading = false,
+    this.icon,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool loading;
+
+  /// Icône placée devant le mot (principe « icône + mot court »).
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,16 @@ class PrimaryButton extends StatelessWidget {
                   child: CircularProgressIndicator(strokeWidth: 2.5),
                 ),
               )
-            : Text(label),
+            : icon == null
+                ? Text(label)
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 20),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text(label, textAlign: TextAlign.center)),
+                    ],
+                  ),
       ),
     );
   }

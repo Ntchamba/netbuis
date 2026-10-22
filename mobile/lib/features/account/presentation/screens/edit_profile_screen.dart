@@ -97,6 +97,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           PrimaryButton(
             label: l10n.t(errorKey == null ? 'name.submit' : 'name.retry'),
             loading: _sending,
+            icon: Icons.arrow_forward,
             onPressed: _submit,
           ),
           const SizedBox(height: 8),

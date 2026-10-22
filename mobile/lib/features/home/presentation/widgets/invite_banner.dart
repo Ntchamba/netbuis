@@ -46,7 +46,7 @@ class InviteBanner extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: c.accentText,
                     padding: EdgeInsets.zero,
-                    minimumSize: const Size(48, 44),
+                    minimumSize: const Size(48, 48),
                     alignment: Alignment.centerLeft,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),

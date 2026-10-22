@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T120
-- **Prochaine tâche** : T121
+- **Tâche en cours** : T121
+- **Prochaine tâche** : T122
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -122,7 +122,7 @@
 | ✅ | T112 | Vérification de tranche : plafonds et abonnement | orchestrateur | 2026-10-21 | docs/verifications/T112.md ; vérificateur CONFORME |
 | ✅ | T113 | Dashboard : Équipe & abonnements — écran sans maquette | c3 | 2026-10-21 | docs/verifications/T113.md ; vérificateur CONFORME |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
-| ☐ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | | |
+| ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
 | ☐ | T121 | Revue de sécurité | a1 (backend), c3 (dashboard), b1 (mobile) | | |
 | ☐ | T122 | Performances | a1, a2, a3 (chacun ses index, un à la fois) puis b1 (mesures mobiles) | | |
 | ☐ | T123 | Tests de bout en bout et intégration continue | orchestrateur (fichiers `.github/`, documentation) ; les scénarios sont écrits un domaine après l'autre par l'agent propriétaire du domaine (a1 accès, a2 création de commerce, a3 recherche/appel/forum, b1/b2/b3 mobile, c2/c3 administration) | | |

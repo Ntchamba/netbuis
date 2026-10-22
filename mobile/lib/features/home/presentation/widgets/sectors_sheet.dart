@@ -39,13 +39,18 @@ class _SectorsGrid extends StatelessWidget {
             Text(l10n.t('home.sectors.title'), style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 14),
             Flexible(
-              child: GridView.count(
+              // Cases carrées qui grandissent avec la police du téléphone (mot sur 2 lignes).
+              child: GridView(
                 key: const Key('sectors-grid'),
                 shrinkWrap: true,
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 1,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  mainAxisExtent: (MediaQuery.sizeOf(context).width - 60) /
+                      3 *
+                      MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 3.0),
+                ),
                 children: [
                   for (final s in sectors)
                     Semantics(

@@ -178,7 +178,13 @@ class SettingsRow extends StatelessWidget {
               children: [
                 Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
                 if (value != null)
-                  Text(value!, style: TextStyle(fontSize: 13, color: c.textSecondary)),
+                  Flexible(
+                    child: Text(
+                      value!,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 13, color: c.textSecondary),
+                    ),
+                  ),
                 Icon(Icons.chevron_right, size: 20, color: c.textSecondary),
               ],
             ),
