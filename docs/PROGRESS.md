@@ -5,10 +5,10 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T121
-- **Prochaine tâche** : T122
-- **Dernière mise à jour** : 2026-10-21
-- **Branche** : etape-2/acces
+- **Tâche en cours** : T121 (partie backend en cours ; reste du T121 repris après la phase 13)
+- **Prochaine tâche** : T041b puis T131
+- **Dernière mise à jour** : 2026-10-22
+- **Branche** : claude/gifted-dijkstra-yjxzvf (reprise de etape-2/acces au commit T036)
 
 ## Tâches (dans l'ordre d'exécution)
 
@@ -121,6 +121,14 @@
 | ✅ | T111 | Mobile : propositions d'abonnement | b3 | 2026-10-21 | docs/verifications/T111.md ; vérificateur CONFORME |
 | ✅ | T112 | Vérification de tranche : plafonds et abonnement | orchestrateur | 2026-10-21 | docs/verifications/T112.md ; vérificateur CONFORME |
 | ✅ | T113 | Dashboard : Équipe & abonnements — écran sans maquette | c3 | 2026-10-21 | docs/verifications/T113.md ; vérificateur CONFORME |
+| | | **PHASE 13 — Appels par Jitsi vers l'équipe NetBuis (D-25 à D-28, ajoutée le 2026-10-22 : à faire avant la fin de T121)** | | | |
+| ☐ | T041b | Backend : la recherche trouve un commerce par son nom (D-27) | a3 | | |
+| ✅ | T130 | Spécification et décisions des appels Jitsi | orchestrateur | 2026-10-22 | docs/spec/APPELS_JITSI.md ; D-25 à D-28 ; Q1 (hébergement de Jitsi) à trancher par Jeff |
+| ☐ | T131 | Backend : sessions d'appel, temps réel (SSE + LISTEN/NOTIFY) et accès Jitsi | a3 (+ a1) | | |
+| ☐ | T132 | Dashboard : appels entrants et salle Jitsi | c3 | | |
+| ☐ | T133 | Mobile : appel Jitsi à la place de l'appel téléphonique | b2 (+ b1) | | |
+| ☐ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | | |
+| ☐ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | | |
 | | | **PHASE 12 — Durcissement et recette (Étape 8)** | | | |
 | ✅ | T120 | Accessibilité de tous les écrans mobiles | b1 (conduit l'audit) + b2 + b3 pour leurs dossiers | 2026-10-21 | docs/verifications/T120.md ; vérificateur CONFORME |
 | ☐ | T121 | Revue de sécurité | a1 (backend), c3 (dashboard), b1 (mobile) | | |
@@ -184,3 +192,4 @@
 | 2026-10-17 | T023 : le mobile (dépôts réels) affiche les vraies villes et secteurs du backend local. |
 | 2026-10-19 | T026c (correction de contrat trouvée par T035) : le numéro ancré est toujours owner.phone, imposé par le serveur ; la photo du commerce est facultative (maquette). Docs mises à jour (MODELE_DONNEES, D-08). Reste à corriger côté mobile : retrait du refus d'envoi sans photo du commerce et ordre du lieu « Maroua, Hardé ». |
 | 2026-10-19 | T036 : un commerce se crée de bout en bout entre le mobile (code réel) et le backend local ; pas d'émulateur dans la session cloud, l'essai sur téléphone reste à faire par Jeff. |
+| 2026-10-22 | Reprise en session cloud sur la branche claude/gifted-dijkstra-yjxzvf (T037 à T120 déjà faites par une session précédente). État revérifié : serveur 1 495 tests, dashboard 262 tests + build, mobile 1 687 tests + analyse. Jeff décide : les appels passeront par Jitsi vers les membres de l'équipe NetBuis (tableau de bord), plus par le téléphone ni vers les commerçants (D-25) ; sonnerie en moins d'une seconde (D-26) ; la recherche trouve aussi un commerce par son nom (D-27). Phase 13 ajoutée (T041b, T130 à T135). |

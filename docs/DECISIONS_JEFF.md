@@ -29,6 +29,10 @@
 | D-23 | Badge « Abonné » public | Non (point ouvert du Projet) ; l'abonné est seulement placé en premier | décidé par défaut | |
 | D-24 | Numéro affiché dans le dashboard | Masqué dans les listes (comme les maquettes) ; complet seulement dans la page de détail, pour l'Administrateur complet | décidé par défaut | |
 | D-18 | Numéros de test | Les données de démonstration utilisent `6 00 00 00 XX` et des noms visiblement fictifs | décidé | |
+| D-25 | Appels | **Les appels passent par Jitsi vers l'équipe NetBuis** (administrateurs sur le tableau de bord), plus par le téléphone ni vers les commerçants. Spéc. : `docs/spec/APPELS_JITSI.md` | décidé par Jeff le 2026-10-22 | remplace `docs/spec/APPELS.md` |
+| D-26 | Latence | Sonnerie sur le tableau de bord en moins d'une seconde après le clic (p95), mesurée côté serveur par un test automatisé | décidé par Jeff le 2026-10-22 | cible serveur < 250 ms |
+| D-27 | Recherche par nom | La recherche trouve aussi un commerce par son **nom** | décidé par Jeff le 2026-10-22 | tâche T041b |
+| D-28 | Hébergement de Jitsi | JaaS (8x8) ou Jitsi auto-hébergé sur un serveur avec UDP | **à décider par Jeff** | code compatible avec les deux |
 
 ## Données à fournir par Jeff (le projet ne les invente pas)
 

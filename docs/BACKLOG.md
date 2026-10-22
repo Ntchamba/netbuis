@@ -652,6 +652,47 @@ Chaque exécution écrit sa sortie dans `logs/<tâche>-<commande>.txt` (voir `OR
 
 ---
 
+# PHASE 13 — Appels par Jitsi vers l'équipe NetBuis (décisions D-25 à D-28, ajoutée le 2026-10-22)
+
+> Spécification : `docs/spec/APPELS_JITSI.md` (elle remplace `docs/spec/APPELS.md`). À exécuter AVANT la fin de T121 : la revue de sécurité (T121), les performances (T122) et les tests de bout en bout (T123) devront couvrir ces nouvelles routes.
+
+### T041b — Backend : la recherche trouve un commerce par son nom (décision D-27)
+- **Agent** a3 · **Dépend de** T040 · **Réf.** `docs/A_RELIRE_PAR_JEFF.md` (« la recherche ne trouve pas un commerce par son nom »)
+- **Terminé quand** : taper une partie du **nom d'un commerce actif** (sans tenir compte de la casse ni des accents, y compris une faute de frappe légère comme pour les produits) le fait apparaître dans les résultats ; le nom pèse moins qu'une correspondance exacte de produit mais plus qu'une correspondance de sous-catégorie (ordre documenté et testé) ; un index trigramme sur le nom normalisé existe (migration, `EXPLAIN` ou test de requête) ; seuls les commerces `visible()` sont trouvés (jamais en attente, rejeté, bloqué, supprimé) ; les abonnés restent en premier à pertinence égale ; aucun numéro dans les réponses ; recherche < 300 ms sur 5 000 commerces fictifs (mesure notée) ; tests (nom exact, partiel, accents, faute, commerce masqué, ordre, requêtes en nombre constant).
+
+### T130 — Spécification et décisions des appels Jitsi (orchestrateur)
+- **Fait le 2026-10-22** : `docs/spec/APPELS_JITSI.md`, décisions D-25 à D-28, tâches T131 à T135.
+
+### T131 — Backend : sessions d'appel, temps réel et accès Jitsi
+- **Agent** a3 (+ a1 pour le droit et la configuration) · **Dépend de** T130, T041b · **Spéc.** `docs/spec/APPELS_JITSI.md`
+- **Terminé quand** (un test par point) :
+  1. Modèles `CallSession` (états `ringing`, `answered`, `ended`, `missed`, `declined`, `unavailable`, `cancelled`) et `AgentPresence` ; migrations propres.
+  2. `POST /api/calls/sessions/` (connecté, non bloqué, `business_id` facultatif) : crée la session, publie l'événement, renvoie `{session_id, jitsi:{domain, room, jwt}, ring_seconds}` ; une seule session active par appelant (409 sinon) ; limites par minute et par jour lues dans `PlatformSetting` (429) ; sans agent disponible : réponse `unavailable` immédiate sans attente.
+  3. Accès Jitsi : nom de salle secret (≥ 128 bits), jeton signé HS256 (`JITSI_APP_ID`, `JITSI_JWT_SECRET`, `JITSI_DOMAIN` lus de l'environnement ; secret absent = jeton non émis et configuration signalée) limité à UNE salle, durée courte, rôle modérateur pour l'agent et participant pour l'appelant, enregistrement et transcription désactivés ; test de la structure du jeton (sans secret en clair dans les journaux).
+  4. Flux agent `GET /api/admin/calls/stream/` (SSE sur ASGI, PostgreSQL `LISTEN/NOTIFY`), réservé au droit **`peut_repondre_aux_appels`** (ajouté aux groupes « Validateur » et « Administrateur complet », migration de données) ; à la connexion il rejoue les sessions en sonnerie ; battement de cœur de présence ; `POST /api/admin/calls/presence/` (disponible / indisponible).
+  5. `POST /api/admin/calls/sessions/<id>/accept/` atomique (un seul gagnant : test avec deux agents simultanés), `…/decline/`, `POST /api/calls/sessions/<id>/end/` (les deux côtés), `…/cancel/` (l'appelant raccroche avant réponse), expiration à 30 s en `missed` (commande ou tâche à planifier documentée), événements `taken` / `ended` aux autres agents ; flux appelant `GET /api/calls/sessions/<id>/events/` (SSE) + consultation courte `GET /api/calls/sessions/<id>/`.
+  6. `GET /api/admin/calls/` (liste paginée : appels manqués, répondus, par agent ; sans numéro de l'appelant) et `GET /api/calls/history/` (l'historique de l'appelant, adapté à T053) ; journal d'audit des réponses/refus ; aucun jeton, salle ni numéro dans les journaux.
+  7. **`POST /api/calls/initiate/` et la livraison du numéro d'un commerçant sont retirés** (route, service, sérialiseur, tests de livraison remplacés par un test qui prouve qu'AUCUNE route ne renvoie `phone_anchor`) ; WhatsApp inchangé ; `CLAUDE.md` et `AGENTS.md` mis à jour par l'orchestrateur ; `openapi.yaml` à jour.
+  8. Serveur ASGI documenté (`uvicorn`/`daphne` ou équivalent déjà installé : n'ajoute une dépendance que si indispensable et dis-le), commande de démarrage et réglage de connexion PostgreSQL directe (pas de pool en mode transaction) dans `docs/deployment/`.
+  9. Mesure automatisée : de la réception du POST à la réception de l'événement par un flux agent déjà connecté : **p95 < 250 ms** sur 100 appels en local (test ou script noté dans `docs/verifications/T131.md`) ; avec 3 agents connectés.
+
+### T132 — Dashboard : appels entrants et salle Jitsi
+- **Agent** c3 · **Dépend de** T131 · **Maquettes** : aucune (écran sans maquette : à décrire dans le rapport, style des écrans Demandes/Comptes)
+- **Terminé quand** : bouton « Disponible / Indisponible » (présence, battement de cœur) visible partout ; fenêtre d'**appel entrant** (sonnerie sonore, nom de l'appelant, commerce concerné, compte à rebours de sonnerie, boutons Répondre / Refuser), qui se ferme si un autre agent répond (`taken`) ; à « Répondre » : salle Jitsi intégrée via `external_api.js` du domaine Jitsi (jeton fourni par l'API, audio, vidéo coupée par défaut, fin d'appel) ; reconnexion automatique du flux (rejoue les sonneries en cours) ; page « Appels » (manqués / répondus, filtres) ; le droit `peut_repondre_aux_appels` pilote l'affichage ; accessibilité (sonnerie annoncée, boutons ≥ 44 px, clavier) ; ErrorBoundary autour de la fenêtre d'appel ; tests (Vitest) et un essai dans un vrai navigateur (Playwright, Jitsi simulé par une page factice) qui mesure le délai entre l'événement serveur et l'affichage de la fenêtre (< 200 ms).
+
+### T133 — Mobile : appel Jitsi à la place de l'appel téléphonique
+- **Agent** b2 (+ b1 pour la construction) · **Dépend de** T131
+- **Terminé quand** : le bouton Appeler (fiche du commerce, liste, historique) lance `POST /api/calls/sessions/` puis affiche l'écran d'appel (« Appel en cours… », annulation, minuteur) et rejoint la salle Jitsi dès l'envoi (`jitsi_meet_flutter_sdk`, audio seul, vidéo coupée, jeton fourni par l'API) ; états `unavailable` (message « Personne n'est disponible, réessayez plus tard »), `missed`, `declined`, réseau coupé, micro refusé, fin d'appel ; connexion réseau réchauffée à l'ouverture de la fiche ; mention claire à l'utilisateur que l'appel est avec l'équipe NetBuis (texte à valider par Jeff) ; **retrait** de la feuille Orange / MTN, de l'appel direct Android (`CallChannel.kt`, permissions téléphone) et des textes associés ; l'historique des appels lit les sessions ; FR + EN ; tests de widgets avec un faux service Jitsi (la salle réelle n'est pas testable sans téléphone : `docs/TESTS_JEFF.md` reçoit la procédure d'essai) ; taille de l'APK mesurée avant/après (`flutter build apk --release` si possible) et notée.
+
+### T134 — Vérification de tranche : appel de bout en bout et latence
+- **Agent** orchestrateur · **Dépend de** T132, T133
+- **Terminé quand** : un script exécuté contre le vrai serveur et un vrai navigateur (Playwright, Jitsi simulé) joue : agent connecté et disponible → appelant lance l'appel → fenêtre d'appel entrant → réponse → fin ; deux agents (un seul gagne) ; aucun agent (réponse immédiate) ; délai mesuré (p95 noté dans `docs/verifications/T134.md`) ; aucun numéro de commerçant dans aucune réponse ; le résultat est écrit ; ce qui n'est pas vérifiable ici (audio réel, SDK Android) est listé pour Jeff.
+
+### T135 — Exploitation de Jitsi et de l'ASGI (documentation, orchestrateur)
+- **Terminé quand** : `docs/deployment/JITSI.md` décrit les deux options (JaaS et auto-hébergé : ports, variables, jetons, coûts à revérifier, sauvegarde), les réglages du serveur ASGI et de PostgreSQL, la tâche planifiée d'expiration des sonneries, et la procédure d'essai réel pour Jeff ; **aucun déploiement n'est fait**.
+
+---
+
 # Écarts connus entre `docs/TASKS_PAR_AGENT.md` et ce backlog (le backlog l'emporte)
 
 Les colonnes « Ce qu'il faut implémenter » de `TASKS_PAR_AGENT.md` datent d'avant les maquettes. Quand une `Réf.` est citée, **seuls les fichiers à toucher** comptent, et les écarts suivants sont réglés ainsi :
