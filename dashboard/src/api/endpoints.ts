@@ -8,6 +8,8 @@ export const ENDPOINTS = {
   requests: "/api/admin/requests/",
   accounts: "/api/admin/accounts/",
   zones: "/api/zones/",
+  /** Référentiels modifiables (Administrateur complet) : …/<type>/, …/<type>/<id>/, …/deactivate/, …/reactivate/. */
+  referentials: "/api/admin/referentials/",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */
   privateFilesPrefix: "/api/admin/private-files/",
 } as const;

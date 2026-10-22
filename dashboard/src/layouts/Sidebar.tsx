@@ -33,6 +33,12 @@ function Icon({ name }: { name: NavIcon }) {
         <path d="M15.8 13.8c2.9.4 5.2 2.9 5.2 6.2" />
       </>
     ),
+    referentials: (
+      <>
+        <path d="M4 6h16M4 12h16M4 18h10" />
+        <circle cx="19" cy="18" r="2" />
+      </>
+    ),
     team: <path d="M12 2l2.6 6.6L21 9l-5 4.6L17.4 21 12 17.3 6.6 21 8 13.6 3 9l6.4-.4z" />,
   };
   return (

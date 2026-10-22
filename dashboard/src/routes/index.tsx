@@ -4,6 +4,7 @@ import { AuthLayout } from "../layouts/AuthLayout";
 import { ComingSoonPage } from "../layouts/ComingSoonPage";
 import { LoginPage } from "../modules/auth";
 import { BusinessesPage } from "../modules/businesses";
+import { FreeValuesPage, ReferentialsIndexPage, ReferentialTypePage } from "../modules/referentials";
 import { OverviewPage } from "../modules/overview";
 import { UserDetailPage, UsersPage } from "../modules/users";
 import { PATHS } from "./paths";
@@ -48,6 +49,30 @@ export function AppRoutes() {
             element={
               <RequirePermission permission="peut_voir_comptes">
                 <UserDetailPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.referentiels}
+            element={
+              <RequirePermission permission="peut_gerer_referentiels">
+                <ReferentialsIndexPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.referentielsAExaminer}
+            element={
+              <RequirePermission permission="peut_gerer_referentiels">
+                <FreeValuesPage />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path={PATHS.referentiel}
+            element={
+              <RequirePermission permission="peut_gerer_referentiels">
+                <ReferentialTypePage />
               </RequirePermission>
             }
           />

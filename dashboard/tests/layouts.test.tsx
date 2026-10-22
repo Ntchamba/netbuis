@@ -86,11 +86,12 @@ test("Administrateur complet : toutes les entrées, pastille, nom, thème, déco
   const div = await mount("/");
   expect(div.querySelector("aside")?.textContent).toContain("Admin");
   const items = labels(div);
-  expect(items).toHaveLength(4);
+  expect(items).toHaveLength(5);
   expect(items[0]).toBe("Vue d'ensemble");
   expect(items[1]).toBe("Demandes7");
   expect(items[2]).toBe("Comptes");
-  expect(items[3]).toContain("Équipe & abonnements");
+  expect(items[3]).toBe("Référentiels");
+  expect(items[4]).toContain("Équipe & abonnements");
   expect(div.querySelector('[data-testid="admin-name"]')?.textContent).toBe("Awa Test");
   expect(div.textContent).not.toContain("+237");
   expect(div.querySelector('[aria-label="Changer de thème"]')).not.toBeNull();
@@ -108,7 +109,7 @@ test("l'entrée active est mise en évidence", async () => {
 test("Équipe & abonnements : visible, désactivée, non cliquable, mention bientôt", async () => {
   server(FULL);
   const div = await mount("/");
-  const team = div.querySelectorAll("nav > *")[3]!;
+  const team = div.querySelectorAll("nav > *")[4]!;
   expect(team.tagName).toBe("SPAN");
   expect(team.getAttribute("aria-disabled")).toBe("true");
   expect(team.textContent).toContain("bientôt");

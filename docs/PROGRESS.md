@@ -5,8 +5,8 @@
 
 ## EN COURS
 
-- **Tâche en cours** : T085
-- **Prochaine tâche** : T086
+- **Tâche en cours** : T086
+- **Prochaine tâche** : T087
 - **Dernière mise à jour** : 2026-10-21
 - **Branche** : etape-2/acces
 
@@ -94,7 +94,7 @@
 | ✅ | T081 | Dashboard : Vue d'ensemble | c3 | 2026-10-21 | docs/verifications/T081.md ; vérificateur CONFORME |
 | ✅ | T082 | Dashboard : Demandes | c3 | 2026-10-21 | docs/verifications/T082.md ; vérificateur CONFORME |
 | ✅ | T083 | Dashboard : Comptes | c3 | 2026-10-21 | docs/verifications/T083.md ; vérificateur CONFORME |
-| ☐ | T085 | Dashboard : référentiels | c3 | | |
+| ✅ | T085 | Dashboard : référentiels | c3 | 2026-10-21 | docs/verifications/T085.md ; vérificateur CONFORME |
 | ☐ | T086 | Dashboard : réglages et administrateurs | c3 | | |
 | ☐ | T087 | Dashboard : journal d'audit | c3 + c2 | | |
 | ☐ | T088 | Dashboard : export | c3 | | |
