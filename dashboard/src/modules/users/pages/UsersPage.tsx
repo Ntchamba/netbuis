@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button, Pagination } from "../../../components/ui";
 import { cn } from "../../../lib/cn";
+import { Can } from "../../../auth/permissions";
+import { ExportAccountsButton } from "../components/ExportAccountsButton";
 import { useAccountActions } from "../components/AccountActions";
 import { UserTable } from "../components/UserTable";
 import { useAccounts, useZoneOptions } from "../hooks";
@@ -77,6 +79,9 @@ export function UsersPage() {
           </button>
         </div>
         <div className="flex items-center gap-2">
+          <Can permission="peut_exporter">
+            <ExportAccountsButton />
+          </Can>
           <select
             aria-label="Zone"
             value={zone === null ? "" : String(zone)}

@@ -16,6 +16,8 @@ export const ENDPOINTS = {
   audit: "/api/admin/audit/",
   /** Référentiels modifiables (Administrateur complet) : …/<type>/, …/<type>/<id>/, …/deactivate/, …/reactivate/. */
   referentials: "/api/admin/referentials/",
+  /** Export CSV des comptes (Administrateur complet, audité) : numéros masqués. */
+  exportAccounts: "/api/admin/export/accounts.csv",
   /** Pièces privées (CNI, diplôme) : exigent le jeton d'accès admin. */
   privateFilesPrefix: "/api/admin/private-files/",
 } as const;

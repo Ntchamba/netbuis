@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { downloadAccountsExport, type ExportOutcome } from "./exportAccounts";
 import { fetchAccount, fetchAccounts, fetchZoneOptions, runAccountAction } from "./api";
 import type { AccountAction, AccountQuery } from "./types";
 
@@ -48,4 +49,12 @@ export function useAccountAction() {
 export function useRefreshAccounts() {
   const qc = useQueryClient();
   return () => qc.invalidateQueries({ queryKey: ACCOUNTS_KEY });
+}
+
+/**
+ * Export CSV : le fichier n'est jamais gardé. gcTime 0 (rien dans le cache), et la mutation ne
+ * renvoie qu'un résultat court : le contenu est confié au navigateur dans downloadAccountsExport.
+ */
+export function useExportAccounts() {
+  return useMutation<ExportOutcome, unknown, void>({ mutationFn: downloadAccountsExport, gcTime: 0, retry: false });
 }
