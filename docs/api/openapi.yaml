@@ -4232,6 +4232,426 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: 'invalid : `q` absent, vide ou trop long'
+  /api/forum/mine/:
+    get:
+      operationId: forum_mine_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Numéro de page (20 par page).
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Taille de page (50 au plus).
+      tags:
+      - forum
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMyPostList'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+  /api/forum/posts/:
+    get:
+      operationId: forum_posts_list
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Numéro de page (20 par page).
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Taille de page (50 au plus).
+      - in: query
+        name: zone
+        schema:
+          type: integer
+        description: 'Identifiant d''une zone : la zone ET ses sous-zones. Absent
+          = toutes les zones.'
+      tags:
+      - forum
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ ; SUBSCRIPTION_REQUIRED
+            : plafond de publications actives sans abonnement'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+    post:
+      operationId: forum_posts_create
+      tags:
+      - forum
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ ; SUBSCRIPTION_REQUIRED
+            : plafond de publications actives sans abonnement'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'daily_post_limit : 5 publications par 24 h ; comment_rate_limit
+            : 10 commentaires par 10 minutes'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+  /api/forum/posts/{id}/:
+    get:
+      operationId: forum_posts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Numéro de page (20 par page).
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Taille de page (50 au plus).
+      tags:
+      - forum
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+    delete:
+      operationId: forum_posts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - forum
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+  /api/forum/posts/{id}/comments/:
+    get:
+      operationId: forum_post_comments_list
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Numéro de page (20 par page).
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Taille de page (50 au plus).
+      tags:
+      - forum
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCommentList'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+    post:
+      operationId: forum_post_comments_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - forum
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ ; SUBSCRIPTION_REQUIRED
+            : plafond de publications actives sans abonnement'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'daily_post_limit : 5 publications par 24 h ; comment_rate_limit
+            : 10 commentaires par 10 minutes'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+  /api/forum/posts/{id}/report/:
+    post:
+      operationId: forum_post_report
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - forum
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostReport'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PostReport'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PostReport'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDone'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ ; SUBSCRIPTION_REQUIRED
+            : plafond de publications actives sans abonnement'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'already_reported : déjà signalé par ce compte'
   /api/map/areas/{id}/businesses/:
     get:
       operationId: map_area_businesses
@@ -4499,6 +4919,65 @@ paths:
                 items:
                   $ref: '#/components/schemas/StructureType'
           description: ''
+  /api/reports/:
+    post:
+      operationId: reports_create
+      tags:
+      - forum
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReportCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReportCreate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDone'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'invalid : `fields` donne l''erreur de chaque champ ; SUBSCRIPTION_REQUIRED
+            : plafond de publications actives sans abonnement'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Non connecté.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'account_blocked / account_deleted ; business_not_active :
+            compte business en attente ou rejeté'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'not_found : contenu absent, masqué, supprimé ou signalé par
+            vous ; no_business : pas de compte business'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'already_reported : déjà signalé par ce compte'
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -5996,6 +6475,61 @@ components:
         * `OWN_BUSINESS` - OWN_BUSINESS
         * `RATE_LIMITED` - RATE_LIMITED
         * `CHANNEL_UNAVAILABLE` - CHANNEL_UNAVAILABLE
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/CommentAuthor'
+          readOnly: true
+        text:
+          type: string
+          readOnly: true
+          title: Texte
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_mine:
+          type: boolean
+          readOnly: true
+          description: Vrai si le commentaire est le vôtre.
+      required:
+      - author
+      - created_at
+      - id
+      - is_mine
+      - text
+    CommentAuthor:
+      type: object
+      properties:
+        name:
+          type: string
+        initials:
+          type: string
+        photo:
+          type: string
+          nullable: true
+        is_business:
+          type: boolean
+      required:
+      - initials
+      - is_business
+      - name
+      - photo
+    CommentCreate:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Texte brut, 300 caractères au plus ; stocké tel quel, jamais
+            interprété.
+          maxLength: 300
+      required:
+      - text
     CuisineEnum:
       enum:
       - camerounaise
@@ -6428,6 +6962,71 @@ components:
       - has_business
       - id
       - phone_masked
+    MediaTypeEnum:
+      enum:
+      - image
+      - video
+      type: string
+      description: |-
+        * `image` - Image
+        * `video` - Vidéo
+    MyPost:
+      type: object
+      description: '`GET /api/forum/mine/` : en plus, le statut (actif ou masqué par
+        la modération).'
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/PostAuthor'
+          readOnly: true
+        media_type:
+          allOf:
+          - $ref: '#/components/schemas/MediaTypeEnum'
+          readOnly: true
+          title: Type de média
+        media_url:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Adresse publique de l'image/vidéo.
+        caption:
+          type: string
+          readOnly: true
+          title: Légende
+        offer:
+          allOf:
+          - $ref: '#/components/schemas/PostOffer'
+          nullable: true
+          readOnly: true
+          description: Produit associé ({id, name}) ou null.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        is_mine:
+          type: boolean
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+          description: actif ou masque (masquée par la modération).
+      required:
+      - author
+      - caption
+      - comments_count
+      - created_at
+      - id
+      - is_mine
+      - media_type
+      - media_url
+      - offer
+      - status
     Offer:
       type: object
       properties:
@@ -6784,6 +7383,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BusinessRequest'
+    PaginatedCommentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
     PaginatedHistoryList:
       type: object
       required:
@@ -6807,6 +7429,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/History'
+    PaginatedMyPostList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MyPost'
     PaginatedOfferList:
       type: object
       required:
@@ -6830,6 +7475,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Offer'
+    PaginatedPostList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
     PaginatedSearchResultList:
       type: object
       required:
@@ -7229,6 +7897,180 @@ components:
       description: |-
         * `android` - Android
         * `ios` - iOS
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/PostAuthor'
+          readOnly: true
+        media_type:
+          allOf:
+          - $ref: '#/components/schemas/MediaTypeEnum'
+          readOnly: true
+          title: Type de média
+        media_url:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Adresse publique de l'image/vidéo.
+        caption:
+          type: string
+          readOnly: true
+          title: Légende
+        offer:
+          allOf:
+          - $ref: '#/components/schemas/PostOffer'
+          nullable: true
+          readOnly: true
+          description: Produit associé ({id, name}) ou null.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        is_mine:
+          type: boolean
+          readOnly: true
+      required:
+      - author
+      - caption
+      - comments_count
+      - created_at
+      - id
+      - is_mine
+      - media_type
+      - media_url
+      - offer
+    PostAuthor:
+      type: object
+      properties:
+        business_id:
+          type: integer
+        name:
+          type: string
+        initials:
+          type: string
+        photo:
+          type: string
+          nullable: true
+        zone:
+          $ref: '#/components/schemas/PostZone'
+      required:
+      - business_id
+      - initials
+      - name
+      - photo
+      - zone
+    PostCreate:
+      type: object
+      properties:
+        media:
+          type: string
+          description: Clé de stockage de `POST /api/uploads/sign/` (kind post_image
+            ou post_video). Le type (image/vidéo) en est déduit par le serveur.
+          maxLength: 255
+        caption:
+          type: string
+          default: ''
+          description: Légende, 500 caractères au plus ; texte brut stocké tel quel.
+          maxLength: 500
+        offer:
+          type: integer
+          nullable: true
+          description: Identifiant d'une de VOS offres (facultatif).
+      required:
+      - media
+    PostDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/PostAuthor'
+          readOnly: true
+        media_type:
+          allOf:
+          - $ref: '#/components/schemas/MediaTypeEnum'
+          readOnly: true
+          title: Type de média
+        media_url:
+          type: string
+          nullable: true
+          readOnly: true
+          description: Adresse publique de l'image/vidéo.
+        caption:
+          type: string
+          readOnly: true
+          title: Légende
+        offer:
+          allOf:
+          - $ref: '#/components/schemas/PostOffer'
+          nullable: true
+          readOnly: true
+          description: Produit associé ({id, name}) ou null.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        is_mine:
+          type: boolean
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+          readOnly: true
+          description: 'Commentaires paginés (page, page_size) : {count, next, previous,
+            results}.'
+      required:
+      - author
+      - caption
+      - comments
+      - comments_count
+      - created_at
+      - id
+      - is_mine
+      - media_type
+      - media_url
+      - offer
+    PostOffer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
+    PostReport:
+      type: object
+      properties:
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+      required:
+      - reason
+    PostZone:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
+      - name
     ProductCreate:
       type: object
       properties:
@@ -7395,6 +8237,18 @@ components:
           type: string
           description: Commentaire facultatif, ajouté au journal d'audit.
           maxLength: 500
+    ReasonEnum:
+      enum:
+      - spam
+      - arnaque
+      - contenu_inapproprie
+      - autre
+      type: string
+      description: |-
+        * `spam` - Spam
+        * `arnaque` - Arnaque
+        * `contenu_inapproprie` - Contenu inapproprié
+        * `autre` - Autre
     RefreshRequest:
       type: object
       properties:
@@ -7421,6 +8275,33 @@ components:
           type: string
           description: Motif du rejet (obligatoire, 1000 caractères au plus). Lu par
             le commerçant.
+    ReportCreate:
+      type: object
+      properties:
+        target_type:
+          $ref: '#/components/schemas/TargetTypeEnum'
+        target_id:
+          type: integer
+          minimum: 1
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+      required:
+      - reason
+      - target_id
+      - target_type
+    ReportDone:
+      type: object
+      properties:
+        target_type:
+          $ref: '#/components/schemas/TargetTypeEnum'
+        target_id:
+          type: integer
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+      required:
+      - reason
+      - target_id
+      - target_type
     RequestDecision:
       type: object
       description: 'Réponse de approve / reject : l''état du dossier après décision.'
@@ -7846,6 +8727,16 @@ components:
       required:
       - product
       - term
+    TargetTypeEnum:
+      enum:
+      - post
+      - comment
+      - business
+      type: string
+      description: |-
+        * `post` - Publication
+        * `comment` - Commentaire
+        * `business` - Commerce
     TermCount:
       type: object
       properties:

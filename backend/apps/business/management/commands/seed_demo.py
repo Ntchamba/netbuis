@@ -7,12 +7,14 @@ Usage : python manage.py seed_demo [--count N] [--flush]
 - `--flush` : supprime UNIQUEMENT les données de démonstration (nom « [DÉMO] … » ET propriétaire
   au téléphone réservé aux données fictives), jamais un vrai compte.
 - Refusée si DEBUG=False. Exige les zones et les référentiels (`load_zones`, `seed_referentials`).
-Les règles et la structure sont dans apps/business/services/demo_data.py.
+Les règles et la structure sont dans apps/business/services/demo_data.py ; les publications
+et commentaires (T090) dans apps/forum/services/demo_data.py.
 """
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.business.services import demo_data
+from apps.forum.services import demo_data as demo_forum
 
 
 class Command(BaseCommand):
@@ -47,4 +49,8 @@ class Command(BaseCommand):
             raise CommandError(str(exc)) from exc
         self.stdout.write(
             f"Commerces de démonstration : {created} créés, {existing} déjà présents."
+        )
+        posts, comments = demo_forum.seed(count)  # publications et commentaires (T090)
+        self.stdout.write(
+            f"Forum de démonstration : {posts} publications et {comments} commentaires créés."
         )
