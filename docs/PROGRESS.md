@@ -126,6 +126,7 @@
 | ✅ | T130 | Spécification et décisions des appels Jitsi | orchestrateur | 2026-10-22 | docs/spec/APPELS_JITSI.md ; D-25 à D-28 ; Q1 (hébergement de Jitsi) à trancher par Jeff |
 | ✅ | T131 | Backend : sessions d'appel, temps réel (SSE + LISTEN/NOTIFY) et accès Jitsi 🔒 | a3 | 2026-10-22 | 1 636 tests, p95 47 ms ; relu par le vérificateur (rien de bloquant), correctif de présence ; à relire par Jeff. Voir docs/verifications/T131.md |
 | ✅ | T132 | Dashboard : appels entrants et salle Jitsi | c3 | 2026-10-22 | 287 tests, build OK, essai navigateur OK (fenêtre affichée en 14 ms p95). Voir docs/verifications/T132.md |
+| ☐ | T132b | Dashboard : voir la fiche du commerce visé pendant l'appel (demande de Jeff) | c3 | | |
 | ☐ | T133 | Mobile : appel Jitsi à la place de l'appel téléphonique | b2 (+ b1) | | |
 | ☐ | T134 | Vérification de tranche : appel de bout en bout et latence | orchestrateur | | |
 | ☐ | T135 | Exploitation de Jitsi et de l'ASGI (documentation) | orchestrateur | | |
