@@ -44,6 +44,7 @@ Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt → S
 ## 3. Application Android (l'exécutable `.apk`)
 **Le plus simple, sans rien installer :** GitHub → onglet Actions → workflow « CI » → tâche **APK Android**. Avant : GitHub → Settings → Secrets and variables → Actions → New repository secret `NETBUIS_API_URL` = `https://VOTRE-SERVEUR/api` (avec `/api`). À la fin de l'exécution, télécharger l'artefact `netbuis-apk-debug-signe` (fichier `app-release.apk`), l'envoyer sur le téléphone et l'installer (autoriser les sources inconnues). Cette tâche n'a jamais encore tourné : si elle échoue, lire le message ou me le coller.
 **Sur votre ordinateur :** installer Flutter 3.47 et Android Studio (SDK Android), puis : `cd mobile && flutter pub get && flutter build apk --release --dart-define=API_URL=https://VOTRE-SERVEUR/api` → fichier `mobile/build/app/outputs/flutter-apk/app-release.apk`.
+Pour l'envoyer aux testeurs par Firebase App Distribution : `deploy/firebase/README.md`.
 L'APK est signé avec la clé de **débogage** : suffisant pour essayer, pas pour le Play Store (il faudra une vraie clé, gardée hors du dépôt).
 
 ## 4. Vérifier

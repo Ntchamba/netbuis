@@ -4,6 +4,12 @@ on:
   push:
     branches: ["**"]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      distribuer:
+        description: "Envoyer l'APK aux testeurs par Firebase App Distribution"
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -160,3 +166,18 @@ jobs:
           name: netbuis-apk-debug-signe
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
+      - name: Envoi aux testeurs (Firebase App Distribution)
+        if: github.event_name == 'workflow_dispatch' && inputs.distribuer
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_TESTER_GROUP: ${{ vars.FIREBASE_TESTER_GROUP }}
+        run: |
+          # Le fichier de clé n'existe que le temps de l'étape et n'est jamais affiché.
+          umask 077
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+            --app "$FIREBASE_APP_ID" --groups "${FIREBASE_TESTER_GROUP:-testeurs}" \
+            --release-notes "Version de test ${GITHUB_SHA::7}"
+          rm -f "$RUNNER_TEMP/firebase-sa.json"
