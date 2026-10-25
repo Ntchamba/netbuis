@@ -1,0 +1,25 @@
+server {
+  listen ${PORT};
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "same-origin" always;
+  add_header Permissions-Policy "camera=(), geolocation=(), microphone=(self)" always;
+
+  # index.html ne doit jamais rester en cache (il pointe vers les fichiers versionnés).
+  location = /index.html {
+    add_header Cache-Control "no-store" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  location /assets/ {
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    add_header X-Content-Type-Options "nosniff" always;
+  }
+  # Application monopage : toute autre adresse renvoie index.html.
+  location / {
+    try_files $uri /index.html;
+  }
+}
