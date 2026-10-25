@@ -9,7 +9,7 @@ Trois éléments : le **serveur** (backend), le **tableau de bord** (dashboard) 
 
 ## 1. Serveur (Railway)
 1. Railway → New Project → **Deploy from GitHub repo** → ce dépôt, branche `claude/gifted-dijkstra-yjxzvf` (ou `main` après fusion). Service : dossier racine **`backend`**.
-2. Dans le même projet : **+ New → Database → PostgreSQL**.
+2. Base de données : soit **+ New → Database → PostgreSQL** dans Railway, soit **Supabase** (voir `deploy/supabase/README.md` : adresse du *Session pooler*, script de sécurité `02_securite.sql` OBLIGATOIRE).
 3. Service serveur → Settings :
    - Build et Start sont déjà décrits dans `backend/railway.json` (et `requirements.txt`, `.python-version`) : Railway les lit tout seul. Vérifier qu'ils apparaissent bien dans Settings ; sinon les saisir : Build `python manage.py collectstatic --noinput`, Start `python manage.py migrate && uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 2 --no-access-log`.
    - Variable `DJANGO_SETTINGS_MODULE` = `config.settings.prod`
