@@ -42,10 +42,61 @@ Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt → S
 - **Le serveur Jitsi** (audio des appels) : il demande le port UDP 10000, que Railway ne semble pas proposer (à confirmer). Le serveur et le tableau de bord vivent sur Railway, Jitsi sur un petit serveur à part ou sur JaaS (`JITSI.md`, décision D-28).
 
 ## 3. Application Android (l'exécutable `.apk`)
-**Le plus simple, sans rien installer :** GitHub → onglet Actions → workflow « CI » → tâche **APK Android**. Avant : GitHub → Settings → Secrets and variables → Actions → New repository secret `NETBUIS_API_URL` = `https://VOTRE-SERVEUR/api` (avec `/api`). À la fin de l'exécution, télécharger l'artefact `netbuis-apk-debug-signe` (fichier `app-release.apk`), l'envoyer sur le téléphone et l'installer (autoriser les sources inconnues). Cette tâche n'a jamais encore tourné : si elle échoue, lire le message ou me le coller.
-**Sur votre ordinateur :** installer Flutter 3.47 et Android Studio (SDK Android), puis : `cd mobile && flutter pub get && flutter build apk --release --dart-define=API_URL=https://VOTRE-SERVEUR/api` → fichier `mobile/build/app/outputs/flutter-apk/app-release.apk`.
-Pour l'envoyer aux testeurs par Firebase App Distribution : `deploy/firebase/README.md`.
-L'APK est signé avec la clé de **débogage** : suffisant pour essayer, pas pour le Play Store (il faudra une vraie clé, gardée hors du dépôt).
+
+Un `.apk` est le fichier d'installation d'une application Android. Deux façons de l'obtenir ; la première n'installe rien sur votre ordinateur.
+
+### Méthode A — GitHub construit l'APK pour vous
+**A1. Enregistrer l'adresse du serveur (une seule fois, AVANT la construction).**
+1. Ouvrez le dépôt sur github.com, onglet **Settings** (en haut à droite des onglets ; il faut être propriétaire du dépôt).
+2. Menu de gauche : **Secrets and variables → Actions**.
+3. Onglet **Secrets**, bouton vert **New repository secret**.
+4. Name : `NETBUIS_API_URL` (exactement, majuscules et tiret bas).
+5. Secret : l'adresse de votre serveur Railway **terminée par `/api`**, par exemple `https://votre-serveur.up.railway.app/api`. Pas d'espace, pas de `/` final après `api`.
+6. **Add secret.**
+⚠ Si vous oubliez ce secret, l'APK se construit quand même, mais avec une fausse adresse : l'application s'ouvrira et ne pourra rien charger.
+
+**A2. Lancer la construction.**
+La construction démarre toute seule à chaque envoi de code sur GitHub. Pour la relancer à la main (par exemple après avoir ajouté le secret) :
+1. Onglet **Actions** (en haut).
+2. À gauche, cliquez sur le workflow **CI**. Vous voyez la liste des exécutions ; la plus récente est en haut.
+3. Cliquez sur l'exécution de la branche voulue (`claude/gifted-dijkstra-yjxzvf` ou `main`).
+4. En haut à droite : **Re-run all jobs** (ou **Re-run failed jobs** si seule une étape a échoué).
+5. Attendez : les tâches s'affichent avec un rond jaune (en cours), une coche verte (réussie) ou une croix rouge (échec). Les tâches sont : Serveur, Tableau de bord, Application mobile, puis **APK Android** (qui n'attend que « Application mobile »). Comptez 10 à 20 minutes au total.
+(Le bouton **Run workflow** n'apparaît que si le fichier du workflow se trouve sur la branche principale du dépôt.)
+
+**A3. Télécharger l'APK.**
+1. Quand la tâche **APK Android** est verte, cliquez sur le titre de l'exécution (page de résumé).
+2. Descendez tout en bas jusqu'à la section **Artifacts**.
+3. Cliquez sur **`netbuis-apk-debug-signe`** : un fichier `.zip` se télécharge (connexion à GitHub obligatoire ; l'artefact est conservé 14 jours, puis il faut relancer).
+4. Dézippez-le : à l'intérieur, **`app-release.apk`**. La tâche affiche aussi sa taille (étape « Taille de l'APK »).
+
+**A4. Installer sur le téléphone Android.**
+1. Envoyez `app-release.apk` au téléphone : câble USB (copier dans « Téléchargements »), Google Drive, WhatsApp ou e-mail.
+2. Sur le téléphone, ouvrez le fichier (application « Fichiers » → Téléchargements → `app-release.apk`).
+3. Android dit que l'installation depuis cette source est bloquée : appuyez sur **Paramètres** et activez **Autoriser depuis cette source** pour l'application qui a ouvert le fichier (Fichiers, Drive, Chrome…), puis revenez en arrière.
+4. Appuyez sur **Installer**. Si « Play Protect » prévient que l'application n'est pas vérifiée (normal : signature de débogage), choisissez **Installer quand même**.
+5. Ouvrez NetBuis. Il faut une connexion Internet et le serveur doit être en ligne.
+
+**Si une tâche devient rouge :** cliquez sur la tâche, puis sur l'étape marquée d'une croix rouge : le message d'erreur s'affiche. Copiez ses dernières lignes (sans aucun secret) et envoyez-les-moi. Cette tâche n'a jamais encore tourné.
+
+### Méthode B — sur votre ordinateur
+1. Installez **Android Studio** (developer.android.com/studio) ; au premier lancement, laissez-le télécharger le SDK Android. Il fournit aussi Java 17.
+2. Installez **Flutter 3.47.7** (docs.flutter.dev/get-started/install, choisissez votre système) et ajoutez son dossier `bin` au PATH.
+3. Ouvrez un terminal et lancez `flutter doctor --android-licenses` (répondre `y` partout), puis `flutter doctor` : il doit afficher une coche pour « Android toolchain ».
+4. Dans le dossier du projet :
+```
+cd mobile
+flutter pub get
+flutter build apk --release --dart-define=API_URL=https://VOTRE-SERVEUR/api
+```
+(adresse **avec** `/api`). La construction prend plusieurs minutes la première fois.
+5. Le fichier est `mobile/build/app/outputs/flutter-apk/app-release.apk` (sous Windows : `mobile\build\app\outputs\flutter-apk\app-release.apk`). Installez-le comme en A4, ou, téléphone branché en USB avec le « débogage USB » activé : `flutter install`.
+
+### Pour l'envoyer à plusieurs testeurs
+Firebase App Distribution : `deploy/firebase/README.md`.
+
+### À savoir
+L'APK est signé avec la clé de **débogage** : suffisant pour essayer, pas pour le Play Store (il faudra une vraie clé de signature, créée une fois et gardée **hors du dépôt**, jamais perdue : sans elle, on ne peut plus mettre l'application à jour). Les appels ne fonctionneront qu'une fois le serveur Jitsi en place (`docs/deployment/JITSI.md`).
 
 ## 4. Vérifier
 Suivre `docs/RECETTE.md`. Premier essai minimal : installer l'APK → Commencer → numéro → code SMS réel → recherche.
