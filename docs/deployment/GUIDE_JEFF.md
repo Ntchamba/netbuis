@@ -28,7 +28,7 @@ Trois éléments : le **serveur** (backend), le **tableau de bord** (dashboard) 
 8. Test : ouvrir `https://VOTRE-SERVEUR/api/health/` → doit répondre « ok ».
 
 ## 2bis. Tableau de bord sur Railway aussi (fichiers prêts : `dashboard/Dockerfile`, `nginx.conf.template`)
-Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt → Settings → **Root Directory : `dashboard`** (Railway détecte le `Dockerfile`). Variable du service : `VITE_API_BASE_URL` = `https://VOTRE-SERVEUR` (sans `/api` ; lue à la construction, donc redéployer si elle change). Settings → Networking → **Generate Domain**, puis mettre cette adresse dans `CORS_ALLOWED_ORIGINS` et `CSRF_TRUSTED_ORIGINS` du serveur. Ces fichiers n'ont pas pu être construits ici (pas de Docker) : si la construction échoue, copiez-moi le journal.
+Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt → Settings → **Root Directory : `dashboard`** (Railway détecte le `Dockerfile`). Variable du service : `VITE_API_BASE_URL` = `https://VOTRE-SERVEUR` (sans `/api` ; lue à la construction, donc redéployer si elle change). Settings → Networking → **Generate Domain**, puis mettre cette adresse dans `CORS_ALLOWED_ORIGINS` et `CSRF_TRUSTED_ORIGINS` du serveur. L'en-tête `Permissions-Policy` (micro autorisé pour le domaine Jitsi) et la CSP complète sont à ajouter une fois le domaine Jitsi connu : voir `dashboard/README.md`. Ces fichiers n'ont pas pu être construits ici (pas de Docker) : si la construction échoue, copiez-moi le journal.
 
 ## 2. Tableau de bord (Vercel — alternative)
 1. Vercel → Add New Project → ce dépôt → **Root Directory : `dashboard`** (Framework : Vite).

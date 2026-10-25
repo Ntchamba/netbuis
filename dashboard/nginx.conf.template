@@ -7,7 +7,6 @@ server {
   add_header X-Content-Type-Options "nosniff" always;
   add_header X-Frame-Options "DENY" always;
   add_header Referrer-Policy "same-origin" always;
-  add_header Permissions-Policy "camera=(), geolocation=(), microphone=(self)" always;
 
   # index.html ne doit jamais rester en cache (il pointe vers les fichiers versionnés).
   location = /index.html {
