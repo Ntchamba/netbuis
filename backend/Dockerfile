@@ -17,10 +17,11 @@ RUN pip install -r requirements/prod.txt
 COPY . .
 
 # Utilisateur sans droits d'administrateur. Les dossiers d'envoi (photos publiques, pièces privées)
-# lui appartiennent ; avec un Volume Railway monté dessus, voir docs/deployment/GUIDE_JEFF.md.
+# lui appartiennent (aussi /data, utilisé avec MEDIA_ROOT=/data/media sur un VPS : un volume Docker
+# nommé monté sur /data reprend ce propriétaire). Volume Railway : voir docs/deployment/GUIDE_JEFF.md.
 RUN useradd --create-home --uid 10001 app \
- && mkdir -p /app/backend/media /app/backend/private_media /app/backend/staticfiles \
- && chown -R app:app /app/backend/media /app/backend/private_media /app/backend/staticfiles
+ && mkdir -p /app/backend/media /app/backend/private_media /app/backend/staticfiles /data/media /data/private_media \
+ && chown -R app:app /app/backend/media /app/backend/private_media /app/backend/staticfiles /data
 USER app
 
 EXPOSE 8000
