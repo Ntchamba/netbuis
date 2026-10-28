@@ -49,5 +49,13 @@ Les procédures détaillées de chaque fonction sont dans `docs/TESTS_JEFF.md`. 
 ## 9. Performances et taille (à noter)
 - Démarrage à froid (secondes), fluidité du défilement des résultats et du forum, taille de l'APK, consommation de données pendant 5 minutes d'appel.
 
+## 9bis. Version web (PWA)
+- Ouvrir l'adresse Railway de la PWA sur un téléphone : l'écran de lancement s'affiche ; connexion par SMS et recherche fonctionnent.
+- Android (Chrome) : « Installer l'application » → l'icône NetBuis (loupe orange) apparaît ; ouverte, l'application est plein écran, sans barre d'adresse. iPhone (Safari) : Partager → « Sur l'écran d'accueil ».
+- Mode avion après une première ouverture : rouvrir l'application installée → l'écran de lancement et les écrans déjà visités s'affichent (les données demandent le réseau).
+- Appeler l'équipe et WhatsApp : message « n'est pas disponible dans la version web, utilisez l'application Android » (pas d'erreur, pas de plantage). Partage depuis l'accueil : message d'erreur simple.
+- Photos (création de commerce, forum) : choisir une photo dans la galerie, la voir en aperçu, envoyer.
+- Noter : durée du premier chargement en 3G/4G, et toute lettre ou icône mal affichée.
+
 ## 10. Rapport
 Pour chaque point : OK / pas OK + une phrase. Joindre la vidéo de l'appel (point 3). Toute ligne « pas OK » devient une tâche dans `docs/BACKLOG.md`.

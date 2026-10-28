@@ -11,8 +11,8 @@ Trois éléments : le **serveur** (backend), le **tableau de bord** (dashboard) 
 1. Railway → New Project → **Deploy from GitHub repo** → ce dépôt, branche `claude/gifted-dijkstra-yjxzvf` (ou `main` après fusion). Service : dossier racine **`backend`**.
 2. Base de données : soit **+ New → Database → PostgreSQL** dans Railway, soit **Supabase** (voir `deploy/supabase/README.md` : adresse du *Session pooler*, script de sécurité `02_securite.sql` OBLIGATOIRE).
 3. Service serveur → Settings :
-   - Build et Start sont déjà décrits dans `backend/railway.json` (et `requirements.txt`, `.python-version`) : Railway les lit tout seul. Vérifier qu'ils apparaissent bien dans Settings ; sinon les saisir : Build `python manage.py collectstatic --noinput`, Start `python manage.py migrate && uvicorn config.asgi:application --host 0.0.0.0 --port $PORT --workers 2 --no-access-log`.
-   - Variable `DJANGO_SETTINGS_MODULE` = `config.settings.prod`
+   - Le serveur est construit par son **`backend/Dockerfile`** (Railway le détecte tout seul ; `backend/railway.json` le demande explicitement). Au démarrage il lance `collectstatic`, `migrate`, puis `uvicorn`. Rien à saisir pour Build ni Start.
+   - Variable `DJANGO_SETTINGS_MODULE` = `config.settings.prod` (déjà la valeur par défaut de l'image).
 4. Variables du service (les valeurs sont à vous) :
    - `SECRET_KEY` : au moins 32 caractères au hasard ; `DEBUG` = `False`
    - `DATABASE_URL` : la valeur fournie par le service PostgreSQL (adresse **directe**, pas un pool en mode transaction)
@@ -22,13 +22,24 @@ Trois éléments : le **serveur** (backend), le **tableau de bord** (dashboard) 
    - `SMS_PROVIDER` et `SMS_API_KEY` : le fournisseur de SMS (sans lui, personne ne reçoit de code)
    - Appels : `JITSI_DOMAIN`, `JITSI_APP_ID`, `JITSI_JWT_SECRET` (voir `JITSI.md` ; sans eux les appels sont refusés, le reste fonctionne)
    Le serveur **refuse de démarrer** si un réglage est dangereux (clé trop courte, hôtes non `https`…) : lire le message dans les journaux.
-5. ⚠ **Les photos** (commerces, forum) et les **pièces d'identité** sont écrites sur le disque du serveur, dans `media/` et `private_media/` à côté du code. Sur Railway le disque est effacé à chaque déploiement : ajoutez un **Volume** et montez-le sur ces deux dossiers (ou sur un dossier parent commun) avant d'accepter de vrais utilisateurs. (Point à améliorer plus tard : stockage externe.)
-6. Deuxième service (même dépôt, dossier `backend`) pour les sonneries oubliées : Start = `python manage.py expire_calls --loop 30`, mêmes variables.
+5. **Photos et pièces d'identité (obligatoire avant de vrais utilisateurs).** Les fichiers envoyés sont écrits sur le disque du serveur, qui est effacé à chaque déploiement : il faut un **Volume** Railway (un seul par service). Service → Settings → **Volumes → New Volume**, point de montage **`/data`**. Puis ces variables : `MEDIA_ROOT=/data/media`, `PRIVATE_MEDIA_ROOT=/data/private_media` et `RAILWAY_RUN_UID=0` (sans lui, l'utilisateur du conteneur ne peut pas écrire dans le Volume). Les photos publiques sont servies par le serveur sur `/media/…` ; les pièces d'identité ne sont jamais servies publiquement. Le serveur vérifié en conteneur : photo publique 200, pièce privée 404. (Plus tard : stockage objet compatible S3.)
+6. Deuxième service (même dépôt, dossier `backend`) pour les sonneries oubliées : Settings → **Deploy → Custom Start Command** = `python manage.py expire_calls --loop 30` ; mêmes variables (sans Volume, sans `PORT`).
 7. Créer le premier administrateur : dans Railway, ouvrir un terminal du service (ou `railway run`) : `python manage.py createsuperuser` (numéro + mot de passe saisis au clavier).
 8. Test : ouvrir `https://VOTRE-SERVEUR/api/health/` → doit répondre « ok ».
 
 ## 2bis. Tableau de bord sur Railway aussi (fichiers prêts : `dashboard/Dockerfile`, `nginx.conf.template`)
 Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt → Settings → **Root Directory : `dashboard`** (Railway détecte le `Dockerfile`). Variable du service : `VITE_API_BASE_URL` = `https://VOTRE-SERVEUR` (sans `/api` ; lue à la construction, donc redéployer si elle change). Settings → Networking → **Generate Domain**, puis mettre cette adresse dans `CORS_ALLOWED_ORIGINS` et `CSRF_TRUSTED_ORIGINS` du serveur. L'en-tête `Permissions-Policy` (micro autorisé pour le domaine Jitsi) et la CSP complète sont à ajouter une fois le domaine Jitsi connu : voir `dashboard/README.md`. Ces fichiers n'ont pas pu être construits ici (pas de Docker) : si la construction échoue, copiez-moi le journal.
+
+## 2ter. Application web installable (PWA) sur Railway (fichiers prêts : `mobile/Dockerfile`, `mobile/nginx.conf.template`)
+C'est la même application que sur Android, dans le navigateur, installable sur l'écran d'accueil (Android et iPhone). **L'appel à l'équipe et WhatsApp depuis l'application n'y fonctionnent pas** : un message dit d'utiliser l'application Android.
+1. Dans le même projet Railway : **+ New → GitHub Repo** → même dépôt.
+2. Service → Settings → **Root Directory : `mobile`** (Railway détecte le `Dockerfile`).
+3. Service → Variables : **`API_URL`** = `https://VOTRE-SERVEUR/api` (avec `/api`, en `https`). Elle est lue **à la construction** : si elle change, redéployez. Si elle manque ou n'est pas en https, la construction s'arrête avec un message explicite.
+4. Settings → Networking → **Generate Domain** : vous obtenez `https://….up.railway.app`.
+5. Dans les variables du **serveur** : ajoutez cette adresse (sans `/` final) à `CORS_ALLOWED_ORIGINS` (et `CSRF_TRUSTED_ORIGINS`), séparée par une virgule des adresses déjà présentes ; redémarrez le serveur. Sans cela, la connexion échoue dans le navigateur (erreur réseau).
+6. Ouvrir l'adresse : l'écran de lancement s'affiche. Première visite : environ 3 Mo à télécharger (puis gardés en copie pour le mode hors connexion).
+7. **Installer** : Android (Chrome) → menu ⋮ → « Installer l'application » ; iPhone (Safari) → bouton Partager → « Sur l'écran d'accueil ».
+À savoir : les jetons de connexion sont gardés dans le stockage du navigateur (moins protégé que sur Android). Le domaine Railway généré convient pour l'essai ; un domaine à vous peut être ajouté ensuite dans Networking. Ces fichiers n'ont pas pu être construits ici de bout en bout dans Docker (disque trop petit) : si la construction échoue, copiez-moi le journal.
 
 ## 2. Tableau de bord (Vercel — alternative)
 1. Vercel → Add New Project → ce dépôt → **Root Directory : `dashboard`** (Framework : Vite).
@@ -91,6 +102,13 @@ flutter build apk --release --dart-define=API_URL=https://VOTRE-SERVEUR/api
 ```
 (adresse **avec** `/api`). La construction prend plusieurs minutes la première fois.
 5. Le fichier est `mobile/build/app/outputs/flutter-apk/app-release.apk` (sous Windows : `mobile\build\app\outputs\flutter-apk\app-release.apk`). Installez-le comme en A4, ou, téléphone branché en USB avec le « débogage USB » activé : `flutter install`.
+
+### Méthode C — l'APK construit dans Docker (ni Flutter ni Android Studio à installer)
+Il faut seulement **Docker** (Docker Desktop sous Windows/Mac). Depuis la racine du dépôt :
+```
+docker build --target apk -f mobile/Dockerfile.apk --build-arg API_URL=https://VOTRE-SERVEUR/api --output type=local,dest=./sortie mobile
+```
+(adresse **avec** `/api`, en `https`, obligatoire). Facultatif : `--build-arg SUPPORT_WHATSAPP=… --build-arg SUPPORT_PHONE=… --build-arg SUPPORT_EMAIL=…`. Compter 15 à 30 minutes la première fois (téléchargement de Flutter, du SDK Android et de Gradle) et plusieurs Go de disque. Le fichier est `./sortie/app-release.apk` : installez-le comme en A4. Il est signé avec la clé de débogage (voir « À savoir »). **Cette méthode n'a pas pu être essayée ici** (le SDK Android n'est pas téléchargeable depuis la machine de développement) : si elle échoue, copiez-moi les dernières lignes du journal.
 
 ### Pour l'envoyer à plusieurs testeurs
 Firebase App Distribution : `deploy/firebase/README.md`.

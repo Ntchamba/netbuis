@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,14 +45,25 @@ abstract class SmsCodeSource {
 
 /// Lecture automatique réelle, au-dessus de `sms_autofill`.
 class SmsAutofillCodeSource implements SmsCodeSource {
-  @override
-  Stream<String> get codes => SmsAutoFill().code;
+  SmsAutofillCodeSource({this.isWeb = kIsWeb});
+
+  /// Vrai dans la version web (PWA) : un navigateur ne lit pas les SMS, la saisie reste manuelle.
+  final bool isWeb;
 
   @override
-  Future<void> start() => SmsAutoFill().listenForCode(smsCodeRegexPattern: r'\d{6}');
+  Stream<String> get codes => isWeb ? const Stream<String>.empty() : SmsAutoFill().code;
 
   @override
-  Future<void> stop() => SmsAutoFill().unregisterListener();
+  Future<void> start() async {
+    if (isWeb) return;
+    await SmsAutoFill().listenForCode(smsCodeRegexPattern: r'\d{6}');
+  }
+
+  @override
+  Future<void> stop() async {
+    if (isWeb) return;
+    await SmsAutoFill().unregisterListener();
+  }
 }
 
 final smsCodeSourceProvider = Provider<SmsCodeSource>((ref) => SmsAutofillCodeSource());

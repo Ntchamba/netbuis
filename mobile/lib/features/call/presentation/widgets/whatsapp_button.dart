@@ -175,6 +175,14 @@ class _WhatsappSheetState extends ConsumerState<WhatsappSheet> {
           secondary: l10n.t('call.close'),
           onSecondary: flow.cancel,
         );
+      case WhatsappPhase.webUnavailable:
+        return SheetMessage(
+          key: const Key('whatsapp-web-unavailable'),
+          title: l10n.t('whatsapp.web'),
+          secondaryKey: const Key('whatsapp-close'),
+          secondary: l10n.t('call.close'),
+          onSecondary: flow.cancel,
+        );
       case WhatsappPhase.error:
         return SheetMessage(
           key: const Key('whatsapp-error'),

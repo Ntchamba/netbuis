@@ -89,6 +89,31 @@ jobs:
       - run: flutter analyze
       - run: flutter test --dart-define=USE_FAKE_API=true
 
+  pwa-web:
+    name: PWA (web)
+    runs-on: ubuntu-latest
+    needs: [mobile]
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Construire la PWA (adresse d'API factice en https, la vraie est donnee a la construction Railway)
+        run: flutter build web --release --no-web-resources-cdn --dart-define=API_URL=https://exemple.invalide/api
+      - name: Poids du site
+        run: du -sh build/web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: netbuis-pwa-web
+          path: mobile/build/web
+          retention-days: 14
+
   appel-de-bout-en-bout:
     name: Appel de bout en bout (serveur réel + navigateur)
     runs-on: ubuntu-latest

@@ -27,6 +27,11 @@ final callRepositoryProvider = Provider<CallRepository>((ref) {
 /// Plateforme de l'appareil (remplaçable dans les tests). L'appel est Android seulement (V07).
 final callPlatformProvider = Provider<TargetPlatform>((ref) => defaultTargetPlatform);
 
+/// Vrai dans la version web (PWA) : ni Jitsi ni code natif n'y existent (remplaçable dans les
+/// tests). Sur un téléphone Android, le navigateur se déclare « Android » : cette garde est donc
+/// à part de [callPlatformProvider].
+final callIsWebProvider = Provider<bool>((ref) => kIsWeb);
+
 /// Intervalle de la consultation de repli quand le flux temps réel est coupé.
 final callPollIntervalProvider = Provider<Duration>((ref) => const Duration(seconds: 2));
 
@@ -68,6 +73,9 @@ enum CallPhase {
 
   /// iPhone / autre plateforme : pas disponible dans cette version.
   unsupported,
+
+  /// Version web (PWA) : l'appel n'existe que dans l'application Android.
+  webUnavailable,
 
   /// Terminé : l'écran d'appel se ferme.
   done,
@@ -225,6 +233,10 @@ class CallFlow extends Notifier<CallFlowState> {
   // --- Micro -------------------------------------------------------------------------------
 
   Future<void> _prepare() async {
+    if (ref.read(callIsWebProvider)) {
+      _set(state.copyWith(phase: CallPhase.webUnavailable));
+      return;
+    }
     if (ref.read(callPlatformProvider) != TargetPlatform.android) {
       _set(state.copyWith(phase: CallPhase.unsupported));
       return;
@@ -510,6 +522,9 @@ enum WhatsappPhase {
   /// iPhone / autre plateforme : pas disponible dans cette version.
   unsupported,
 
+  /// Version web (PWA) : WhatsApp depuis NetBuis n'existe que dans l'application Android.
+  webUnavailable,
+
   /// Terminé : la feuille se ferme.
   done,
 }
@@ -580,6 +595,10 @@ class WhatsappFlow extends Notifier<WhatsappFlowState> {
   void reset() => _set(const WhatsappFlowState());
 
   Future<void> _open() async {
+    if (ref.read(callIsWebProvider)) {
+      _set(state.copyWith(phase: WhatsappPhase.webUnavailable));
+      return;
+    }
     if (ref.read(callPlatformProvider) != TargetPlatform.android) {
       _set(state.copyWith(phase: WhatsappPhase.unsupported));
       return;
@@ -633,6 +652,7 @@ class WhatsappFlow extends Notifier<WhatsappFlowState> {
       case WhatsappPhase.reported:
       case WhatsappPhase.error:
       case WhatsappPhase.unsupported:
+      case WhatsappPhase.webUnavailable:
         _set(state.copyWith(phase: WhatsappPhase.done));
       case WhatsappPhase.idle:
       case WhatsappPhase.opening:

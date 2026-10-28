@@ -1,8 +1,8 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/local_image.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../business/application/business_services.dart';
@@ -152,8 +152,8 @@ class _Thumb extends StatelessWidget {
               height: 56,
               child: path == null
                   ? placeholder
-                  : Image.file(
-                      File(path),
+                  : localImage(
+                      path,
                       fit: BoxFit.cover,
                       cacheWidth: 168,
                       errorBuilder: (context, _, __) => placeholder,

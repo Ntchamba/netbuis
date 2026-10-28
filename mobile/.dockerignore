@@ -1,0 +1,12 @@
+build
+.dart_tool
+coverage
+android
+test
+integration_test
+e2e
+logs
+.idea
+*.iml
+.env*
+Dockerfile*

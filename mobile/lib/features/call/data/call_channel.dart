@@ -4,6 +4,7 @@
 // pour les écrans d'aide et d'abonnement qui s'en servent.
 // ZONE SENSIBLE : [CallChannel.openWhatsapp] reçoit le lien wa.me, qui CONTIENT le numéro du
 // commerçant. Rien ici ne l'affiche, ne le journalise, ne le garde, ni ne le met dans une erreur.
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,11 +45,15 @@ abstract class CallChannel {
 }
 
 class PlatformCallChannel implements CallChannel {
-  const PlatformCallChannel();
+  const PlatformCallChannel({this.isWeb = kIsWeb});
+
+  /// Vrai dans la version web (PWA) : il n'y a pas de code natif, tout échoue proprement.
+  final bool isWeb;
 
   static const MethodChannel channel = MethodChannel('cm.netbuis/call');
 
   Future<T?> _invoke<T>(String method, [Map<String, Object?>? args]) async {
+    if (isWeb) throw const CallChannelException();
     try {
       return await channel.invokeMethod<T>(method, args);
     } on PlatformException {

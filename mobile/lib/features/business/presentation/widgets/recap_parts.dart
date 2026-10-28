@@ -1,7 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/local_image.dart';
 import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -212,8 +212,8 @@ class RecapThumb extends StatelessWidget {
         child: SizedBox(
           width: 56,
           height: 56,
-          child: Image.file(
-            File(path),
+          child: localImage(
+            path,
             fit: BoxFit.cover,
             cacheWidth: 112,
             errorBuilder: (context, _, __) => ColoredBox(

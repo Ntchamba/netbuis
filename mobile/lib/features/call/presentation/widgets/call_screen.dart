@@ -144,6 +144,13 @@ class CallScreen extends ConsumerWidget {
           title: l10n.t('call.unsupported'),
           onClose: flow.close,
         );
+      case CallPhase.webUnavailable:
+        return _Result(
+          key: const Key('call-web-unavailable'),
+          icon: Icons.phone_android,
+          title: l10n.t('call.web'),
+          onClose: flow.close,
+        );
       case CallPhase.error:
         return _Result(
           key: const Key('call-error'),

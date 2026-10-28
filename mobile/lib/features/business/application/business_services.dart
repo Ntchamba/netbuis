@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/data/referentials/referential_models.dart';
 import '../../../core/di/providers.dart';
+import '../../../core/utils/local_image.dart';
 import '../data/models/business_draft.dart';
 import '../data/photo_service.dart';
 import '../data/speech_service.dart';
@@ -59,4 +59,4 @@ final businessStructureTypesProvider = FutureProvider.autoDispose<List<Referenti
 typedef PhotoBytesReader = Future<Uint8List> Function(String path);
 
 final photoBytesReaderProvider =
-    Provider<PhotoBytesReader>((ref) => (path) => File(path).readAsBytes());
+    Provider<PhotoBytesReader>((ref) => readLocalFileBytes);
