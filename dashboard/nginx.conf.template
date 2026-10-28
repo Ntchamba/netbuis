@@ -9,13 +9,18 @@ server {
   add_header Referrer-Policy "same-origin" always;
 
   # index.html ne doit jamais rester en cache (il pointe vers les fichiers versionnés).
+  # (nginx : un add_header dans un bloc remplace ceux du serveur : on répète les en-têtes de sécurité.)
   location = /index.html {
     add_header Cache-Control "no-store" always;
     add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
   }
   location /assets/ {
     add_header Cache-Control "public, max-age=31536000, immutable" always;
     add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
   }
   # Application monopage : toute autre adresse renvoie index.html.
   location / {

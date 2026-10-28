@@ -1,7 +1,9 @@
+import re
+
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve as serve_media
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -31,7 +33,14 @@ if settings.API_DOCS_ENABLED:
         path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     ]
 
-# Photos PUBLIQUES envoyées (MEDIA_ROOT) : servies par Django seulement si DEBUG (renvoie [] sinon).
-# L'espace privé (PRIVATE_MEDIA_ROOT : CNI, diplôme) n'a aucune route ici. En production, ce sera
-# le futur stockage compatible S3.
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Photos PUBLIQUES envoyées (MEDIA_ROOT), en développement comme en production tant que le stockage
+# reste local (SERVE_PUBLIC_MEDIA). L'espace privé (PRIVATE_MEDIA_ROOT : CNI, diplôme) n'a aucune
+# route ici et reste hors de MEDIA_ROOT. Le futur stockage compatible S3 remplacera cette route.
+if settings.SERVE_PUBLIC_MEDIA:
+    urlpatterns += [
+        re_path(
+            rf"^{re.escape(settings.MEDIA_URL.lstrip('/'))}(?P<path>.*)$",
+            serve_media,
+            {"document_root": settings.MEDIA_ROOT},
+        )
+    ]

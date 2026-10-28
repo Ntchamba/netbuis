@@ -24,6 +24,7 @@ pytestmark = pytest.mark.django_db
 # Routes PUBLIQUES voulues : route -> méthodes ouvertes sans jeton, avec la raison.
 PUBLIC = {
     ("api/health/", "GET"): "sonde de santé",
+    ("^media/(?P<path>.*)$", "GET"): "photos PUBLIQUES (MEDIA_ROOT ; jamais le dossier privé)",
     ("api/schema/", "GET"): "schéma de l'API (désactivé en production : test_security_settings)",
     ("api/docs/", "GET"): "documentation de l'API (désactivée en production)",
     ("api/auth/otp/request/", "POST"): "demande de code SMS (limitée par IP et par numéro)",

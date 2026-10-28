@@ -1,4 +1,11 @@
-# Base PostgreSQL locale pour le développement (pg_trgm + unaccent créés au premier démarrage).
+# NetBuis en local avec Docker : `docker compose up --build`.
+#   - db         : PostgreSQL (pg_trgm + unaccent créés au premier démarrage)
+#   - api        : le serveur sur http://localhost:8000 (réglages de DÉVELOPPEMENT : jamais en production)
+#   - expire_calls : ferme les sonneries oubliées
+#   - dashboard  : le tableau de bord sur http://localhost:8080
+#   - pwa        : version web de l'application mobile sur http://localhost:8081 (`--profile pwa`)
+# Les mots de passe ci-dessous sont des valeurs de développement local jetables. Rien de réel ici.
+# Premier administrateur : docker compose exec api python manage.py createsuperuser
 services:
   db:
     image: postgres:16
@@ -16,5 +23,64 @@ services:
       interval: 5s
       retries: 10
 
+  api: &api
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &api_env
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DEBUG: "True"
+      SECRET_KEY: ${SECRET_KEY:-compose-dev-only-not-a-secret-32-octets-minimum}
+      DATABASE_URL: postgres://netbuis:netbuis@db:5432/netbuis
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:8080,http://localhost:8081
+      CSRF_TRUSTED_ORIGINS: http://localhost:8080,http://localhost:8081
+      SMS_PROVIDER: console
+      WEB_CONCURRENCY: "1"
+      JITSI_DOMAIN: ${JITSI_DOMAIN:-}
+      JITSI_APP_ID: ${JITSI_APP_ID:-}
+      JITSI_JWT_SECRET: ${JITSI_JWT_SECRET:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - netbuis_media:/app/backend/media
+      - netbuis_private:/app/backend/private_media
+
+  expire_calls:
+    <<: *api
+    ports: []
+    command: ["python", "manage.py", "expire_calls", "--loop", "30"]
+    depends_on:
+      api:
+        condition: service_started
+
+  dashboard:
+    build:
+      context: ./dashboard
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+    environment:
+      PORT: "8080"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
+  pwa:
+    profiles: ["pwa"]
+    build:
+      context: ./mobile
+      args:
+        API_URL: http://localhost:8000/api
+    environment:
+      PORT: "8081"
+    ports:
+      - "8081:8081"
+    depends_on:
+      - api
+
 volumes:
   netbuis_pg:
+  netbuis_media:
+  netbuis_private:

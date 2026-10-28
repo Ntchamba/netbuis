@@ -100,14 +100,19 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"  # espace PUBLIC (photos de commerce, publications)
+# Dossiers d'envoi : réglables par l'environnement pour pointer vers un Volume (Railway : un seul
+# Volume par service, donc ex. MEDIA_ROOT=/data/media et PRIVATE_MEDIA_ROOT=/data/private_media).
+# Espace PUBLIC (photos de commerce, publications).
+MEDIA_ROOT = Path(env("MEDIA_ROOT", default=str(BASE_DIR / "media")))
 
 # Stockage des fichiers envoyés (T027, D-17). "local" = dossiers du serveur, pour le
 # développement ; un stockage compatible S3 viendra plus tard derrière la même interface
 # (apps.business.services.storage_service.StorageService).
 STORAGE_BACKEND = env("STORAGE_BACKEND", default="local")
 # Espace PRIVÉ (CNI, diplôme) : HORS de MEDIA_ROOT, jamais servi par Django.
-PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
+PRIVATE_MEDIA_ROOT = Path(env("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private_media")))
+# Les photos PUBLIQUES sont servies par Django (le stockage S3 viendra plus tard), jamais le privé.
+SERVE_PUBLIC_MEDIA = env.bool("SERVE_PUBLIC_MEDIA", default=True)
 # Clé qui signe les jetons d'envoi et de téléchargement temporaire (sels dédiés dans le code).
 # Par défaut SECRET_KEY ; une clé distincte peut être donnée par l'environnement.
 UPLOAD_SIGNING_KEY = env("UPLOAD_SIGNING_KEY", default=SECRET_KEY)

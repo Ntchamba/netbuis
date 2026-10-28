@@ -66,17 +66,17 @@ def test_l_espace_prive_est_hors_de_l_espace_public():
 
 
 def test_aucune_route_ne_sert_de_fichiers_hors_de_l_espace_public():
-    # Seule route de fichiers : `static()` de config/urls.py, limitée à MEDIA_ROOT (public).
+    # Seule route de fichiers : photos publiques (config/urls.py), limitée à MEDIA_ROOT.
     served = []
     for route, callback in walk(get_resolver().url_patterns):
         if getattr(callback, "__module__", "") == "django.views.static":
             served.append(route)
+    assert served, "la route des photos publiques doit exister (SERVE_PUBLIC_MEDIA)"
     for route in served:
-        assert route.startswith(settings.MEDIA_URL), route
-    from django.conf.urls.static import static
-
-    for pattern in static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT):
-        assert pattern.callback.__module__ == "django.views.static"
+        assert route == f"^{settings.MEDIA_URL.lstrip('/')}(?P<path>.*)$", route
+    assert Path(settings.MEDIA_ROOT) != Path(settings.PRIVATE_MEDIA_ROOT)
+    assert Path(settings.PRIVATE_MEDIA_ROOT) not in Path(settings.MEDIA_ROOT).parents
+    assert Path(settings.MEDIA_ROOT) not in Path(settings.PRIVATE_MEDIA_ROOT).parents
     assert settings.STATIC_ROOT != settings.PRIVATE_MEDIA_ROOT
 
 
