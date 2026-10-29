@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: netbuis
       POSTGRES_DB: netbuis
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - netbuis_pg:/var/lib/postgresql/data
       - ./backend/scripts/create_extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro

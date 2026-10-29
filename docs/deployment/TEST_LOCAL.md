@@ -58,10 +58,13 @@ Les appels demandent un serveur Jitsi : sans lui, le serveur répond « Jitsi no
 - un vrai Jitsi : `deploy/vps/jitsi.sh` sur un VPS (`docs/deployment/VPS_CONTABO.md`).
 Le tableau de bord reçoit les sonneries : connectez-vous, cliquez sur **Disponible**, autorisez le son.
 
+## Si un port est déjà utilisé
+Message du genre « address already in use » : un autre programme (souvent un PostgreSQL installé sur l'ordinateur) occupe le port. La base de ce `docker-compose.yml` est publiée sur `127.0.0.1:5433` (et non 5432) pour éviter ce cas ; pour 8000 (serveur) ou 8080 (tableau de bord), changez le premier nombre de la ligne `ports:` du service concerné, ou arrêtez l'autre programme (`sudo ss -ltnp | grep :8000` pour le trouver).
+
 ## 8. Arrêter, repartir de zéro
 - Arrêter : Ctrl+C dans le premier terminal, ou `docker compose down`.
 - Tout effacer (base et fichiers envoyés) : `docker compose down -v`.
 
 ## 9. Lancer les tests
-Serveur : `cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt && pytest -q` (une base PostgreSQL locale : `docker compose up -d db`, puis `DATABASE_URL=postgres://netbuis:netbuis@localhost:5432/netbuis`).
+Serveur : `cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt && pytest -q` (une base PostgreSQL locale : `docker compose up -d db`, puis `DATABASE_URL=postgres://netbuis:netbuis@localhost:5433/netbuis`).
 Tableau de bord : `cd dashboard && npm ci && npm test`. Mobile : `cd mobile && flutter test --dart-define=USE_FAKE_API=true`.
