@@ -11,7 +11,7 @@
    Tout passe par les variables d'environnement (`.env.example` liste les noms, sans valeurs).
 6. **Zones sensibles** (revue ligne par ligne par Jeff) : OTP/JWT/admin-login, appel (`calls/services/call_service.py`),
    tout le dossier `payments/`, permissions admin.
-7. **Le numéro de téléphone d'un commerçant** n'est renvoyé que par `POST /api/calls/initiate/`. Jamais dans la recherche
+7. **Le numéro de téléphone d'un commerçant** n'est renvoyé que par `POST /api/calls/whatsapp/` (dans `wa_url`) et par la route de fiche de T132b (numéros du commerce visé et de l'appelant) à l'agent qui a décroché pendant l'appel (D-30) ; les appels passent par Jitsi vers l'équipe (D-25). Jamais dans la recherche
    ni dans la fiche publique.
 8. **Le code PIN Mobile Money** n'est jamais saisi dans l'app ni transmis au serveur.
 9. **Paiements** : `CREDITS_ENABLED=False` tant que l'étape É6 n'est pas validée. Le webhook n'est jamais cru seul :

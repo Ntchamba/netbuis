@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 et moins : aucune donnée de l'application n'est sauvegardée (jetons de session,
+     préférences, mémoires de recherche et de forum). -->
+<full-backup-content>
+    <exclude domain="root" path="."/>
+    <exclude domain="file" path="."/>
+    <exclude domain="database" path="."/>
+    <exclude domain="sharedpref" path="."/>
+    <exclude domain="external" path="."/>
+</full-backup-content>

@@ -1,0 +1,31 @@
+# Dettes techniques relevées par les vérificateurs (à traiter en finition, T120-T125)
+- **Dashboard : aucune barrière d'erreur globale** (ErrorBoundary). Une exception de rendu sur n'importe quelle page donne un écran blanc ; ex. la Vue d'ensemble plante si /api/admin/stats/ renvoie une réponse incomplète (revenue_month, high_traffic manquants). À ajouter : ErrorBoundary autour des routes + lecture défensive des stats.
+- **Dashboard : forum_moderation/api.ts moderate()** construit l'URL sans valider target_type (post|comment|business) ni target_id (entier) : garde de 2 lignes à ajouter.
+- **Dashboard : src/modules/forum_moderation/pages/PostDetailPage.tsx** reste un stub « À implémenter » (non importé).
+- **Dashboard : src/App.tsx et tests/App.test.tsx** (page provisoire « mode simulé ») ne sont plus utilisés par les routes.
+- **Recherche** : le nom du commerce n'est pas cherché (décision produit à prendre).
+- **Backend** : limites anti-spam du forum en constantes (pas de clé PlatformSetting car la liste est figée par un test) ; pas de test de concurrence sur les verrous des publications/commentaires.
+- **Journaux d'accès du serveur de production** (gunicorn, nginx) : masquer les jetons dans les chemins (/api/admin/private-files/, /api/uploads/local/).
+- **Mobile** : docs/MODULES.md à mettre à jour avec les nouveaux fichiers (home, call, search, forum, maps).
+- **Accueil mobile** : maquette fournie en image (photos sur les cartes, vignettes photo pour les catégories) à confirmer par Jeff.
+
+- T102 : si l'écran Profil disparaît pendant `DELETE /me/` et que l'appel échoue, la 2ᵉ fenêtre de confirmation peut rester affichée sur l'écran de connexion (se ferme par « Annuler ») ; cas limite non testé. Clés `profile.settings*` devenues inutilisées.
+
+- T102b : type de compte, secteur, sous-catégories, forme juridique, RCCM et détails d'établissement non modifiables depuis « Modifier ma boutique » ; un rejet portant sur l'un d'eux ne se corrige pas dans l'application (prévoir un écran de correction réutilisant la création pré-remplie). Pas de test « rejeté + nom changé : aucun avertissement ». `business_edit_screen.dart` > 700 lignes (à découper).
+
+- T104 : `compute_trends` n'est planifiée nulle part (cron quotidien à installer au déploiement, reporté) ; l'API n'a pas de limite d'âge sur l'instantané (utiliser `computed_at`). Les 3 réglages `trends_*` doivent s'afficher sans plantage dans la page Réglages du dashboard (à vérifier en T106). Seuil de 3 appelants distincts aussi appliqué aux commerces.
+
+- T105 : pas de tirer-pour-actualiser sur l'Accueil (tendances rechargées au changement de ville ou à la reprise) ; la bande n'apparaît qu'avec des résultats affichés (pas pendant le chargement ni sans résultat) ; cache des tendances lié à la zone et non à l'utilisateur (sans sensibilité) ; pas de maquette de la bande (placement choisi par b2, à confirmer par Jeff).
+
+- T106 : pages Recherches, Appels, Tendances en version minimale, sans maquette (aucun écran d'analyses dans `docs/design/maquettes/`) ; pas de bouton « Copier » sur les recherches sans résultat, ni « retours utiles » ni signalements WhatsApp (C3.10 complet) ; graphiques faits à la main (barres), aucune bibliothèque. Tendances : le dashboard appelle `GET /api/trends/?zone=<id>` avec le jeton administrateur (permission `IsAuthenticatedNotBlocked`, lue dans le code, non essayée en direct) ; pas de route d'administration dédiée ni de compteurs dans la réponse (classement seulement) ; les villes viennent de `/api/zones/?level=ville_village`. Le serveur écarte déjà les termes de 6 chiffres ou plus ; le dashboard masque aussi tout motif ressemblant à un numéro.
+
+- T106 : aucun test backend n'appelle `GET /api/trends/` avec un compte administrateur (la page Tendances du dashboard en dépend) : à ajouter dans `apps/trends/tests`.
+
+- T110 : pas de contrainte d'unicité en base « un seul abonnement actif par profil » (le verrou `select_for_update` ne protège que sous PostgreSQL) ; la regex du test de garde ne couvre pas `prefetch_related("subscriptions")` ni `.subscriptions.first()/count()` et `admin_panel/services/subscription_service.py` est en liste blanche entière ; `accord_abonnement` hors `ACTIONS_AVEC_MOTIF` (motif imposé par la route) ; « aujourd'hui » = jour calendaire Africa/Douala pour suggest_subscription, 24 h glissantes dans les stats admin ; `expire_subscriptions` à planifier au déploiement (reporté). Dashboard (T113) : liste GET sans détail de l'abonnement ; gérer 409 already_subscribed / business_not_active.
+
+- T111 : textes de l'encart d'abonnement et de l'écran « Bientôt disponible » écrits sans maquette (à relire par Jeff) ; bouton WhatsApp du support grisé tant que les coordonnées sont `À REMPLACER`.
+
+- T112 : le plafond de 3 sous-catégories est codé en dur dans le mobile (`business_draft.dart` `freeSubcategoryLimit`, `business_services.dart`, `recap_screen.dart`) alors que le serveur le lit dans `PlatformSetting` : si Jeff le change dans le dashboard, le compteur « X/3 » du mobile devient faux (le serveur reste l'autorité) ; faire fournir les plafonds par l'API. Le plafond de publications (5) est aussi en dur dans le faux dépôt du forum. Aucun test unique ne couvre le scénario complet plafond → accord → classement → expiration (vérifié par script de bout en bout hors dépôt : à transformer en test durable).
+- T113 (dashboard Équipe & abonnements) : écran sans maquette ; la liste GET ne donne pas le détail de l'abonnement (début, source, accordé par) ; le message « déjà abonné jusqu'au… » repose sur `subscription_end` de la ligne (le 409 ne renvoie pas la date) ; le bouton Accorder n'est pas proposé sur un compte déjà abonné ; durée en mois fixes 1/2/3/6/12 (30 jours chacun) ; partie équipe = onglet désactivé (V01) ; `layouts/ComingSoonPage.tsx` n'est plus utilisé.
+
+- T120 : les 489 tests d'accessibilité mobile sont ignorés sans `--dart-define=USE_FAKE_API=true` et le script « pas de test désactivé » ne détecte pas `skip: !a11yFakeApi` : le workflow CI (T123) doit lancer `flutter test --dart-define=USE_FAKE_API=true`. Couleurs `#C93E28`, `#FEF3E2`, `#1A7A34` écrites en dur dans les widgets au lieu des jetons `AppColors`. Aucun essai sur appareil réel (TalkBack, police agrandie).

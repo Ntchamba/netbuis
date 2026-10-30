@@ -1,3 +1,4 @@
-// À implémenter.
-// Agent C · Étape É5
-export {};
+/** Assemble des noms de classes en ignorant les valeurs vides. */
+export function cn(...parts: Array<string | false | null | undefined>): string {
+  return parts.filter(Boolean).join(" ");
+}

@@ -12,7 +12,7 @@
 
 **BusinessProfile** (un par compte, au plus) :
 - `type_compte` ∈ `boutique` (affiché « Commerce »), `entreprise`, `particulier_vendeur`, `prestataire_service`, `structure`.
-- Nom affiché, zone, description, photo, **nom et photo de la personne** qui représente le compte (obligatoires), numéro ancré (jamais exposé), `status` ∈ `en_attente_validation` / `actif` / `rejete`, `motif_rejet`.
+- Nom affiché, zone, description, photo du commerce (**facultative**, maquette `CreationBusiness-Infos`), **nom et photo de la personne** qui représente le compte (obligatoires), numéro ancré = le numéro du compte vérifié par code SMS (`owner.phone`, **imposé par le serveur**, jamais choisi ni modifié par le client, jamais exposé), `status` ∈ `en_attente_validation` / `actif` / `rejete`, `motif_rejet`.
 - Entreprise : `forme_juridique` ∈ individuelle, sarl, sarlu, sa, gic_cooperative, association, etablissement_public, autre ; `rccm` facultatif.
 - Prestataire de service : `categorie_service` (+ texte libre si « Autre »), `cni_photo` **obligatoire** (jamais exposée, jamais affichée en entier), `cni_verifiee` (passe à vrai quand un admin valide), `diplome_photo` facultatif (affichable). Une seule catégorie de service. Pas de secteur ni de sous-catégories.
 - Structure : `structure_type` ∈ supermarché, restaurant, hôtel, santé, autre (+ libre) ; détails propres au type (voir plus bas). Pas de secteur.

@@ -1,2 +1,184 @@
-// À implémenter.
-// Agent B · Étape É4
+// Carte d'un résultat : titre, sous-titre, badge Produit/Service, lieu, bouton « Appeler »
+import 'package:flutter/material.dart';
+
+import '../../../../core/l10n/l10n.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../call/presentation/widgets/whatsapp_button.dart';
+import '../../data/models/search_result.dart';
+
+/// Aucun numéro ici : il ne sort que de POST /api/calls/initiate/ (T052).
+/// Le bouton « Appeler » n'a pas de prix tant que `CREDITS_ENABLED=False` (D-19).
+class ResultCard extends StatelessWidget {
+  const ResultCard({super.key, required this.result, this.onCall, this.onWhatsapp, this.onOpen, this.offline = false});
+
+  final SearchResult result;
+
+  /// Ouvre la feuille d'appel (T052) ; null = bouton visible mais inactif.
+  final VoidCallback? onCall;
+
+  /// Ouvre WhatsApp (T054) ; null = bouton visible mais inactif.
+  final VoidCallback? onWhatsapp;
+
+  /// Ouvre la fiche publique du commerce (tap sur la carte).
+  final VoidCallback? onOpen;
+
+  /// Hors connexion : Appeler et WhatsApp sont désactivés, avec un message.
+  final bool offline;
+
+  /// « Repère — Zone », ou l'un des deux, ou vide.
+  static String location(SearchResult r) => [
+        r.repere.trim(),
+        r.zone?.name ?? ''
+      ].where((s) => s.isNotEmpty).join(' — ');
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context);
+    final c = AppColors.of(context);
+    final text = Theme.of(context).textTheme;
+    final place = location(result);
+    return Material(
+      color: c.card,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: c.border),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(result.name, style: text.titleMedium),
+                        if (result.descriptionActivite.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(result.descriptionActivite,
+                                style: text.bodySmall),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: c.border,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      l10n.t(result.kind == 'service'
+                          ? 'home.card.service'
+                          : 'home.card.product'),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: c.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+              if (place.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(Icons.place_outlined, size: 16, color: c.accentText),
+                    const SizedBox(width: 6),
+                    Expanded(
+                        child: Text(place,
+                            style:
+                                TextStyle(fontSize: 13, color: c.accentText))),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 14),
+              _ActionsLayout(
+                call: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: FilledButton.icon(
+                  onPressed: offline ? null : onCall,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.onAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(Icons.call, size: 18),
+                  label: Semantics(
+                    label: offline
+                        ? '${l10n.t('home.card.call')}, ${l10n.t('offline.label')}'
+                        : l10n
+                            .t('home.card.callLabel')
+                            .replaceFirst('{name}', result.name),
+                    excludeSemantics: true,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(l10n.t('home.card.call'),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w700)),
+                        if (offline)
+                          Text(l10n.t('offline.label'),
+                              key: const Key('card-call-offline'),
+                              style: const TextStyle(fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+                whatsapp: WhatsappButton(
+                      key: const Key('card-whatsapp'),
+                      businessName: result.name,
+                      available: result.whatsappAvailable,
+                      offline: offline,
+                      onPressed: onWhatsapp,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// « Appeler » et « WhatsApp » côte à côte ; l'un sous l'autre quand la police du téléphone est
+/// très agrandie (chaque bouton garde alors toute la largeur et une hauteur de 48 dp au moins).
+class _ActionsLayout extends StatelessWidget {
+  const _ActionsLayout({required this.call, required this.whatsapp});
+
+  final Widget call;
+  final Widget whatsapp;
+
+  @override
+  Widget build(BuildContext context) {
+    final stacked = MediaQuery.textScalerOf(context).scale(14) >= 14 * 1.5;
+    if (stacked) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [call, const SizedBox(height: 10), whatsapp],
+      );
+    }
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 5, child: call),
+          const SizedBox(width: 10),
+          Expanded(flex: 4, child: whatsapp),
+        ],
+      ),
+    );
+  }
+}

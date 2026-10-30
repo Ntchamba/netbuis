@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release : tout le trafic est en HTTPS, aucune exception (le profil de débogage a son propre
+     fichier dans src/debug/res/xml, qui remplace celui-ci pour l'émulateur 10.0.2.2). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

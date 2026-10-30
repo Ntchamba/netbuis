@@ -12,7 +12,7 @@
 | D-05 | Limites anti-aspiration des numéros | 5 appels / minute et 50 / jour par compte (réglables dans `PlatformSetting`) | valeur d'essai | 5/min, 50/jour, réglables dans `PlatformSetting` (T008b) (T005, 2026-10-11) |
 | D-06 | Coordonnées du support (WhatsApp, téléphone, e-mail) | Variables de configuration avec la valeur `À REMPLACER` ; l'e-mail `support@netbuis.cm` des maquettes est **fictif** | à fournir par Jeff | `À REMPLACER` en attendant (T005, 2026-10-11) |
 | D-07 | Honnêteté sur le numéro | Textes : « NetBuis n'affiche jamais le numéro. Votre téléphone peut cependant l'afficher pendant l'appel et le garder dans son journal d'appels. Sur iPhone, le système demande une confirmation qui montre le numéro. » à utiliser dans l'Onboarding (2ᵉ diapositive) et la FAQ. iOS : `tel://` avec confirmation système, accepté | décidé | |
-| D-08 | Modification d'un compte business déjà validé | Description et photos : sans nouvelle validation. Nom, type, zone, numéro : retour en `en_attente_validation` | valeur par défaut | |
+| D-08 | Modification d'un compte business déjà validé | Description et photos : sans nouvelle validation. Nom, type, zone : retour en `en_attente_validation` (le numéro ancré est celui du compte vérifié : il n'est pas modifiable par le client) | valeur par défaut | précisé en T026c (2026-10-19) |
 | D-09 | Suppression d'un compte | **Suppression douce**, aussi pour la suppression faite par l'utilisateur lui-même (`DELETE /me/`) ; jamais d'effacement définitif depuis le dashboard ; un numéro supprimé qui se reconnecte reçoit « contactez le support » | décidé (recommandation de la spec) | |
 | D-10 | Forme juridique pour le type « Structure » (point X) | Non demandée en v1 | valeur par défaut | |
 | D-11 | Seuil d'appels quotidiens qui déclenche la proposition d'abonnement | `10` **uniquement comme valeur technique d'essai** (le Projet précise qu'aucun chiffre n'est choisi) ; réglable dans le dashboard ; Jeff doit le fixer avant la mise en service | à confirmer | 10 (valeur d'essai) (T005, 2026-10-11) |
@@ -29,6 +29,11 @@
 | D-23 | Badge « Abonné » public | Non (point ouvert du Projet) ; l'abonné est seulement placé en premier | décidé par défaut | |
 | D-24 | Numéro affiché dans le dashboard | Masqué dans les listes (comme les maquettes) ; complet seulement dans la page de détail, pour l'Administrateur complet | décidé par défaut | |
 | D-18 | Numéros de test | Les données de démonstration utilisent `6 00 00 00 XX` et des noms visiblement fictifs | décidé | |
+| D-25 | Appels | **Les appels passent par Jitsi vers l'équipe NetBuis** (administrateurs sur le tableau de bord), plus par le téléphone ni vers les commerçants. Spéc. : `docs/spec/APPELS_JITSI.md` | décidé par Jeff le 2026-10-22 | remplace `docs/spec/APPELS.md` |
+| D-26 | Latence | Sonnerie sur le tableau de bord en moins d'une seconde après le clic (p95), mesurée côté serveur par un test automatisé | décidé par Jeff le 2026-10-22 | cible serveur < 250 ms |
+| D-27 | Recherche par nom | La recherche trouve aussi un commerce par son **nom** | décidé par Jeff le 2026-10-22 | tâche T041b |
+| D-28 | Hébergement de Jitsi | JaaS (8x8) ou Jitsi auto-hébergé sur un serveur avec UDP | **à décider par Jeff** | code compatible avec les deux |
+| D-29 | Paiements CamPay (packs de crédits) | **Restent prévus**, toujours reportés (V08) ; l'accroche du quota passe de `initiate` à la création d'une session d'appel ; **à décider par Jeff : ce qu'achète un pack avec les appels vers l'équipe** | confirmé par Jeff le 2026-10-22 ; question Q7 ouverte | aucun débit tant que non tranché |
 
 ## Données à fournir par Jeff (le projet ne les invente pas)
 
@@ -51,3 +56,6 @@
 | `VITE_USE_MOCKS` | `false` | dashboard | données factices |
 
 Un statut **« ouvert »** signifie : Jeff n'a pas répondu, le défaut s'applique et reste modifiable. **« décidé par défaut »** : choix de l'orchestrateur, modifiable. **« décidé »** : choix de Jeff ou imposé par un document du Projet.
+
+## D-30 — Le numéro du commerce visé s'affiche sur le tableau de bord pendant l'appel (2026-10-22)
+Jeff : le numéro de téléphone doit figurer sur le tableau de bord pendant l'appel, celui du commerce visé ET celui de l'utilisateur qui appelle. Il est visible seulement par le membre de l'équipe qui a décroché, tant que l'appel est en cours (route dédiée de T132b), jamais dans la sonnerie, la liste, l'historique, les journaux ni l'application mobile. Remplace, pour cette seule route, la règle « aucune route ne renvoie le numéro d'un commerçant ».

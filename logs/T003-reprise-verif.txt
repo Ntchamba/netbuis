@@ -1,5 +1,0 @@
-Analyzing mobile...                                             
-No issues found! (ran in 11.6s)
-00:00 +0: loading /home/ntchambaalan/NETBUIS/netbuis/mobile/test/core/app_smoke_test.dart
-00:00 +0: l'application démarre sans erreur
-00:00 +1: All tests passed!

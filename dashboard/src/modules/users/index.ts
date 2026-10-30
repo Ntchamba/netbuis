@@ -1,3 +1,2 @@
-// À implémenter.
-// Agent C · Étape É5
-export {};
+export { UserDetailPage } from "./pages/UserDetailPage";
+export { UsersPage } from "./pages/UsersPage";

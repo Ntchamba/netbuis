@@ -1,4 +1,4 @@
-"""Filtre de journalisation : aucun numéro de téléphone ni code OTP en clair dans les logs."""
+"""Filtre de journalisation : aucun numéro de téléphone, code OTP ni jeton JWT en clair."""
 import logging
 import re
 
@@ -8,8 +8,12 @@ _PHONE = re.compile(r"(?:\+?237[\s.\-]?)?6(?:[\s.\-]?\d){8}")
 # ponytail: masque aussi tout autre nombre isolé de 6 chiffres (ex. un montant 150000).
 _OTP = re.compile(r"(?<!\d)\d{6}(?!\d)")
 
+# Jeton JWT (accès ou rafraîchissement) : trois parties base64url, en-tête « eyJ… ».
+_JWT = re.compile(r"eyJ[\w-]+\.[\w-]+\.[\w-]*")
+
 
 def mask_personal_data(text: str) -> str:
+    text = _JWT.sub("[jeton masqué]", text)
     text = _PHONE.sub("[numéro masqué]", text)
     return _OTP.sub("[code masqué]", text)
 

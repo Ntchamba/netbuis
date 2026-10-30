@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "npm run build && node e2e/appel-entrant.mjs && node e2e/parcours-admin.mjs"
   },
   "dependencies": {
     "react": "19.3.0",

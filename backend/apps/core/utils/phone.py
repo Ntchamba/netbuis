@@ -17,3 +17,10 @@ def normalize_phone(raw: str) -> str:
     if not _CM_LOCAL.match(digits):
         raise ValueError("Numéro de téléphone camerounais invalide.")
     return "+237" + digits
+
+
+def mask_phone(e164: str) -> str:
+    """`+2376XXXXXXXX` -> `+237 6•• •• •• 12` (maquette Profil) : seuls le premier et
+    les deux derniers chiffres restent visibles. Lève ValueError si le numéro est invalide."""
+    digits = normalize_phone(e164)[4:]
+    return f"+237 {digits[0]}•• •• •• {digits[-2:]}"

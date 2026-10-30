@@ -11,17 +11,23 @@ class NetBuisLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final style = TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, letterSpacing: 0.5);
+    final style = TextStyle(
+        fontSize: fontSize, fontWeight: FontWeight.w800, letterSpacing: 0.5);
     return Semantics(
       label: 'NetBuis',
       excludeSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          style: style,
-          children: [
-            TextSpan(text: 'NET', style: TextStyle(color: c.textPrimary)),
-            TextSpan(text: 'BUIS', style: TextStyle(color: c.accentText)),
-          ],
+      // Réduit le logo (au lieu de déborder) quand la police du téléphone est très agrandie.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text.rich(
+          TextSpan(
+            style: style,
+            children: [
+              TextSpan(text: 'NET', style: TextStyle(color: c.textPrimary)),
+              TextSpan(text: 'BUIS', style: TextStyle(color: c.accentText)),
+            ],
+          ),
         ),
       ),
     );

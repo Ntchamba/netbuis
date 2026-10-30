@@ -1,1 +1,368 @@
-[]
+{
+  "sectors": [
+    {
+      "code": "alimentation",
+      "name": "Alimentation",
+      "icon": "🍌",
+      "order": 1,
+      "subcategories": [
+        {
+          "code": "fruits",
+          "name": "Fruits",
+          "order": 1
+        },
+        {
+          "code": "legumes",
+          "name": "Légumes",
+          "order": 2
+        },
+        {
+          "code": "tubercules",
+          "name": "Tubercules",
+          "order": 3
+        },
+        {
+          "code": "cereales_legumineuses",
+          "name": "Céréales & Légumineuses",
+          "order": 4
+        },
+        {
+          "code": "viande_volaille_poisson",
+          "name": "Viande/Volaille & Poisson",
+          "order": 5
+        },
+        {
+          "code": "produits_laitiers_oeufs",
+          "name": "Produits laitiers & Œufs",
+          "order": 6
+        },
+        {
+          "code": "huiles_graisses",
+          "name": "Huiles & Graisses",
+          "order": 7
+        },
+        {
+          "code": "epices_condiments",
+          "name": "Épices & Condiments",
+          "order": 8
+        },
+        {
+          "code": "boissons",
+          "name": "Boissons",
+          "order": 9
+        },
+        {
+          "code": "boulangerie_patisserie",
+          "name": "Boulangerie & Pâtisserie",
+          "order": 10
+        },
+        {
+          "code": "produits_surgeles",
+          "name": "Produits surgelés",
+          "order": 11
+        },
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 12
+        }
+      ]
+    },
+    {
+      "code": "boutique_superette",
+      "name": "Boutique / Supérette",
+      "icon": "🏪",
+      "order": 2,
+      "subcategories": [
+        {
+          "code": "biscuits_confiseries",
+          "name": "Biscuits & Confiseries",
+          "order": 1
+        },
+        {
+          "code": "eau_boissons",
+          "name": "Eau & Boissons",
+          "order": 2
+        },
+        {
+          "code": "pates_riz_cereales_transformees",
+          "name": "Pâtes/Riz & Céréales transformées",
+          "order": 3
+        },
+        {
+          "code": "conserves",
+          "name": "Conserves",
+          "order": 4
+        },
+        {
+          "code": "produits_laitiers_emballes",
+          "name": "Produits laitiers emballés",
+          "order": 5
+        },
+        {
+          "code": "hygiene_entretien",
+          "name": "Hygiène & Entretien",
+          "order": 6
+        },
+        {
+          "code": "produits_bebes",
+          "name": "Produits pour bébés",
+          "order": 7
+        },
+        {
+          "code": "papeterie",
+          "name": "Papeterie",
+          "order": 8
+        },
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 9
+        }
+      ]
+    },
+    {
+      "code": "pharmacie_sante",
+      "name": "Pharmacie & Santé",
+      "icon": "💊",
+      "order": 3,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "code": "mode_beaute",
+      "name": "Mode & Beauté",
+      "icon": "👗",
+      "order": 4,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "code": "electronique_informatique",
+      "name": "Électronique & Informatique",
+      "icon": "💻",
+      "order": 5,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "code": "immobilier",
+      "name": "Immobilier",
+      "icon": "🏠",
+      "order": 6,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "code": "transport_livraison",
+      "name": "Transport & Livraison",
+      "icon": "🛵",
+      "order": 7,
+      "subcategories": [
+        {
+          "code": "moto_taxi",
+          "name": "Moto-taxi",
+          "order": 1
+        },
+        {
+          "code": "taxi",
+          "name": "Taxi",
+          "order": 2
+        },
+        {
+          "code": "livraison_colis",
+          "name": "Livraison de colis",
+          "order": 3
+        },
+        {
+          "code": "transport_marchandises",
+          "name": "Transport de marchandises",
+          "order": 4
+        },
+        {
+          "code": "location_vehicule",
+          "name": "Location de véhicule",
+          "order": 5
+        },
+        {
+          "code": "demenagement",
+          "name": "Déménagement",
+          "order": 6
+        },
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 7
+        }
+      ]
+    },
+    {
+      "code": "agriculture_elevage",
+      "name": "Agriculture & Élevage",
+      "icon": "🌾",
+      "order": 8,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "code": "artisanat_services_domicile",
+      "name": "Artisanat & Services à domicile",
+      "icon": "🔧",
+      "order": 9,
+      "subcategories": [
+        {
+          "code": "menuiserie",
+          "name": "Menuiserie",
+          "order": 1
+        },
+        {
+          "code": "plomberie",
+          "name": "Plomberie",
+          "order": 2
+        },
+        {
+          "code": "electricite",
+          "name": "Électricité",
+          "order": 3
+        },
+        {
+          "code": "couture",
+          "name": "Couture",
+          "order": 4
+        },
+        {
+          "code": "maconnerie",
+          "name": "Maçonnerie",
+          "order": 5
+        },
+        {
+          "code": "mecanique",
+          "name": "Mécanique",
+          "order": 6
+        },
+        {
+          "code": "informatique_reparation",
+          "name": "Informatique & Réparation",
+          "order": 7
+        },
+        {
+          "code": "coiffure_beaute",
+          "name": "Coiffure & Beauté",
+          "order": 8
+        },
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 9
+        }
+      ]
+    },
+    {
+      "code": "autre",
+      "name": "Autre",
+      "icon": "✨",
+      "order": 10,
+      "subcategories": [
+        {
+          "code": "autre",
+          "name": "Autre",
+          "order": 1
+        }
+      ]
+    }
+  ],
+  "service_categories": [
+    {
+      "code": "enseignement_domicile",
+      "name": "Enseignement à domicile",
+      "order": 1
+    },
+    {
+      "code": "technique_reparation",
+      "name": "Technique & Réparation",
+      "order": 2
+    },
+    {
+      "code": "services_medicaux_independants",
+      "name": "Services médicaux indépendants",
+      "order": 3
+    },
+    {
+      "code": "beaute_bien_etre_domicile",
+      "name": "Beauté & Bien-être à domicile",
+      "order": 4
+    },
+    {
+      "code": "juridique_comptabilite",
+      "name": "Juridique & Comptabilité",
+      "order": 5
+    },
+    {
+      "code": "evenementiel",
+      "name": "Événementiel",
+      "order": 6
+    },
+    {
+      "code": "autre",
+      "name": "Autre",
+      "order": 7
+    }
+  ],
+  "structure_types": [
+    {
+      "code": "supermarche",
+      "name": "Supermarché",
+      "icon": "🛒",
+      "order": 1
+    },
+    {
+      "code": "restaurant",
+      "name": "Restaurant",
+      "icon": "🍲",
+      "order": 2
+    },
+    {
+      "code": "hotel",
+      "name": "Hôtel",
+      "icon": "🏨",
+      "order": 3
+    },
+    {
+      "code": "sante",
+      "name": "Centre de santé",
+      "icon": "🏥",
+      "order": 4
+    },
+    {
+      "code": "autre",
+      "name": "Autre",
+      "icon": "✨",
+      "order": 5
+    }
+  ]
+}

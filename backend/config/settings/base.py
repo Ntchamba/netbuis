@@ -9,7 +9,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(DEBUG=(bool, False), CREDITS_ENABLED=(bool, False))
 environ.Env.read_env(BASE_DIR / ".env")  # absent = ignoré
 
-SECRET_KEY = env("SECRET_KEY", default="dev-only-insecure-key-change-me")
+# Clé de développement : 36 caractères (PyJWT exige au moins 32 octets pour HS256). Refusée en
+# production (config/settings/prod.py).
+DEV_SECRET_KEY = "dev-only-insecure-key-change-me-0000"
+SECRET_KEY = env("SECRET_KEY", default=DEV_SECRET_KEY)
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
@@ -24,6 +27,8 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = [
     "rest_framework",
+    # Liste des jetons de rafraîchissement émis / invalidés (déconnexion, rotation) : T007.
+    "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "corsheaders",
 ]
@@ -80,6 +85,9 @@ TEMPLATES = [
 DATABASES = {"default": env.db("DATABASE_URL")}
 
 AUTH_USER_MODEL = "accounts.User"
+# Connexion par mot de passe (admin-login, admin Django) : seuls les comptes is_admin
+# qui passent user.can_login() (ni bloqués, ni supprimés, ni inactifs).
+AUTHENTICATION_BACKENDS = ["apps.accounts.backends.AdminOnlyBackend"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -92,14 +100,36 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Dossiers d'envoi : réglables par l'environnement pour pointer vers un Volume (Railway : un seul
+# Volume par service, donc ex. MEDIA_ROOT=/data/media et PRIVATE_MEDIA_ROOT=/data/private_media).
+# Espace PUBLIC (photos de commerce, publications).
+MEDIA_ROOT = Path(env("MEDIA_ROOT", default=str(BASE_DIR / "media")))
+
+# Stockage des fichiers envoyés (T027, D-17). "local" = dossiers du serveur, pour le
+# développement ; un stockage compatible S3 viendra plus tard derrière la même interface
+# (apps.business.services.storage_service.StorageService).
+STORAGE_BACKEND = env("STORAGE_BACKEND", default="local")
+# Espace PRIVÉ (CNI, diplôme) : HORS de MEDIA_ROOT, jamais servi par Django.
+PRIVATE_MEDIA_ROOT = Path(env("PRIVATE_MEDIA_ROOT", default=str(BASE_DIR / "private_media")))
+# Les photos PUBLIQUES sont servies par Django (le stockage S3 viendra plus tard), jamais le privé.
+SERVE_PUBLIC_MEDIA = env.bool("SERVE_PUBLIC_MEDIA", default=True)
+# Clé qui signe les jetons d'envoi et de téléchargement temporaire (sels dédiés dans le code).
+# Par défaut SECRET_KEY ; une clé distincte peut être donnée par l'environnement.
+UPLOAD_SIGNING_KEY = env("UPLOAD_SIGNING_KEY", default=SECRET_KEY)
+UPLOAD_TOKEN_TTL = 15 * 60  # secondes : validité d'une URL d'envoi
+PRIVATE_DOWNLOAD_TTL = 5 * 60  # secondes : validité d'une URL de lecture admin (CNI, diplôme)
+# Début des URL temporaires de lecture. La route qui les sert est réservée à l'administration
+# (T071) ; rien ne les sert avant.
+PRIVATE_DOWNLOAD_URL_PREFIX = "/api/admin/private-files/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    # Sécurisé par défaut : les routes publiques doivent le déclarer explicitement.
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    # Sécurisé par défaut : les routes publiques doivent le déclarer explicitement
+    # (AllowAny). Un compte bloqué ou supprimé est refusé même avec un jeton d'accès
+    # encore valable (T008).
+    "DEFAULT_PERMISSION_CLASSES": ("apps.accounts.permissions.IsAuthenticatedNotBlocked",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
     "PAGE_SIZE": 20,
@@ -109,16 +139,26 @@ REST_FRAMEWORK = {
         "otp": "10/hour",  # demandes de code, par IP
         "otp_verify": "30/hour",  # vérifications de code, par IP (T006b)
         "call": "5/min",  # par compte
+        "uploads": "60/hour",  # demandes d'URL d'envoi de fichier (T027), par compte
+        "search": "60/min",  # recherches (écrite et vocale), par compte (T121)
+        "suggest": "120/min",  # suggestions de saisie, par compte (T121)
     },
-    # IP du client = REMOTE_ADDR : l'en-tête X-Forwarded-For (falsifiable) est ignoré.
-    # À régler au déploiement derrière un proxy (nombre de proxys de confiance).
-    "NUM_PROXIES": 0,
+    # IP du client = REMOTE_ADDR : l'en-tête X-Forwarded-For (falsifiable) est ignoré tant que
+    # NUM_PROXIES vaut 0. Derrière un proxy (Railway : 1), mettre NUM_PROXIES=1 dans
+    # l'environnement, sinon tous les clients partagent l'IP du proxy (voir DEPLOYMENT.md).
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
 }
 
+# Durées : BACKLOG T007 (accès 15 min, rafraîchissement 30 jours).
+# Rotation et invalidation du jeton de rafraîchissement : apps.accounts.services.token_service.
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
 }
+# Jeton de rafraîchissement du dashboard (D-01) : cookie HttpOnly, SameSite=Lax,
+# Secure dès que DEBUG=False, envoyé seulement aux routes /api/auth/.
+REFRESH_COOKIE_NAME = "netbuis_refresh"
+REFRESH_COOKIE_PATH = "/api/auth/"
 
 LOGGING = {
     "version": 1,
@@ -130,6 +170,13 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
 }
 
+# Schéma et documentation interactive de l'API (/api/schema/, /api/docs/) : servis seulement en
+# développement. Désactivés par défaut en production (T121).
+API_DOCS_ENABLED = env.bool("API_DOCS_ENABLED", default=DEBUG)
+# Chemin de l'admin Django. Par défaut « django-admin/ » ; en production il est désactivé tant
+# qu'un chemin non trivial n'est pas donné par l'environnement (config/settings/prod.py).
+DJANGO_ADMIN_PATH = env("DJANGO_ADMIN_PATH", default="django-admin/")
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "NetBuis API",
     "DESCRIPTION": "Contrat d'API NetBuis (source de vérité : docs/api/openapi.yaml)",
@@ -137,12 +184,28 @@ SPECTACULAR_SETTINGS = {
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"])
+# Le dashboard envoie le cookie de rafraîchissement (D-01) : requêtes avec identifiants.
+CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["http://localhost:5173"])
 
 # --- Fonctions activables ---
 SMS_PROVIDER = env("SMS_PROVIDER", default="console")
 CREDITS_ENABLED = env("CREDITS_ENABLED")
 PAYMENT_PROVIDER = env("PAYMENT_PROVIDER", default="fake")  # fake | campay
+
+# --- Appels Jitsi vers l'équipe NetBuis (D-25, docs/spec/APPELS_JITSI.md) ---
+# Valeurs UNIQUEMENT via l'environnement. Secret absent ou de moins de 32 caractères = aucun
+# jeton émis, l'appel est refusé (503 jitsi_not_configured).
+JITSI_DOMAIN = env("JITSI_DOMAIN", default="")
+JITSI_APP_ID = env("JITSI_APP_ID", default="")
+JITSI_JWT_SECRET = env("JITSI_JWT_SECRET", default="")
+JITSI_TOKEN_TTL = 120  # secondes : durée du jeton pour entrer dans la salle
+CALL_RING_SECONDS = 30  # durée de sonnerie
+AGENT_PRESENCE_TTL = 25  # secondes : un agent sans activité plus récente n'est plus disponible
+# Connexion PostgreSQL DIRECTE pour LISTEN/NOTIFY, si DATABASE_URL passe par un pool en mode
+# transaction (pgbouncer, pooler Neon…) ; vide = la base par défaut.
+CALLS_LISTEN_DATABASE_URL = env("CALLS_LISTEN_DATABASE_URL", default="")
+CALL_MAX_DURATION = 4 * 60 * 60  # secondes : un appel « en cours » plus vieux est clos
 
 # --- CamPay (vide jusqu'à É6 ; valeurs UNIQUEMENT via l'environnement) ---
 CAMPAY_ENV = env("CAMPAY_ENV", default="DEV")  # DEV | PROD

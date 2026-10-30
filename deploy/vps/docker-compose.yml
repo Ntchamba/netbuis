@@ -1,0 +1,103 @@
+# NetBuis en production sur un VPS (Contabo ou autre) : Caddy (HTTPS automatique) + base + serveur
+# + tableau de bord + application web (PWA). Lancé par deploy/vps/install.sh ; voir docs/deployment/VPS_CONTABO.md.
+# Les secrets viennent du fichier deploy/vps/.env (créé par install.sh, droits 600, jamais versionné).
+name: netbuis
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAINE: ${DOMAINE}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [default, edge]
+    depends_on: [api, dashboard, pwa]
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: netbuis
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: netbuis
+    volumes:
+      - netbuis_pg:/var/lib/postgresql/data
+      - ../../backend/scripts/create_extensions.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbuis"]
+      interval: 5s
+      retries: 20
+    # Aucun port publié : la base n'est joignable que par les autres conteneurs.
+
+  api: &api
+    build: ../../backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &api_env
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY}
+      DATABASE_URL: postgres://netbuis:${POSTGRES_PASSWORD}@db:5432/netbuis
+      ALLOWED_HOSTS: api.${DOMAINE}
+      CORS_ALLOWED_ORIGINS: https://admin.${DOMAINE},https://app.${DOMAINE}
+      CSRF_TRUSTED_ORIGINS: https://admin.${DOMAINE},https://app.${DOMAINE}
+      NUM_PROXIES: "1"
+      WEB_CONCURRENCY: "2"
+      SMS_PROVIDER: ${SMS_PROVIDER:-real}
+      SMS_API_KEY: ${SMS_API_KEY:-}
+      JITSI_DOMAIN: ${JITSI_DOMAIN:-}
+      JITSI_APP_ID: ${JITSI_APP_ID:-}
+      JITSI_JWT_SECRET: ${JITSI_JWT_SECRET:-}
+      MEDIA_ROOT: /data/media
+      PRIVATE_MEDIA_ROOT: /data/private_media
+    volumes:
+      - netbuis_data:/data
+
+  expire_calls:
+    <<: *api
+    # Attend que le serveur ait appliqué les migrations, puis ferme les sonneries oubliées toutes les 30 s.
+    command: ["sh", "-c", "until python manage.py migrate --check >/dev/null 2>&1; do echo 'expire_calls : migrations pas encore appliquées, nouvel essai dans 5 s'; sleep 5; done; exec python manage.py expire_calls --loop 30"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+
+  dashboard:
+    build:
+      context: ../../dashboard
+      args:
+        VITE_API_BASE_URL: https://api.${DOMAINE}
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+
+  pwa:
+    build:
+      context: ../../mobile
+      args:
+        API_URL: https://api.${DOMAINE}/api
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+
+volumes:
+  netbuis_pg:
+  netbuis_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  # Réseau partagé avec Jitsi (jitsi.sh) pour que Caddy joigne le site de visio sans publier de port.
+  edge:
+    name: netbuis_edge
+    external: true
