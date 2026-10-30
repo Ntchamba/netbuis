@@ -65,7 +65,9 @@ services:
 
   expire_calls:
     <<: *api
-    command: ["python", "manage.py", "expire_calls", "--loop", "30"]
+    # Attend que le serveur ait appliqué les migrations, puis ferme les sonneries oubliées toutes les 30 s.
+    command: ["sh", "-c", "until python manage.py migrate --check >/dev/null 2>&1; do echo 'expire_calls : migrations pas encore appliquées, nouvel essai dans 5 s'; sleep 5; done; exec python manage.py expire_calls --loop 30"]
+    restart: unless-stopped
     depends_on:
       api:
         condition: service_started
