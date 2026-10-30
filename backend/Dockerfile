@@ -16,6 +16,10 @@ RUN pip install -r requirements/prod.txt
 
 COPY . .
 
+# Filet de sécurité : certains environnements Docker ne copient pas les fichiers VIDES (`__init__.py`).
+# Sans eux, Django ne voit plus les migrations (« NodeNotFoundError »). On recrée ceux qui manquent.
+RUN find apps config -type d ! -name __pycache__ -exec sh -c 'test -f "$1/__init__.py" || touch "$1/__init__.py"' _ {} \;
+
 # Utilisateur sans droits d'administrateur. Les dossiers d'envoi (photos publiques, pièces privées)
 # lui appartiennent (aussi /data, utilisé avec MEDIA_ROOT=/data/media sur un VPS : un volume Docker
 # nommé monté sur /data reprend ce propriétaire). Volume Railway : voir docs/deployment/GUIDE_JEFF.md.
