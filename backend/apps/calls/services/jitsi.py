@@ -55,7 +55,8 @@ def build_join(room: str, *, user_id: int, display_name: str, moderator: bool) -
     claims = {
         "iss": settings.JITSI_APP_ID,
         "aud": "jitsi",
-        "sub": settings.JITSI_DOMAIN,
+        # `sub` = domaine XMPP de Jitsi : nom d'hôte sans port (ex. meet.localtest.me:8443).
+        "sub": settings.JITSI_DOMAIN.split(":")[0],
         "room": room,
         "iat": now,
         "nbf": now - 5,

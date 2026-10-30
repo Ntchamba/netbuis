@@ -55,7 +55,8 @@ En mode développement l'application accepte `http` ; en version finale elle exi
 ## 7. Les appels (Jitsi)
 Les appels demandent un serveur Jitsi : sans lui, le serveur répond « Jitsi non configuré » et l'écran d'appel affiche une erreur. Deux façons de les essayer en local :
 - l'essai automatique, qui simule Jitsi : `node scripts/e2e_appel/bout_en_bout.mjs` (voir `docs/verifications/T134.md`) ;
-- un vrai Jitsi : `deploy/vps/jitsi.sh` sur un VPS (`docs/deployment/VPS_CONTABO.md`).
+- un vrai Jitsi **sur votre ordinateur** : `docs/deployment/JITSI_LOCAL.md` (script `deploy/local-jitsi/install.sh`) ;
+- un vrai Jitsi sur un VPS : `deploy/vps/jitsi.sh` (`docs/deployment/VPS_CONTABO.md`).
 Le tableau de bord reçoit les sonneries : connectez-vous, cliquez sur **Disponible**, autorisez le son.
 
 ## Si un port est déjà utilisé

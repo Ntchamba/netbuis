@@ -94,3 +94,12 @@ def test_accept_sans_configuration_est_refuse_et_la_session_reste_en_sonnerie(se
         f"/api/admin/calls/sessions/{started['session_id']}/accept/")
     assert response.status_code == 503 and response.json()["code"] == "jitsi_not_configured"
     assert CallSession.objects.get().state == "ringing"
+
+
+def test_sub_du_jeton_sans_port_quand_le_domaine_en_a_un(settings):
+    # En local, Jitsi écoute sur un port (meet.localtest.me:8443) ; son domaine XMPP n'en a pas.
+    settings.JITSI_DOMAIN = "meet.localtest.me:8443"
+    access = jitsi.build_join("salle", user_id=1, display_name="A", moderator=False)
+    claims = decode(access["jwt"])
+    assert claims["sub"] == "meet.localtest.me"
+    assert access["domain"] == "meet.localtest.me:8443"
