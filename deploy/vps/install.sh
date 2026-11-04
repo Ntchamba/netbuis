@@ -2,7 +2,9 @@
 # Installe NetBuis sur un VPS Ubuntu/Debian (Contabo ou autre), en root.
 #
 #   bash install.sh DOMAINE EMAIL_LETSENCRYPT [DEPOT_GIT] [BRANCHE]
-#   ex. : bash install.sh netbuis.example.org moi@example.org git@github.com:Ntchamba/netbuis.git claude/gifted-dijkstra-yjxzvf
+#   ex. : bash install.sh netbuis.example.org moi@example.org
+#   SANS nom de domaine : bash install.sh auto moi@example.org
+#     → le domaine devient <IP-avec-tirets>.sslip.io (service gratuit : api.1-2-3-4.sslip.io pointe vers 1.2.3.4).
 #
 # Idempotent : on peut le relancer. N'affiche jamais un secret. Voir docs/deployment/VPS_CONTABO.md.
 set -euo pipefail
@@ -14,6 +16,12 @@ BRANCHE="${4:-claude/gifted-dijkstra-yjxzvf}"
 DEST=/opt/netbuis
 
 [ "$(id -u)" -eq 0 ] || { echo "À lancer en root (sudo -i)."; exit 1; }
+if [ "$DOMAINE" = "auto" ]; then
+  IP="$(curl -4 -fsS --max-time 10 https://api.ipify.org || true)"
+  [ -n "$IP" ] || { echo "Adresse IP publique introuvable : donnez le domaine vous-même (ex. 1-2-3-4.sslip.io)."; exit 1; }
+  DOMAINE="$(echo "$IP" | tr . -).sslip.io"
+  echo "Sans nom de domaine : adresses en $DOMAINE"
+fi
 case "$DOMAINE" in *.*) ;; *) echo "DOMAINE doit être un nom de domaine (ex. netbuis.example.org)."; exit 1;; esac
 
 echo "== 1/7 Paquets de base"
