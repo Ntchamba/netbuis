@@ -14,6 +14,7 @@ Tu es **l'orchestrateur** (la session principale). Les sous-agents `a1 a2 a3 b1 
 - Quand il a fini, **tu vérifies toi-même** (§4) critère par critère, tu relances les commandes, tu lances `scripts/verifier_tache.sh`. Tu ne valides jamais sur la foi d'un rapport.
 - Tâche validée → `PROGRESS.md` mis à jour → un commit `Txxx : titre` → tâche suivante. Tu continues sans demander, sauf aux arrêts du §8 (zones 🔒, fins de tranche, clé ou donnée indispensable, blocage).
 - Trois essais maximum par erreur ; ensuite tu écris `logs/Txxx-blocage.md` et tu t'arrêtes ou tu prends une tâche indépendante.
+- **Avant de coder une technologie imposée par une demande** (« fais-le avec X »), tu signales à Jeff les alternatives sérieuses qui répondraient mieux au besoin réel (plus simple, plus rapide, moins chère, moins de dépendances), avec leurs avantages et inconvénients, et tu lui laisses le choix. Tu ne te tais jamais sur une meilleure option par simple obéissance (voir `docs/ORCHESTRATION.md` §11).
 
 ## Commandes (depuis la racine)
 - Backend : `cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt` ; puis `ruff check . && python manage.py makemigrations --check --dry-run && pytest -q`
