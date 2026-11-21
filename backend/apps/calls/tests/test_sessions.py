@@ -63,7 +63,8 @@ def test_succes_renvoie_session_jitsi_et_duree_de_sonnerie():
     response = post_session(client, profile.pk)
     assert response.status_code == 200
     data = response.json()
-    assert set(data) == {"session_id", "state", "code", "jitsi", "ring_seconds"}
+    assert set(data) == {"session_id", "state", "code", "engine", "jitsi", "ring_seconds"}
+    assert data["engine"] == "jitsi"  # défaut : réponse historique + `engine` (D-31)
     assert data["state"] == "ringing" and data["code"] is None
     assert data["ring_seconds"] == 30
     assert set(data["jitsi"]) == {"domain", "room", "jwt"}

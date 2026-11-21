@@ -182,6 +182,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "NetBuis API",
     "DESCRIPTION": "Contrat d'API NetBuis (source de vérité : docs/api/openapi.yaml)",
     "VERSION": "0.1.0",
+    "ENUM_NAME_OVERRIDES": {"SignalKindEnum": "apps.calls.models.SignalKind.choices"},
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"])
@@ -213,8 +214,10 @@ CALL_MAX_DURATION = 4 * 60 * 60  # secondes : un appel « en cours » plus vieux
 CALL_ENGINE = env("CALL_ENGINE", default="jitsi")
 if CALL_ENGINE not in ("jitsi", "webrtc"):
     raise ImproperlyConfigured("CALL_ENGINE doit valoir « jitsi » ou « webrtc ».")
-STUN_URLS = [u.strip() for u in env.list("STUN_URLS", default=[]) if u.strip()]  # ex. stun:turn.exemple.org:3478
-TURN_URLS = [u.strip() for u in env.list("TURN_URLS", default=[]) if u.strip()]  # ex. turn:turn.exemple.org:3478?transport=udp
+# Listes séparées par des virgules, ex. STUN_URLS=stun:turn.exemple.org:3478 et
+# TURN_URLS=turn:turn.exemple.org:3478?transport=udp,turns:turn.exemple.org:5349
+STUN_URLS = [u.strip() for u in env.list("STUN_URLS", default=[]) if u.strip()]
+TURN_URLS = [u.strip() for u in env.list("TURN_URLS", default=[]) if u.strip()]
 # Secret partagé avec coturn (`static-auth-secret`), 32 caractères au moins ; absent = pas de TURN.
 TURN_SECRET = env("TURN_SECRET", default="")
 TURN_TTL = env.int("TURN_TTL", default=600)  # secondes : durée des identifiants TURN

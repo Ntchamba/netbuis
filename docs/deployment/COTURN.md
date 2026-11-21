@@ -19,6 +19,9 @@ docker run --rm --network host --entrypoint turnutils_uclient coturn/coturn:late
 ```
 Un mot de passe faux doit donner « Cannot complete Allocation ». (Vérifié ainsi avec l'image officielle : bons identifiants acceptés, mauvais refusés.)
 
+## Essai de bout en bout du relais (deux navigateurs, micros simulés)
+`TURN_SECRET=... node scripts/e2e_webrtc/relais.mjs --relay --runs=10` : deux pages Chromium s'appellent en passant **obligatoirement** par coturn, et le script vérifie qu'il arrive de l'audio. Sans `--relay`, connexion libre. Mesures faites ici (tout sur la même machine, donc sans réseau réel) : connexion directe p50 43 ms, **relais coturn p50 173 ms** (10 essais sur 10 réussis, chemin `relay`, octets audio reçus). Sur Internet, les temps réels dépendent des réseaux. Pour cet essai en local, coturn doit autoriser les adresses de boucle (`--allow-loopback-peers`, déjà dans le `docker-compose.yml` local ; **jamais** sur le VPS).
+
 ## À savoir
 - Le relais consomme de la bande passante du VPS (audio seul : faible). La plage 49152-49999 limite à environ 400 relais simultanés.
 - Pas de TURN chiffré (TLS, port 5349/443) pour l'instant : utile si un réseau bloque tout sauf le port 443. À ajouter si les essais sur réseau mobile le demandent.

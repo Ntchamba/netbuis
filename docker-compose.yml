@@ -39,7 +39,7 @@ services:
       - "--max-port=49300"
       - "--no-tls"
       - "--no-multicast-peers"
-      - "--allowed-peer-ip=127.0.0.1"
+      - "--allow-loopback-peers"
       - "--allowed-peer-ip=172.16.0.0-172.31.255.255"
       - "--allowed-peer-ip=192.168.0.0-192.168.255.255"
 

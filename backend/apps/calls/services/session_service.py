@@ -20,10 +20,11 @@ from apps.business.models import BusinessProfile
 from apps.calls.models import (
     CallSession,
     CallSessionDecline,
+    CallSignal,
     EndReason,
     SessionState,
 )
-from apps.calls.services import events, jitsi, presence
+from apps.calls.services import events, jitsi, presence, signal_service, webrtc
 from apps.calls.services.call_service import (
     CallRefused,
     account_blocked,
@@ -63,6 +64,7 @@ def _finish(session_id, from_state, to_state, reason: str, event: str, now=None)
             state=to_state, ended_at=now, end_reason=reason
         )
         if done:
+            CallSignal.objects.filter(session_id=session_id).delete()  # D-31 : plus de signaux
             events.publish(event, {"session_id": str(session_id), "state": to_state,
                                    "reason": reason})
     return bool(done)
@@ -94,17 +96,24 @@ def expire_stale(now=None, *, caller_id=None, session_id=None) -> int:
 # --- Côté appelant -----------------------------------------------------------------------
 
 
-def _join_for_caller(session, user) -> dict:
-    return jitsi.build_join(
-        session.room, user_id=user.pk, display_name=_display_name(user), moderator=False
+def _access(session, user, *, moderator: bool) -> dict:
+    """Accès audio selon le moteur : {"engine", "jitsi", "webrtc"} (l'autre vaut None)."""
+    if webrtc.is_webrtc():
+        return {"engine": webrtc.ENGINE_WEBRTC, "jitsi": None,
+                "webrtc": webrtc.build_access(session.pk)}
+    join = jitsi.build_join(
+        session.room, user_id=user.pk, display_name=_display_name(user), moderator=moderator
     )
+    return {"engine": webrtc.ENGINE_JITSI, "jitsi": join, "webrtc": None}
 
 
 def create_session(user, business_id: int | None = None) -> dict:
-    """Crée la session. Retourne {"session", "jitsi", "ring_seconds", "unavailable"}."""
+    """Crée la session. Retourne {"session", "engine", "jitsi", "webrtc", "ring_seconds",
+    "unavailable"}."""
     if not user.can_login():
         raise account_blocked()
-    jitsi.ensure_configured()  # avant tout effet : ne pas faire sonner des agents pour rien
+    if not webrtc.is_webrtc():
+        jitsi.ensure_configured()  # avant tout effet : ne pas faire sonner des agents pour rien
     now = timezone.now()
     try:
         with transaction.atomic():
@@ -134,8 +143,8 @@ def create_session(user, business_id: int | None = None) -> dict:
                     state=SessionState.UNAVAILABLE, end_reason=EndReason.NO_AGENT, ended_at=now,
                 )
                 logger.info("Appel %s : aucun agent disponible.", session.pk)
-                return {"session": session, "jitsi": None, "ring_seconds": 0,
-                        "unavailable": True}
+                return {"session": session, "engine": webrtc.engine(), "jitsi": None,
+                        "webrtc": None, "ring_seconds": 0, "unavailable": True}
             session = CallSession.objects.create(
                 caller=caller, business=business, room=room, billing_type=billing,
                 state=SessionState.RINGING, ringing_at=now,
@@ -143,7 +152,7 @@ def create_session(user, business_id: int | None = None) -> dict:
             )
             events.publish(events.RINGING, events.ringing_payload(
                 session, settings.CALL_RING_SECONDS))
-            join = _join_for_caller(session, caller)
+            access = _access(session, caller, moderator=False)
     except IntegrityError:
         # Course perdue contre une autre requête du même appelant (contrainte en base).
         active = CallSession.objects.filter(
@@ -154,7 +163,7 @@ def create_session(user, business_id: int | None = None) -> dict:
             session_id=str(active) if active else None,
         ) from None
     logger.info("Appel %s : sonnerie lancée.", session.pk)
-    return {"session": session, "jitsi": join, "ring_seconds": settings.CALL_RING_SECONDS,
+    return {"session": session, **access, "ring_seconds": settings.CALL_RING_SECONDS,
             "unavailable": False}
 
 
@@ -209,8 +218,10 @@ def _end(session, reason: str) -> CallSession:
 
 
 def accept(agent, session_id) -> dict:
-    """Le premier agent qui répond gagne (mise à jour atomique ringing -> answered)."""
-    jitsi.ensure_configured()
+    """Le premier agent qui répond gagne (mise à jour atomique ringing -> answered).
+    Moteur WebRTC : la réponse contient aussi les signaux déjà envoyés par l'appelant."""
+    if not webrtc.is_webrtc():
+        jitsi.ensure_configured()
     now = timezone.now()
     with transaction.atomic():
         won = CallSession.objects.filter(
@@ -227,11 +238,10 @@ def accept(agent, session_id) -> dict:
         session = CallSession.objects.select_related("caller", "business").get(pk=session_id)
         events.publish(events.TAKEN, {"session_id": str(session.pk), "state": session.state,
                                       "reason": "", "agent_id": agent.pk})
-        join = jitsi.build_join(
-            session.room, user_id=agent.pk, display_name=_display_name(agent), moderator=True
-        )
+        access = _access(session, agent, moderator=True)
+        signals = signal_service.pending_for_agent(session.pk) if webrtc.is_webrtc() else []
     logger.info("Appel %s : répondu par l'agent %s.", session.pk, agent.pk)
-    return {"session": session, "jitsi": join}
+    return {"session": session, **access, "signals": signals}
 
 
 def decline(agent, session_id) -> CallSession:

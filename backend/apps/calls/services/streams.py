@@ -20,7 +20,8 @@ from django.conf import settings
 from django.db import connections
 from psycopg.conninfo import make_conninfo
 
-from apps.calls.services import events, presence, session_service
+from apps.calls.models import SignalRole
+from apps.calls.services import events, presence, session_service, signal_service
 
 TICK_SECONDS = 5  # battement de cœur, présence, fermeture des sonneries expirées
 RETRY_MS = 2000  # délai de reconnexion conseillé au navigateur
@@ -106,6 +107,13 @@ async def agent_stream(user_id: int) -> AsyncIterator[str]:
                 async for notification in notifies:
                     data = json.loads(notification.payload)
                     name = data.pop("event")
+                    if name == signal_service.SIGNAL:
+                        # D-31 : seulement l'agent qui a répondu ; le contenu est relu en base.
+                        relayed = await _db(signal_service.for_recipient)(
+                            data["signal_id"], SignalRole.AGENT, user_id)
+                        if relayed:
+                            yield sse(signal_service.SIGNAL, relayed)
+                        continue
                     if name == events.RINGING:
                         if data["session_id"] in ringing_seen:
                             continue
@@ -143,11 +151,25 @@ async def caller_stream(user_id: int, session_id) -> AsyncIterator[str]:
         yield sse("state", _caller_event(session))
         if session.state in _TERMINAL:
             return
+        relayed_ids: set[int] = set()
+        # LISTEN est déjà actif : rejouer ce que l'agent a envoyé avant l'ouverture du flux.
+        for payload in await _db(signal_service.pending_for_caller)(session_id, user_id):
+            relayed_ids.add(payload["signal_id"])
+            yield sse(signal_service.SIGNAL, payload)
         while True:
             async with aclosing(conn.notifies(timeout=TICK_SECONDS)) as notifies:
                 async for notification in notifies:
                     data = json.loads(notification.payload)
                     if data.get("session_id") != wanted:
+                        continue
+                    if data.get("event") == signal_service.SIGNAL:
+                        if data["signal_id"] in relayed_ids:
+                            continue
+                        relayed = await _db(signal_service.for_recipient)(
+                            data["signal_id"], SignalRole.CALLER, user_id)
+                        if relayed:
+                            relayed_ids.add(data["signal_id"])
+                            yield sse(signal_service.SIGNAL, relayed)
                         continue
                     state = data.get("state")
                     yield sse("state", {"session_id": wanted, "state": state,

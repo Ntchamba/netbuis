@@ -1,13 +1,14 @@
 """Appels vers l'équipe NetBuis, côté tableau de bord (droit `peut_repondre_aux_appels`)."""
 from django.http import StreamingHttpResponse
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.admin_panel.permissions import require
 from apps.admin_panel.services.rights_service import REPONDRE_APPELS
-from apps.calls.models import CallSession, SessionState
+from apps.calls.models import CallSession, SessionState, SignalRole
 from apps.calls.serializers.sessions import (
     AcceptResponseSerializer,
     AgentCallSerializer,
@@ -16,8 +17,17 @@ from apps.calls.serializers.sessions import (
     PresenceRequestSerializer,
     PresenceResponseSerializer,
     SessionStateSerializer,
+    SignalRequestSerializer,
+    SignalResponseSerializer,
 )
-from apps.calls.services import context_service, events, presence, session_service, streams
+from apps.calls.services import (
+    context_service,
+    events,
+    presence,
+    session_service,
+    signal_service,
+    streams,
+)
 from apps.calls.views.mixins import EventStreamNegotiation, ExtraErrorFieldsMixin, NoStoreMixin
 
 CanAnswerCalls = require(REPONDRE_APPELS)
@@ -38,7 +48,9 @@ class AgentStreamView(APIView):
             description=(
                 "Flux SSE. Événements : `presence` {available}, `ringing` {session_id, state, "
                 "caller_name, business, expires_at, ring_seconds_left}, `taken`, `ended`, "
-                "`missed`, `declined`, `cancelled` {session_id, state, reason}, `closed`. "
+                "`missed`, `declined`, `cancelled` {session_id, state, reason}, "
+                "`signal` {session_id, signal_id, type, data} (moteur `webrtc` : seulement pour "
+                "l'agent qui a répondu), `closed`. "
                 "À la connexion, les sonneries en cours sont rejouées. Un commentaire "
                 "`: keepalive` toutes les 5 s."),
         ), **_ERRORS},
@@ -89,7 +101,9 @@ class AcceptView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
                    **_ERRORS},
         description=(
             "Répondre. Le premier agent gagne (mise à jour atomique) ; les autres reçoivent "
-            "409 et l'événement `taken`. Renvoie la salle et un jeton modérateur."
+            "409 et l'événement `taken`. Moteur `jitsi` : la salle et un jeton modérateur ; "
+            "moteur `webrtc` : `webrtc.ice_servers` et les `signals` de l'appelant reçus "
+            "pendant la sonnerie."
         ),
     )
     def post(self, request, pk):
@@ -99,9 +113,43 @@ class AcceptView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
         body = {
             "session_id": session.id, "caller_name": events.caller_display_name(session.caller),
             "business": events.business_ref(business),
-            "jitsi": result["jitsi"],
+            "engine": result["engine"], "jitsi": result["jitsi"], "webrtc": result["webrtc"],
+            "signals": result["signals"],
         }
         return Response(AcceptResponseSerializer(body).data)
+
+
+class AgentSignalView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
+    permission_classes = [CanAnswerCalls]
+
+    @extend_schema(
+        operation_id="admin_calls_signal", tags=["admin-calls"], request=SignalRequestSerializer,
+        responses={
+            201: SignalResponseSerializer,
+            400: OpenApiResponse(description="type ou data invalide"),
+            404: OpenApiResponse(description="not_found : appel inconnu, pas répondu par moi"),
+            409: OpenApiResponse(
+                CallErrorSerializer,
+                description="call_not_active (pas en cours), webrtc_not_enabled (moteur jitsi)"),
+            413: OpenApiResponse(CallErrorSerializer, description="signal_too_large (> 16 Ko)"),
+            429: OpenApiResponse(CallErrorSerializer,
+                                 description="signal_quota_exceeded (200 par session)"),
+            **_ERRORS,
+        },
+        description=(
+            "Moteur `webrtc` : l'agent qui a répondu envoie `answer`, `candidate` ou `bye` à "
+            "l'appelant, relayé par le flux SSE de l'appelant. Possible seulement après `accept` "
+            "et tant que l'appel est `answered`. Aucun contenu n'est journalisé."
+        ),
+    )
+    def post(self, request, pk):
+        data = SignalRequestSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        signal = signal_service.send(
+            SignalRole.AGENT, request.user, pk, data.validated_data["type"],
+            data.validated_data["data"])
+        return Response(SignalResponseSerializer({"signal_id": signal.pk}).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class DeclineView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):

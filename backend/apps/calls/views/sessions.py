@@ -5,13 +5,16 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.calls.models import SignalRole
 from apps.calls.serializers.sessions import (
     CallErrorSerializer,
     SessionCreateSerializer,
     SessionStartSerializer,
     SessionStateSerializer,
+    SignalRequestSerializer,
+    SignalResponseSerializer,
 )
-from apps.calls.services import session_service, streams
+from apps.calls.services import session_service, signal_service, streams
 from apps.calls.views.mixins import EventStreamNegotiation, ExtraErrorFieldsMixin, NoStoreMixin
 
 _ERRORS = {
@@ -35,9 +38,11 @@ class SessionCreateView(ExtraErrorFieldsMixin, NoStoreMixin, APIView):
         },
         description=(
             "Appelle l'équipe NetBuis. Crée la session, fait sonner les tableaux de bord des "
-            "agents disponibles et renvoie de quoi rejoindre la salle Jitsi dès maintenant "
-            "(audio seul). Sans agent disponible : réponse immédiate `state=unavailable`, "
-            "`code=no_agent_available`, `jitsi=null`. Aucun numéro de commerçant n'est transmis."
+            "agents disponibles et renvoie de quoi établir l'audio dès maintenant : moteur "
+            "`jitsi` (champ `jitsi`) ou `webrtc` (champ `webrtc.ice_servers` avec identifiants "
+            "TURN temporaires, puis signalisation par `POST …/signal/`). Sans agent "
+            "disponible : réponse immédiate `state=unavailable`, `code=no_agent_available`, "
+            "accès `null`. Aucun numéro de commerçant n'est transmis."
         ),
     )
     def post(self, request):
@@ -50,7 +55,8 @@ class SessionCreateView(ExtraErrorFieldsMixin, NoStoreMixin, APIView):
         body = {
             "session_id": session.id, "state": session.state,
             "code": "no_agent_available" if result["unavailable"] else None,
-            "jitsi": result["jitsi"], "ring_seconds": result["ring_seconds"],
+            "engine": result["engine"], "jitsi": result["jitsi"], "webrtc": result["webrtc"],
+            "ring_seconds": result["ring_seconds"],
         }
         return Response(SessionStartSerializer(body).data, status=status.HTTP_200_OK)
 
@@ -77,8 +83,10 @@ class SessionEventsView(APIView):
         operation_id="calls_sessions_events", tags=["calls"],
         responses={(200, "text/event-stream"): OpenApiResponse(
             description=(
-                "Flux SSE : événements `state` {session_id, state, reason} ; se termine à "
-                "l'état final. Repli : GET /api/calls/sessions/{id}/."),
+                "Flux SSE : événements `state` {session_id, state, reason} et, moteur `webrtc`, "
+                "`signal` {session_id, signal_id, type, data} envoyés par l'agent (ceux déjà "
+                "émis sont rejoués à l'ouverture ; ignorer un `signal_id` déjà vu) ; se termine "
+                "à l'état final. Repli : GET /api/calls/sessions/{id}/."),
         ), 404: OpenApiResponse(description="not_found"), **_ERRORS},
         description="Flux temps réel de l'état de ma session (SSE sur ASGI, LISTEN/NOTIFY).",
     )
@@ -116,3 +124,35 @@ class SessionCancelView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
     )
     def post(self, request, pk):
         return Response(SessionStateSerializer(session_service.cancel(request.user, pk)).data)
+
+
+class SessionSignalView(NoStoreMixin, ExtraErrorFieldsMixin, APIView):
+    @extend_schema(
+        operation_id="calls_sessions_signal", tags=["calls"], request=SignalRequestSerializer,
+        responses={
+            201: SignalResponseSerializer,
+            400: OpenApiResponse(description="type ou data invalide"),
+            404: OpenApiResponse(description="not_found : pas ma session"),
+            409: OpenApiResponse(
+                CallErrorSerializer,
+                description="call_not_active (ni en sonnerie ni en cours), "
+                            "webrtc_not_enabled (moteur jitsi)"),
+            413: OpenApiResponse(CallErrorSerializer, description="signal_too_large (> 16 Ko)"),
+            429: OpenApiResponse(CallErrorSerializer,
+                                 description="signal_quota_exceeded (200 par session)"),
+            **_ERRORS,
+        },
+        description=(
+            "Moteur `webrtc` : envoie un signal (`offer`, `candidate`, `bye`) à l'agent. Pendant "
+            "la sonnerie il est conservé et rendu dans la réponse de `accept` ; ensuite il est "
+            "relayé à l'agent par son flux SSE. Aucun contenu n'est journalisé."
+        ),
+    )
+    def post(self, request, pk):
+        data = SignalRequestSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        signal = signal_service.send(
+            SignalRole.CALLER, request.user, pk, data.validated_data["type"],
+            data.validated_data["data"])
+        return Response(SignalResponseSerializer({"signal_id": signal.pk}).data,
+                        status=status.HTTP_201_CREATED)
