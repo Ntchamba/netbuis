@@ -81,7 +81,7 @@ class BusinessContextSerializer(serializers.Serializer):
 class SignalItemSerializer(serializers.Serializer):
     id = serializers.IntegerField(help_text="Identifiant unique du signal (même valeur que "
                                             "`signal_id` du flux SSE : ignorer un doublon).")
-    type = serializers.ChoiceField(choices=SignalKind.values)
+    type = serializers.ChoiceField(choices=SignalKind.choices)
     data = serializers.JSONField()
 
 
@@ -99,7 +99,7 @@ class AcceptResponseSerializer(EngineFieldsMixin, serializers.Serializer):
 
 
 class SignalRequestSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=SignalKind.values)
+    type = serializers.ChoiceField(choices=SignalKind.choices)
     data = serializers.JSONField(
         required=False, default=dict,
         help_text=f"Objet JSON (SDP, candidat ICE…), {MAX_SIGNAL_BYTES // 1024} Ko au plus.")

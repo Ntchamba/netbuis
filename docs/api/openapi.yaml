@@ -800,8 +800,10 @@ paths:
   /api/admin/calls/sessions/{id}/accept/:
     post:
       operationId: admin_calls_accept
-      description: Répondre. Le premier agent gagne (mise à jour atomique) ; les autres
-        reçoivent 409 et l'événement `taken`. Renvoie la salle et un jeton modérateur.
+      description: 'Répondre. Le premier agent gagne (mise à jour atomique) ; les
+        autres reçoivent 409 et l''événement `taken`. Moteur `jitsi` : la salle et
+        un jeton modérateur ; moteur `webrtc` : `webrtc.ice_servers` et les `signals`
+        de l''appelant reçus pendant la sonnerie.'
       parameters:
       - in: path
         name: id
@@ -945,6 +947,69 @@ paths:
           description: non connecté
         '403':
           description: droit « répondre aux appels » absent
+  /api/admin/calls/sessions/{id}/signal/:
+    post:
+      operationId: admin_calls_signal
+      description: 'Moteur `webrtc` : l''agent qui a répondu envoie `answer`, `candidate`
+        ou `bye` à l''appelant, relayé par le flux SSE de l''appelant. Possible seulement
+        après `accept` et tant que l''appel est `answered`. Aucun contenu n''est journalisé.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - admin-calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignalResponse'
+          description: ''
+        '400':
+          description: type ou data invalide
+        '404':
+          description: 'not_found : appel inconnu, pas répondu par moi'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_active (pas en cours), webrtc_not_enabled (moteur
+            jitsi)
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: signal_too_large (> 16 Ko)
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: signal_quota_exceeded (200 par session)
+        '401':
+          description: non connecté
+        '403':
+          description: droit « répondre aux appels » absent
   /api/admin/calls/stream/:
     get:
       operationId: admin_calls_stream
@@ -961,8 +1026,9 @@ paths:
           description: 'Flux SSE. Événements : `presence` {available}, `ringing` {session_id,
             state, caller_name, business, expires_at, ring_seconds_left}, `taken`,
             `ended`, `missed`, `declined`, `cancelled` {session_id, state, reason},
-            `closed`. À la connexion, les sonneries en cours sont rejouées. Un commentaire
-            `: keepalive` toutes les 5 s.'
+            `signal` {session_id, signal_id, type, data} (moteur `webrtc` : seulement
+            pour l''agent qui a répondu), `closed`. À la connexion, les sonneries
+            en cours sont rejouées. Un commentaire `: keepalive` toutes les 5 s.'
         '401':
           description: non connecté
         '403':
@@ -4818,10 +4884,11 @@ paths:
     post:
       operationId: calls_sessions_create
       description: 'Appelle l''équipe NetBuis. Crée la session, fait sonner les tableaux
-        de bord des agents disponibles et renvoie de quoi rejoindre la salle Jitsi
-        dès maintenant (audio seul). Sans agent disponible : réponse immédiate `state=unavailable`,
-        `code=no_agent_available`, `jitsi=null`. Aucun numéro de commerçant n''est
-        transmis.'
+        de bord des agents disponibles et renvoie de quoi établir l''audio dès maintenant
+        : moteur `jitsi` (champ `jitsi`) ou `webrtc` (champ `webrtc.ice_servers` avec
+        identifiants TURN temporaires, puis signalisation par `POST …/signal/`). Sans
+        agent disponible : réponse immédiate `state=unavailable`, `code=no_agent_available`,
+        accès `null`. Aucun numéro de commerçant n''est transmis.'
       tags:
       - calls
       requestBody:
@@ -4987,9 +5054,75 @@ paths:
       responses:
         '200':
           description: 'Flux SSE : événements `state` {session_id, state, reason}
-            ; se termine à l''état final. Repli : GET /api/calls/sessions/{id}/.'
+            et, moteur `webrtc`, `signal` {session_id, signal_id, type, data} envoyés
+            par l''agent (ceux déjà émis sont rejoués à l''ouverture ; ignorer un
+            `signal_id` déjà vu) ; se termine à l''état final. Repli : GET /api/calls/sessions/{id}/.'
         '404':
           description: not_found
+        '401':
+          description: non connecté
+        '403':
+          description: account_blocked
+  /api/calls/sessions/{id}/signal/:
+    post:
+      operationId: calls_sessions_signal
+      description: 'Moteur `webrtc` : envoie un signal (`offer`, `candidate`, `bye`)
+        à l''agent. Pendant la sonnerie il est conservé et rendu dans la réponse de
+        `accept` ; ensuite il est relayé à l''agent par son flux SSE. Aucun contenu
+        n''est journalisé.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - calls
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignalResponse'
+          description: ''
+        '400':
+          description: type ou data invalide
+        '404':
+          description: 'not_found : pas ma session'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: call_not_active (ni en sonnerie ni en cours), webrtc_not_enabled
+            (moteur jitsi)
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: signal_too_large (> 16 Ko)
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CallError'
+          description: signal_quota_exceeded (200 par session)
         '401':
           description: non connecté
         '403':
@@ -6395,6 +6528,9 @@ components:
   schemas:
     AcceptResponse:
       type: object
+      description: |-
+        Moteur `jitsi` : réponse historique + `engine` (ni `webrtc` ni `signals`). Moteur
+        `webrtc` : `webrtc` à la place de `jitsi`.
       properties:
         session_id:
           type: string
@@ -6405,12 +6541,28 @@ components:
           allOf:
           - $ref: '#/components/schemas/BusinessContext'
           nullable: true
+        engine:
+          allOf:
+          - $ref: '#/components/schemas/EngineEnum'
+          description: |-
+            `jitsi` (champ `jitsi` rempli) ou `webrtc` (champ `webrtc` rempli). Sans appel possible (`unavailable`), les deux accès sont `null`.
+
+            * `jitsi` - jitsi
+            * `webrtc` - webrtc
         jitsi:
           $ref: '#/components/schemas/JitsiAccess'
+        webrtc:
+          $ref: '#/components/schemas/WebRtcAccess'
+        signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignalItem'
+          description: 'Moteur `webrtc` : signaux de l''appelant reçus pendant la
+            sonnerie (offre, candidats), dans l''ordre. Vide avec `jitsi`.'
       required:
       - business
       - caller_name
-      - jitsi
+      - engine
       - session_id
     AccessResponse:
       type: object
@@ -7770,6 +7922,14 @@ components:
         * `all_declined` - Tous les agents ont refusé
         * `no_agent` - Aucun agent disponible
         * `too_long` - Durée maximale atteinte
+    EngineEnum:
+      enum:
+      - jitsi
+      - webrtc
+      type: string
+      description: |-
+        * `jitsi` - jitsi
+        * `webrtc` - webrtc
     EquipementsEnum:
       enum:
       - petit_dejeuner
@@ -7955,6 +8115,21 @@ components:
       - state
       - type
       - zone
+    IceServer:
+      type: object
+      properties:
+        urls:
+          type: array
+          items:
+            type: string
+        username:
+          type: string
+          description: 'TURN seulement : `<expiration_unix>:<session_id>`.'
+        credential:
+          type: string
+          description: 'TURN seulement : temporaire, lié à la session. Ne pas journaliser.'
+      required:
+      - urls
     ItemCreate:
       type: object
       properties:
@@ -9915,6 +10090,9 @@ components:
             jamais joint).'
     SessionStart:
       type: object
+      description: |-
+        Moteur `jitsi` : réponse historique + `engine` (ni `webrtc` ni `signals`). Moteur
+        `webrtc` : `webrtc` à la place de `jitsi`.
       properties:
         session_id:
           type: string
@@ -9936,15 +10114,27 @@ components:
           type: string
           nullable: true
           description: '`no_agent_available` si personne n''est disponible.'
+        engine:
+          allOf:
+          - $ref: '#/components/schemas/EngineEnum'
+          description: |-
+            `jitsi` (champ `jitsi` rempli) ou `webrtc` (champ `webrtc` rempli). Sans appel possible (`unavailable`), les deux accès sont `null`.
+
+            * `jitsi` - jitsi
+            * `webrtc` - webrtc
         jitsi:
           allOf:
           - $ref: '#/components/schemas/JitsiAccess'
+          nullable: true
+        webrtc:
+          allOf:
+          - $ref: '#/components/schemas/WebRtcAccess'
           nullable: true
         ring_seconds:
           type: integer
       required:
       - code
-      - jitsi
+      - engine
       - ring_seconds
       - session_id
       - state
@@ -10017,6 +10207,48 @@ components:
       - modified_by
       - updated_at
       - value
+    SignalItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 'Identifiant unique du signal (même valeur que `signal_id`
+            du flux SSE : ignorer un doublon).'
+        type:
+          $ref: '#/components/schemas/SignalKindEnum'
+        data: {}
+      required:
+      - data
+      - id
+      - type
+    SignalKindEnum:
+      enum:
+      - offer
+      - answer
+      - candidate
+      - bye
+      type: string
+      description: |-
+        * `offer` - Offre
+        * `answer` - Réponse
+        * `candidate` - Candidat ICE
+        * `bye` - Fin
+    SignalRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SignalKindEnum'
+        data:
+          description: Objet JSON (SDP, candidat ICE…), 16 Ko au plus.
+      required:
+      - type
+    SignalResponse:
+      type: object
+      properties:
+        signal_id:
+          type: integer
+      required:
+      - signal_id
     SpecialitesEnum:
       enum:
       - medecine_generale
@@ -10267,7 +10499,7 @@ components:
           description: Texte à proposer (et à chercher si on le choisit).
         type:
           allOf:
-          - $ref: '#/components/schemas/TypeEnum'
+          - $ref: '#/components/schemas/SuggestionTypeEnum'
           description: |-
             « produit » : du catalogue ; « recherche » : terme souvent cherché.
 
@@ -10276,6 +10508,14 @@ components:
       required:
       - text
       - type
+    SuggestionTypeEnum:
+      enum:
+      - produit
+      - recherche
+      type: string
+      description: |-
+        * `produit` - produit
+        * `recherche` - recherche
     SynonymCreate:
       type: object
       properties:
@@ -10395,14 +10635,6 @@ components:
         * `particulier_vendeur` - Particulier vendeur
         * `prestataire_service` - Prestataire de service
         * `structure` - Structure
-    TypeEnum:
-      enum:
-      - produit
-      - recherche
-      type: string
-      description: |-
-        * `produit` - produit
-        * `recherche` - recherche
     UploadSignRequest:
       type: object
       properties:
@@ -10495,6 +10727,16 @@ components:
       - previous
       - q
       - results
+    WebRtcAccess:
+      type: object
+      properties:
+        ice_servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/IceServer'
+          description: À passer à `RTCPeerConnection`.
+      required:
+      - ice_servers
     WhatsApp:
       type: object
       properties:

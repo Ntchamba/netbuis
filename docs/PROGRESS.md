@@ -140,7 +140,7 @@
 | ⚠ | T124 | Construction de l'application et documentation d'exploitation | b1 (construction) puis orchestrateur (`README`, `docs/RECETTE.md`) | 2026-10-22 | Documentation faite. APK NON construit ici (pas de SDK Android) : tâche `apk` ajoutée au workflow, ou construction par Jeff |
 | ⚠ | T140 | Version web installable (PWA) et conteneurs Docker du serveur, du tableau de bord et du mobile (PWA et APK) | b1 + orchestrateur | 2026-10-28 | Testés en conteneur : serveur, tableau de bord, étape nginx de la PWA ; PWA 30/30 en navigateur, mobile 1 754 tests, serveur 1 699. NON construits : étape Flutter de mobile/Dockerfile et mobile/Dockerfile.apk (disque et proxy). Voir docs/verifications/T140.md |
 | ✅ | T150 | coturn : déploiement VPS et local (D-31) | orchestrateur | 2026-11-21 | Vérifié ici : identifiants temporaires (HMAC) acceptés / mauvais refusés ; relais audio 10/10 entre deux navigateurs (p50 173 ms, direct 43 ms). Non essayé : VPS réel, réseau mobile. docs/deployment/COTURN.md |
-| ☐ | T151 | Backend : moteur WebRTC, signalisation, identifiants TURN | a3 | | |
+| 🔄 | T151 | Backend : moteur WebRTC, signalisation, identifiants TURN | a3 | | Code écrit et poussé (arrêt demandé par Jeff le 2026-11-21) : 163 tests des appels verts, ruff et contrat OpenAPI à jour, relais d'un signal p95 53 ms. À faire : suite complète, relecture du vérificateur, docs/verifications/T151.md |
 | ☐ | T152 | Dashboard : appel WebRTC | c3 | | |
 | ☐ | T153 | Essai de bout en bout WebRTC (navigateurs réels, médias simulés) et mesures | orchestrateur | | |
 | ☐ | T154 | Mobile : appel WebRTC (flutter_webrtc) — après accord de Jeff | b2 (+ b1) | | |
