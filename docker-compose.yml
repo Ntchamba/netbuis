@@ -22,6 +22,27 @@ services:
       interval: 5s
       retries: 10
 
+  # coturn local (Linux seulement : réseau « host ») pour essayer les appels WebRTC (D-31). Secret de
+  # développement jetable : jamais en production (le VPS tire son propre secret).
+  coturn:
+    image: coturn/coturn:latest
+    network_mode: host
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--fingerprint"
+      - "--use-auth-secret"
+      - "--static-auth-secret=local-dev-turn-secret-not-for-production-32chars"
+      - "--realm=localhost"
+      - "--listening-port=3478"
+      - "--min-port=49152"
+      - "--max-port=49300"
+      - "--no-tls"
+      - "--no-multicast-peers"
+      - "--allowed-peer-ip=127.0.0.1"
+      - "--allowed-peer-ip=172.16.0.0-172.31.255.255"
+      - "--allowed-peer-ip=192.168.0.0-192.168.255.255"
+
   api: &api
     build: ./backend
     depends_on:
@@ -38,6 +59,10 @@ services:
       CSRF_TRUSTED_ORIGINS: http://localhost:8080
       SMS_PROVIDER: console
       WEB_CONCURRENCY: "1"
+      CALL_ENGINE: ${CALL_ENGINE:-jitsi}
+      STUN_URLS: stun:${TURN_HOST:-localhost}:3478
+      TURN_URLS: turn:${TURN_HOST:-localhost}:3478?transport=udp,turn:${TURN_HOST:-localhost}:3478?transport=tcp
+      TURN_SECRET: local-dev-turn-secret-not-for-production-32chars
       JITSI_DOMAIN: ${JITSI_DOMAIN:-}
       JITSI_APP_ID: ${JITSI_APP_ID:-}
       JITSI_JWT_SECRET: ${JITSI_JWT_SECRET:-}

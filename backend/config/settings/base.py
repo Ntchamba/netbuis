@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -206,6 +207,17 @@ AGENT_PRESENCE_TTL = 25  # secondes : un agent sans activité plus récente n'es
 # transaction (pgbouncer, pooler Neon…) ; vide = la base par défaut.
 CALLS_LISTEN_DATABASE_URL = env("CALLS_LISTEN_DATABASE_URL", default="")
 CALL_MAX_DURATION = 4 * 60 * 60  # secondes : un appel « en cours » plus vieux est clos
+
+# --- Appels WebRTC directs avec coturn (D-31, docs/spec/APPELS_WEBRTC.md) ---
+# `jitsi` (défaut tant que les clients ne sont pas prêts) ou `webrtc`.
+CALL_ENGINE = env("CALL_ENGINE", default="jitsi")
+if CALL_ENGINE not in ("jitsi", "webrtc"):
+    raise ImproperlyConfigured("CALL_ENGINE doit valoir « jitsi » ou « webrtc ».")
+STUN_URLS = [u.strip() for u in env.list("STUN_URLS", default=[]) if u.strip()]  # ex. stun:turn.exemple.org:3478
+TURN_URLS = [u.strip() for u in env.list("TURN_URLS", default=[]) if u.strip()]  # ex. turn:turn.exemple.org:3478?transport=udp
+# Secret partagé avec coturn (`static-auth-secret`), 32 caractères au moins ; absent = pas de TURN.
+TURN_SECRET = env("TURN_SECRET", default="")
+TURN_TTL = env.int("TURN_TTL", default=600)  # secondes : durée des identifiants TURN
 
 # --- CamPay (vide jusqu'à É6 ; valeurs UNIQUEMENT via l'environnement) ---
 CAMPAY_ENV = env("CAMPAY_ENV", default="DEV")  # DEV | PROD

@@ -21,6 +21,34 @@ services:
     networks: [default, edge]
     depends_on: [api, dashboard, pwa]
 
+  # Serveur TURN/STUN pour les appels WebRTC directs (D-31). Réseau « host » : il écoute sur les ports 3478
+  # (UDP et TCP) et relaie le son sur la plage UDP 49152-49999. Les identifiants sont temporaires
+  # (secret partagé avec le serveur NetBuis, mode use-auth-secret). Les adresses privées sont refusées
+  # comme destinations (sinon coturn pourrait servir de rebond vers le réseau interne du VPS).
+  coturn:
+    image: coturn/coturn:latest
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - "-n"
+      - "--log-file=stdout"
+      - "--fingerprint"
+      - "--use-auth-secret"
+      - "--static-auth-secret=${TURN_SECRET}"
+      - "--realm=${DOMAINE}"
+      - "--listening-port=3478"
+      - "--min-port=49152"
+      - "--max-port=49999"
+      - "--no-tls"
+      - "--no-multicast-peers"
+      - "--denied-peer-ip=0.0.0.0-0.255.255.255"
+      - "--denied-peer-ip=10.0.0.0-10.255.255.255"
+      - "--denied-peer-ip=100.64.0.0-100.127.255.255"
+      - "--denied-peer-ip=127.0.0.0-127.255.255.255"
+      - "--denied-peer-ip=169.254.0.0-169.254.255.255"
+      - "--denied-peer-ip=172.16.0.0-172.31.255.255"
+      - "--denied-peer-ip=192.168.0.0-192.168.255.255"
+
   db:
     image: postgres:16
     restart: unless-stopped
@@ -55,6 +83,10 @@ services:
       WEB_CONCURRENCY: "2"
       SMS_PROVIDER: ${SMS_PROVIDER:-real}
       SMS_API_KEY: ${SMS_API_KEY:-}
+      CALL_ENGINE: ${CALL_ENGINE:-jitsi}
+      STUN_URLS: stun:${DOMAINE}:3478
+      TURN_URLS: turn:${DOMAINE}:3478?transport=udp,turn:${DOMAINE}:3478?transport=tcp
+      TURN_SECRET: ${TURN_SECRET}
       JITSI_DOMAIN: ${JITSI_DOMAIN:-}
       JITSI_APP_ID: ${JITSI_APP_ID:-}
       JITSI_JWT_SECRET: ${JITSI_JWT_SECRET:-}

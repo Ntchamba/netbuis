@@ -9,10 +9,17 @@ from .session import (
     EndReason,
     SessionState,
 )
+from .signal import (
+    MAX_SIGNAL_BYTES,
+    MAX_SIGNALS_PER_SESSION,
+    CallSignal,
+    SignalKind,
+    SignalRole,
+)
 from .whatsapp_report import WhatsAppReport
 
 __all__ = [
-    "ACTIVE_STATES", "AgentPresence", "BillingType", "CallChannel", "CallFeedback", "CallLog",
+    "ACTIVE_STATES", "MAX_SIGNAL_BYTES", "MAX_SIGNALS_PER_SESSION", "CallSignal", "SignalKind", "SignalRole", "AgentPresence", "BillingType", "CallChannel", "CallFeedback", "CallLog",
     "CallSession", "CallSessionDecline", "EndReason", "FeedbackOutcome", "Operator", "Platform",
     "SessionState", "WhatsAppReport",
 ]

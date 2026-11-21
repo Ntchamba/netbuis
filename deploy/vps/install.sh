@@ -47,6 +47,9 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 443/udp
 ufw allow 10000/udp
+ufw allow 3478/udp
+ufw allow 3478/tcp
+ufw allow 49152:49999/udp
 ufw --force enable
 
 echo "== 5/7 Code"
@@ -67,6 +70,8 @@ if [ ! -f .env ]; then
     echo "ACME_EMAIL=$ACME_EMAIL"
     echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)"
     echo "SECRET_KEY=$(openssl rand -hex 32)"
+    echo "TURN_SECRET=$(openssl rand -hex 32)"
+    echo "CALL_ENGINE=jitsi"
     echo "SMS_PROVIDER=real"
     echo "SMS_API_KEY="
     echo "JITSI_DOMAIN="
@@ -77,6 +82,9 @@ if [ ! -f .env ]; then
   echo "   .env créé (droits 600). ⚠ SMS : aucun fournisseur réel n'est encore codé (décision D-02) : les clients ne pourront pas se connecter tant qu'il n'est pas choisi. Le tableau de bord (mot de passe) fonctionne."
 else
   echo "   .env existe déjà : conservé."
+  # Mise à jour d'une installation plus ancienne : ajoute les réglages des appels WebRTC s'ils manquent.
+  grep -q '^TURN_SECRET=' .env || echo "TURN_SECRET=$(openssl rand -hex 32)" >> .env
+  grep -q '^CALL_ENGINE=' .env || echo "CALL_ENGINE=jitsi" >> .env
 fi
 docker network inspect netbuis_edge >/dev/null 2>&1 || docker network create netbuis_edge >/dev/null
 
