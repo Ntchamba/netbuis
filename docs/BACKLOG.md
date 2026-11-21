@@ -698,6 +698,34 @@ Chaque exécution écrit sa sortie dans `logs/<tâche>-<commande>.txt` (voir `OR
 
 ---
 
+# PHASE 14 — Appels WebRTC directs avec coturn (D-31, ajoutée le 2026-11-21)
+
+Spéc. : `docs/spec/APPELS_WEBRTC.md`. Jitsi reste disponible (`CALL_ENGINE=jitsi`).
+
+### T150 — coturn : déploiement VPS et local (orchestrateur)
+- **Terminé quand** : `deploy/vps/` lance coturn (image officielle, mode `use-auth-secret`, ports 3478 UDP/TCP, 5349 chiffré, plage UDP de relais, pare-feu mis à jour dans `install.sh`) ; `docker-compose.yml` local aussi (3478) ; `TURN_SECRET` tiré au hasard par `install.sh` ; adresses privées refusées par coturn ; essai : une paire de navigateurs force le relais (`iceTransportPolicy: relay`) et l'audio passe ; guide `docs/deployment/COTURN.md`.
+
+### T151 — Backend : moteur WebRTC, signalisation, identifiants TURN
+- **Agent** a3 · **Dépend de** T131 · **Spéc.** `APPELS_WEBRTC.md`
+- **Terminé quand** (un test par point) : réglages `CALL_ENGINE`, `TURN_URLS`, `STUN_URLS`, `TURN_SECRET`, `TURN_TTL` ; `POST /api/calls/sessions/` et `accept` renvoient `engine` et `webrtc.ice_servers` (jamais le secret) quand le moteur est `webrtc` ; identifiants TURN HMAC-SHA1 conformes à coturn (test avec un calcul de référence) ; `POST …/signal/` côté appelant et côté agent, relais vers l'autre partie par le flux SSE (événement `signal`) et rejeu des signaux en attente dans `accept` ; contrôles d'accès (participants seulement, bonnes phases, taille, nombre) ; signaux supprimés à la fin ; rien du contenu dans les journaux ni dans les notifications NOTIFY au-delà de ce qui est nécessaire (taille limitée) ; moteur `jitsi` inchangé (tests existants verts) ; OpenAPI à jour ; mesure du relais < 250 ms p95.
+
+### T152 — Dashboard : appel WebRTC
+- **Agent** c3 · **Dépend de** T151
+- **Terminé quand** : si `engine = webrtc`, « Répondre » crée la connexion (`RTCPeerConnection`, serveurs ICE fournis par l'API), lit les signaux en attente, répond, échange les candidats par l'API et le flux ; audio uniquement ; raccrocher, fin à distance, échec de connexion (message clair), micro refusé ; moteur `jitsi` inchangé ; la fiche et les numéros (T132b) inchangés ; tests Vitest avec un faux `RTCPeerConnection`.
+
+### T153 — Essai de bout en bout WebRTC (orchestrateur)
+- **Dépend de** T151, T152
+- **Terminé quand** : un script lance le vrai serveur, deux navigateurs Chromium (micros simulés `--use-fake-device-for-media-stream`), joue appel → réponse → audio échangé (octets reçus > 0) → fin ; avec et sans relais forcé ; **temps entre « Répondre » et audio reçu** noté (p50/p95) ; comparaison avec Jitsi si possible.
+
+### T154 — Mobile : appel WebRTC (`flutter_webrtc`)
+- **Agent** b2 (+ b1) · **Dépend de** T151, mesures de T153 · **À ne lancer qu'après validation de Jeff** (nouvelle dépendance `flutter_webrtc`).
+- **Terminé quand** : l'écran d'appel utilise WebRTC quand `engine = webrtc` (offre créée pendant la sonnerie, signaux, fin) ; micro, réseau coupé, échec ; faux service WebRTC pour les tests ; procédure d'essai sur téléphone dans `TESTS_JEFF.md`.
+
+### T155 — Documentation et comparaison avec Jitsi (orchestrateur)
+- **Terminé quand** : tableau des mesures (connexion, qualité, charge) ; recommandation de moteur par défaut ; `docs/deployment/` à jour.
+
+---
+
 # Écarts connus entre `docs/TASKS_PAR_AGENT.md` et ce backlog (le backlog l'emporte)
 
 Les colonnes « Ce qu'il faut implémenter » de `TASKS_PAR_AGENT.md` datent d'avant les maquettes. Quand une `Réf.` est citée, **seuls les fichiers à toucher** comptent, et les écarts suivants sont réglés ainsi :
