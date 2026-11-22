@@ -20,6 +20,9 @@ Appel à deux : l'**appelant** (application) et l'**agent** (tableau de bord). L
 ## Identifiants TURN temporaires (mode `use-auth-secret` de coturn)
 `username = "<expiration_unix>:<session_id>"` ; `credential = base64(HMAC-SHA1(TURN_SECRET, username))` ; durée `TURN_TTL` (défaut 600 s). Réglages : `TURN_URLS` (liste), `TURN_SECRET` (≥ 32 car., secret absent = pas de TURN, STUN seul + avertissement), `STUN_URLS`. Le secret n'est jamais renvoyé ni journalisé.
 
+## Jitsi n'est pas retiré (décision de Jeff, 2026-11-22)
+Le WebRTC s'ajoute à côté de Jitsi, dans l'application et dans le tableau de bord ; les deux moteurs coexistent tant que les essais côte à côte (téléphone, Wi-Fi et réseau mobile) ne sont pas faits. Le retrait de Jitsi est une tâche séparée (T156), longue, à spécifier et à décider ensuite.
+
 ## Choix du moteur
 `CALL_ENGINE` = `webrtc` (défaut après mesures) ou `jitsi`. Les clients lisent `engine` dans la réponse : un client qui ne connaît pas `webrtc` peut tomber en `jitsi` si le serveur l'accepte (période de transition).
 

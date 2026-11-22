@@ -700,7 +700,7 @@ Chaque exécution écrit sa sortie dans `logs/<tâche>-<commande>.txt` (voir `OR
 
 # PHASE 14 — Appels WebRTC directs avec coturn (D-31, ajoutée le 2026-11-21)
 
-Spéc. : `docs/spec/APPELS_WEBRTC.md`. Jitsi reste disponible (`CALL_ENGINE=jitsi`).
+Spéc. : `docs/spec/APPELS_WEBRTC.md`. **Jitsi n'est PAS retiré** : le WebRTC s'ajoute à côté dans l'application et le tableau de bord (`CALL_ENGINE=jitsi|webrtc`) ; le retrait de Jitsi sera une tâche séparée (T156), décidée par Jeff après les essais côte à côte.
 
 ### T150 — coturn : déploiement VPS et local (orchestrateur)
 - **Terminé quand** : `deploy/vps/` lance coturn (image officielle, mode `use-auth-secret`, ports 3478 UDP/TCP, 5349 chiffré, plage UDP de relais, pare-feu mis à jour dans `install.sh`) ; `docker-compose.yml` local aussi (3478) ; `TURN_SECRET` tiré au hasard par `install.sh` ; adresses privées refusées par coturn ; essai : une paire de navigateurs force le relais (`iceTransportPolicy: relay`) et l'audio passe ; guide `docs/deployment/COTURN.md`.
@@ -720,6 +720,9 @@ Spéc. : `docs/spec/APPELS_WEBRTC.md`. Jitsi reste disponible (`CALL_ENGINE=jits
 ### T154 — Mobile : appel WebRTC (`flutter_webrtc`)
 - **Agent** b2 (+ b1) · **Dépend de** T151, mesures de T153 · **À ne lancer qu'après validation de Jeff** (nouvelle dépendance `flutter_webrtc`).
 - **Terminé quand** : l'écran d'appel utilise WebRTC quand `engine = webrtc` (offre créée pendant la sonnerie, signaux, fin) ; micro, réseau coupé, échec ; faux service WebRTC pour les tests ; procédure d'essai sur téléphone dans `TESTS_JEFF.md`.
+
+### T156 — Retrait de Jitsi (NE PAS FAIRE avant décision écrite de Jeff)
+- **Dépend de** T153, T154, T155 et d'essais côte à côte sur téléphone. À spécifier à ce moment-là (code, dépendances `jitsi_meet_flutter_sdk`, `external_api.js`, `JITSI_*`, `deploy/*/jitsi.sh`, docs).
 
 ### T155 — Documentation et comparaison avec Jitsi (orchestrateur)
 - **Terminé quand** : tableau des mesures (connexion, qualité, charge) ; recommandation de moteur par défaut ; `docs/deployment/` à jour.
