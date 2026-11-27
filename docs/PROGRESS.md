@@ -145,7 +145,7 @@
 | ☐ | T153 | Essai de bout en bout WebRTC (navigateurs réels, médias simulés) et mesures | orchestrateur | | |
 | ☐ | T154 | Mobile : appel WebRTC (flutter_webrtc) — après accord de Jeff | b2 (+ b1) | | |
 | ☐ | T155 | Documentation et comparaison avec Jitsi | orchestrateur | | |
-| 🔄 | T160 | NetBuis Contrats : application autonome de contrats signés (PWA), envoi par WhatsApp (D-32) | c3 | | |
+| ⏸ | T160 | NetBuis Contrats : application autonome de contrats signés (PWA), envoi par WhatsApp (D-32) | session à part | | Confié par Jeff à une autre session Claude Code avec le prompt docs/PROMPT_CONTRATS.md (2026-11-27) |
 | ✅ | T125 | Recette finale contre le cahier de charge | orchestrateur seul | 2026-10-22 | Tableau rempli (aucune ligne sans preuve ; 5 ⚠ nécessitent un téléphone ou une décision de Jeff). Suites finales : serveur 1 699, tableau de bord 347, mobile 1 743, appel de bout en bout p95 58 ms |
 
 ## Cahier de charge → tâches → preuve (rempli à T125)
