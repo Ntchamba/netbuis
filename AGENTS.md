@@ -24,7 +24,7 @@
 |---|---|
 | `backend/apps/{core,accounts,geo,catalog,business,search,calls,forum,trends,notifications,printing}`, `backend/config` | Agent A |
 | `mobile/` | Agent B |
-| `backend/apps/{payments,admin_panel}`, `dashboard/` | Agent C |
+| `backend/apps/{payments,admin_panel}`, `dashboard/`, `contrats/` | Agent C |
 | `docs/`, `agents/`, `.github/`, racine, `deploy/` | Orchestrateur |
 
 Détails : `agents/ORCHESTRATOR.md`, `agents/AGENT_A_backend_core.md`, `agents/AGENT_B_mobile.md`,

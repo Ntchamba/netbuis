@@ -729,6 +729,14 @@ Spéc. : `docs/spec/APPELS_WEBRTC.md`. **Jitsi n'est PAS retiré** : le WebRTC s
 
 ---
 
+# PHASE 15 — Contrats des commerçants (D-32, ajoutée le 2026-11-27)
+
+### T160 — NetBuis Contrats : application autonome de contrats signés (PWA)
+- **Agent** c3 · **Spéc.** `docs/spec/CONTRATS_APP.md`
+- **Terminé quand** : assistant en 5 étapes (informations du commerçant, formule, lecture et acceptation, signature au doigt, PDF numéroté) ; modèle par défaut tiré de `docs/legal/CONTRAT_COMMERCANT_MODELE.md` avec réglages (identité NetBuis, formules et prix, définition de « client acquis »…) et mention BROUILLON tant que le modèle est incomplet ou non relu ; envoi par le partage du téléphone vers WhatsApp (repli : téléchargement + lien wa.me) ; registre local, recherche, export CSV ; mot de passe local (PBKDF2), verrouillage après inactivité ; hors connexion ; aucune donnée envoyée à un serveur ; conteneur nginx ; tests unitaires (node --test) et essai navigateur (Playwright) avec PDF valide.
+
+---
+
 # Écarts connus entre `docs/TASKS_PAR_AGENT.md` et ce backlog (le backlog l'emporte)
 
 Les colonnes « Ce qu'il faut implémenter » de `TASKS_PAR_AGENT.md` datent d'avant les maquettes. Quand une `Réf.` est citée, **seuls les fichiers à toucher** comptent, et les écarts suivants sont réglés ainsi :
