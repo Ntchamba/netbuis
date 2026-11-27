@@ -1,0 +1,60 @@
+# NetBuis PWA (Flutter web) servie par nginx. ${PORT} est fourni par Railway (valeur par défaut dans le Dockerfile).
+# Rappel nginx : un add_header dans un bloc location REMPLACE ceux du bloc server ; les en-têtes de
+# sécurité sont donc répétés dans chaque location qui déclare un Cache-Control.
+server {
+  listen ${PORT};
+  server_name _;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  # Compression : le CanvasKit (.wasm, ~7 Mo) et main.dart.js sont les fichiers les plus lourds.
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1024;
+  gzip_comp_level 6;
+  gzip_types application/javascript text/javascript application/json application/wasm text/css image/svg+xml;
+
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  add_header Referrer-Policy "same-origin" always;
+
+  # Jamais en cache : ces fichiers décident quelle version de l'application est chargée
+  # (service worker, page d'entrée, manifeste, numéro de version).
+  location ~ ^/(index\.html|netbuis_sw\.js|flutter_service_worker\.js|flutter_bootstrap\.js|manifest\.json|version\.json)$ {
+    add_header Cache-Control "no-store" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+  }
+
+  # Le programme : nom non versionné, donc toujours revalidé (ETag) avant réutilisation.
+  location = /main.dart.js {
+    add_header Cache-Control "no-cache" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+  }
+
+  # Moteur de dessin (CanvasKit) servi par nous, pas par gstatic.com : change seulement quand on
+  # change la version de Flutter.
+  location /canvaskit/ {
+    add_header Cache-Control "public, max-age=604800" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+  }
+
+  # Polices, textes (l10n), images : noms NON versionnés par Flutter, donc durée limitée à un jour
+  # (le service worker met à jour les fichiers modifiés à chaque nouvelle version).
+  location ~ ^/(assets|icons)/ {
+    add_header Cache-Control "public, max-age=86400" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "same-origin" always;
+  }
+
+  # Application monopage : toute adresse inconnue renvoie index.html (qui est en no-store).
+  location / {
+    try_files $uri /index.html;
+  }
+}

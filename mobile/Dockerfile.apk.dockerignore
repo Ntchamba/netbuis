@@ -1,0 +1,17 @@
+build
+.dart_tool
+coverage
+test
+integration_test
+e2e
+web
+logs
+.idea
+*.iml
+.env*
+Dockerfile*
+android/local.properties
+android/.gradle
+android/key.properties
+**/*.jks
+**/*.keystore

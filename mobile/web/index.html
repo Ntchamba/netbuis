@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Adresse de base : remplacée par --base-href si le site n'est pas servi à la racine. -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="NetBuis : trouvez un produit chez les commerçants près de chez vous. / Find a product at merchants near you.">
+  <meta name="theme-color" content="#F2942E">
+
+  <!-- iPhone : application installable depuis Safari (Partager > Sur l'écran d'accueil) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="NetBuis">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="manifest" href="manifest.json">
+
+  <title>NetBuis</title>
+
+  <style>
+    html, body { margin: 0; height: 100%; background: #F7F7F8; }
+    @media (prefers-color-scheme: dark) { html, body { background: #0D0D0F; } }
+    /* Écran d'attente pendant le chargement de l'application (retiré dès que la première image de l'application est affichée). */
+    #chargement { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+    #chargement img { width: 84px; height: 84px; border-radius: 24px; }
+  </style>
+</head>
+<body>
+  <div id="chargement"><img src="icons/Icon-192.png" alt="NetBuis" width="84" height="84"></div>
+  <script>
+    window.addEventListener("flutter-first-frame", function () {
+      var e = document.getElementById("chargement");
+      if (e) e.remove();
+    });
+  </script>
+  <script>
+    // Fonctionnement hors connexion (voir netbuis_sw.js).
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("netbuis_sw.js").catch(function () {});
+      });
+    }
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

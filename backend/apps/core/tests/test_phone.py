@@ -1,7 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
-from apps.core.utils.phone import normalize_phone
+from apps.core.utils.phone import mask_phone, normalize_phone
 from apps.core.validators import validate_cm_phone
 
 
@@ -24,3 +24,14 @@ def test_validate_cm_phone():
     validate_cm_phone("699112233")
     with pytest.raises(ValidationError):
         validate_cm_phone("12345")
+
+
+def test_mask_phone_comme_la_maquette():
+    masked = mask_phone("+237600000012")
+    assert masked == "+237 6•• •• •• 12"
+    assert "00000" not in masked
+
+
+def test_mask_phone_refuse_un_numero_invalide():
+    with pytest.raises(ValueError):
+        mask_phone("12345")

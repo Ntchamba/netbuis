@@ -1,3 +1,0 @@
-All checks passed!
-No changes detected
-82 passed, 11 warnings in 3.15s

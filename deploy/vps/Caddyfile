@@ -1,0 +1,29 @@
+# Caddy obtient et renouvelle tout seul les certificats HTTPS (Let's Encrypt).
+# Prérequis : les 4 noms ci-dessous pointent vers l'adresse IP du VPS (enregistrements DNS « A »).
+{
+	email {$ACME_EMAIL}
+}
+
+# Serveur (API). Le flux temps réel des appels (SSE) ne doit jamais être mis en mémoire tampon.
+api.{$DOMAINE} {
+	reverse_proxy api:8000 {
+		flush_interval -1
+	}
+}
+
+# Tableau de bord d'administration.
+admin.{$DOMAINE} {
+	encode zstd gzip
+	reverse_proxy dashboard:8080
+}
+
+# Application web installable (PWA).
+app.{$DOMAINE} {
+	encode zstd gzip
+	reverse_proxy pwa:8080
+}
+
+# Visioconférence Jitsi (installée par jitsi.sh ; sans elle, ce site répond « 502 » et les appels sont refusés).
+meet.{$DOMAINE} {
+	reverse_proxy jitsi-web:8000
+}

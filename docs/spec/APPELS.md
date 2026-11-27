@@ -1,3 +1,5 @@
+> **REMPLACÉ le 2026-10-22 par `docs/spec/APPELS_JITSI.md` (décision D-25).** Le flux ci-dessous (appel GSM au commerçant) est conservé comme historique des tâches T050 à T057 ; il est retiré par T131 (backend) et T133 (mobile).
+
 # Mécanisme d'appel (décision v2.1)
 
 - **Pas de Twilio ni de VoIP.** C'est un appel téléphonique classique, facturé par l'opérateur de l'utilisateur.

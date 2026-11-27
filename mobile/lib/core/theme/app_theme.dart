@@ -21,7 +21,9 @@ class AppTheme {
       onPrimary: AppColors.onAccent,
       secondary: AppColors.accent,
       onSecondary: AppColors.onAccent,
-      error: brightness == Brightness.dark ? const Color(0xFFE25C4A) : const Color(0xFFD1452F),
+      // Rouge de la maquette en sombre. En clair, #D1452F ne fait que 4,26:1 sur le fond :
+      // même teinte, un peu plus foncée (#C93E28, 4,67:1) pour que les messages d'erreur se lisent.
+      error: brightness == Brightness.dark ? const Color(0xFFE25C4A) : const Color(0xFFC93E28),
       onError: Colors.white,
       surface: c.background,
       onSurface: c.textPrimary,
@@ -65,6 +67,15 @@ class AppTheme {
           shape: buttonShape,
           textStyle: buttonText,
         ),
+      ),
+      // Curseur et poignées de sélection : l'orange vif fait 2,2:1 sur fond clair (D-20).
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: c.accentText,
+        selectionHandleColor: c.accentText,
+      ),
+      // Boutons-texte : couleur d'accent lisible (D-20 : #A85A00 en clair, 4,75:1).
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: c.accentText),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(

@@ -1,3 +1,1 @@
-// À implémenter.
-// Agent C · Étape É5
-export {};
+export { BusinessesPage } from "./pages/BusinessesPage";

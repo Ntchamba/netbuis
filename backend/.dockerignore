@@ -1,0 +1,14 @@
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+!.env.example
+media
+private_media
+staticfiles
+logs
+.coverage
+.pytest_cache
+.ruff_cache

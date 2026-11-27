@@ -11,4 +11,6 @@ psycopg[binary]==3.3.6
 requests==2.34.2
 # printing (optionnel)
 qrcode[pil]==8.2
+pillow==13.0.0  # dépendance de qrcode : 12.3.0 a 25 vulnérabilités connues (pip-audit, T121)
 reportlab==5.0.1
+uvicorn==0.54.0  # serveur ASGI : flux temps réel des appels (T131)

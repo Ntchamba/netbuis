@@ -1,0 +1,1 @@
+"""Sérialiseurs de la géographie."""

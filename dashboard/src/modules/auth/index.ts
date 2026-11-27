@@ -1,3 +1,3 @@
-// À implémenter.
-// Agent C · Étape É5
-export {};
+export { LoginPage } from "./pages/LoginPage";
+export { ForbiddenPage } from "./pages/ForbiddenPage";
+export { LoadErrorPage } from "./pages/LoadErrorPage";

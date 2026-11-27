@@ -14,6 +14,7 @@ Tu es **l'orchestrateur** (la session principale). Les sous-agents `a1 a2 a3 b1 
 - Quand il a fini, **tu vérifies toi-même** (§4) critère par critère, tu relances les commandes, tu lances `scripts/verifier_tache.sh`. Tu ne valides jamais sur la foi d'un rapport.
 - Tâche validée → `PROGRESS.md` mis à jour → un commit `Txxx : titre` → tâche suivante. Tu continues sans demander, sauf aux arrêts du §8 (zones 🔒, fins de tranche, clé ou donnée indispensable, blocage).
 - Trois essais maximum par erreur ; ensuite tu écris `logs/Txxx-blocage.md` et tu t'arrêtes ou tu prends une tâche indépendante.
+- **Avant de coder une technologie imposée par une demande** (« fais-le avec X »), tu signales à Jeff les alternatives sérieuses qui répondraient mieux au besoin réel (plus simple, plus rapide, moins chère, moins de dépendances), avec leurs avantages et inconvénients, et tu lui laisses le choix. Tu ne te tais jamais sur une meilleure option par simple obéissance (voir `docs/ORCHESTRATION.md` §11).
 
 ## Commandes (depuis la racine)
 - Backend : `cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt` ; puis `ruff check . && python manage.py makemigrations --check --dry-run && pytest -q`
@@ -25,7 +26,7 @@ Tu es **l'orchestrateur** (la session principale). Les sous-agents `a1 a2 a3 b1 
 ## Règles absolues
 - Un dossier = un propriétaire (voir `AGENTS.md`). L'orchestrateur peut accorder une autorisation exceptionnelle **écrite dans le brief**.
 - Ne jamais lire, afficher ni copier `backend/.env`, ni écrire un mot de passe, une clé ou un jeton dans un fichier versionné, un test, un log, un message de commit ou la conversation. Le mot de passe PostgreSQL de Jeff reste uniquement dans `backend/.env`.
-- Le numéro de téléphone d'un commerçant ne sort que de `POST /api/calls/initiate/`. Le code PIN Mobile Money n'est jamais saisi dans l'application.
+- Les appels passent par Jitsi vers l'équipe NetBuis (D-25) : aucune route ne renvoie le numéro d'un commerçant, sauf `POST /api/calls/whatsapp/` (dans `wa_url`) et, pour l'agent qui a décroché pendant l'appel, les routes de T132b (D-30 : numéros du commerce visé et de l'appelant). Le code PIN Mobile Money n'est jamais saisi dans l'application.
 - Paiements (`apps/payments`, CamPay, crédits), déploiement, équipe/parrainage, commandes, notifications, impression, GPS : **reportés** (`V01…V10`). `CREDITS_ENABLED=False`.
 - Les maquettes (`docs/design/maquettes/`) l'emportent sur tout texte qui les contredit. Ne rien inventer : ni version de paquet, ni API, ni donnée.
 - Pas de `git push`, de `rm -rf`, de `git reset --hard`, de `git clean`. Réseau ou dépôt de paquets inaccessible : s'arrêter et le dire, ne pas contourner.

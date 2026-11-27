@@ -1,0 +1,69 @@
+# NetBuis : construction de l'APK Android DANS un conteneur (pour qui n'a ni Flutter ni Android Studio).
+#
+#   docker build --target apk -f mobile/Dockerfile.apk \
+#     --build-arg API_URL=https://VOTRE-SERVEUR/api \
+#     --output type=local,dest=./sortie mobile
+#
+# -> ./sortie/app-release.apk (signé avec la clé de DÉBOGAGE, voir mobile/README.md).
+# Réglages facultatifs : --build-arg SUPPORT_WHATSAPP=... SUPPORT_PHONE=... SUPPORT_EMAIL=...
+# Aucune clé de signature dans l'image ni dans le dépôt.
+FROM debian:bookworm-slim AS build
+ARG FLUTTER_VERSION=3.47.7
+# Versions lues dans le projet (ne pas les changer sans relire les fichiers cités) :
+#  - compileSdk 37 : mobile/android/app/build.gradle.kts
+#  - NDK 28.2.13676358 : flutter.ndkVersion, packages/flutter_tools/gradle/.../FlutterExtension.kt de Flutter 3.47.7
+#  - plugin Android 9.1.0 : mobile/android/settings.gradle.kts (exige JDK 17)
+ARG ANDROID_PLATFORM=37
+ARG ANDROID_NDK=28.2.13676358
+# Outils en ligne de commande du SDK Android (numéro du fichier « commandlinetools-linux-<n>_latest.zip »
+# publié par Google sur developer.android.com/studio#command-line-tools-only).
+ARG CMDLINE_TOOLS_BUILD=11076708
+ARG API_URL
+ARG SUPPORT_WHATSAPP
+ARG SUPPORT_PHONE
+ARG SUPPORT_EMAIL
+
+ENV ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=/opt/flutter/bin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:$PATH
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates git curl unzip xz-utils zip openjdk-17-jdk-headless \
+ && rm -rf /var/lib/apt/lists/*
+
+# SDK Android : outils officiels Google, licences acceptées en ligne de commande.
+RUN mkdir -p "$ANDROID_HOME/cmdline-tools" \
+ && curl -fsSL -o /tmp/cmdline-tools.zip "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_BUILD}_latest.zip" \
+ && unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools" \
+ && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+ && rm /tmp/cmdline-tools.zip \
+ && (yes | sdkmanager --licenses > /dev/null) \
+ && sdkmanager "platform-tools" "platforms;android-${ANDROID_PLATFORM}" "ndk;${ANDROID_NDK}"
+# Les « build-tools » exigés par le plugin Android 9.1.0 sont téléchargés par Gradle lui-même
+# au premier build (licences déjà acceptées ci-dessus).
+
+RUN git clone --depth 1 --branch "${FLUTTER_VERSION}" https://github.com/flutter/flutter.git /opt/flutter \
+ && git config --global --add safe.directory /opt/flutter \
+ && flutter config --no-analytics \
+ && flutter precache --android
+
+WORKDIR /app
+COPY pubspec.yaml pubspec.lock ./
+RUN flutter pub get
+COPY . .
+
+# En release l'application refuse une adresse d'API qui n'est pas en https.
+RUN case "$API_URL" in \
+      https://?*) ;; \
+      *) echo "ERREUR : --build-arg API_URL=https://VOTRE-SERVEUR/api est obligatoire (https)" >&2; exit 1 ;; \
+    esac \
+ && DEFINES="--dart-define=API_URL=${API_URL}" \
+ && if [ -n "$SUPPORT_WHATSAPP" ]; then DEFINES="$DEFINES --dart-define=SUPPORT_WHATSAPP=${SUPPORT_WHATSAPP}"; fi \
+ && if [ -n "$SUPPORT_PHONE" ]; then DEFINES="$DEFINES --dart-define=SUPPORT_PHONE=${SUPPORT_PHONE}"; fi \
+ && if [ -n "$SUPPORT_EMAIL" ]; then DEFINES="$DEFINES --dart-define=SUPPORT_EMAIL=${SUPPORT_EMAIL}"; fi \
+ && flutter build apk --release $DEFINES
+
+# Étape finale minimale : seulement le fichier .apk.
+FROM scratch AS apk
+COPY --from=build /app/build/app/outputs/flutter-apk/app-release.apk /app-release.apk

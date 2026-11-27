@@ -1,0 +1,50 @@
+import { PATHS } from "../routes/paths";
+
+export type NavIcon = "overview" | "requests" | "accounts" | "team" | "referentials" | "settings" | "admins" | "audit" | "moderation" | "searches" | "calls" | "trends";
+
+export interface NavItem {
+  key: string;
+  label: string;
+  to: string;
+  icon: NavIcon;
+  /** Permission du serveur exigée. Refus par défaut : sans elle, l'entrée n'est pas affichée. */
+  permission: string;
+  /** Entrée visible mais non cliquable (« bientôt »). */
+  soon?: boolean;
+  /** Affiche la pastille du nombre de demandes en attente. */
+  badge?: boolean;
+}
+
+export const NAV_ITEMS: readonly NavItem[] = [
+  { key: "overview", label: "Vue d'ensemble", to: PATHS.home, icon: "overview", permission: "peut_voir_comptes" },
+  { key: "requests", label: "Demandes", to: PATHS.demandes, icon: "requests", permission: "peut_voir_demandes", badge: true },
+  { key: "accounts", label: "Comptes", to: PATHS.comptes, icon: "accounts", permission: "peut_voir_comptes" },
+  { key: "referentials", label: "Référentiels", to: PATHS.referentiels, icon: "referentials", permission: "peut_gerer_referentiels" },
+  { key: "settings", label: "Réglages", to: PATHS.reglages, icon: "settings", permission: "peut_modifier_reglages" },
+  { key: "admins", label: "Administrateurs", to: PATHS.administrateurs, icon: "admins", permission: "peut_gerer_admins" },
+  { key: "audit", label: "Journal d'audit", to: PATHS.audit, icon: "audit", permission: "peut_voir_comptes" },
+  { key: "searches", label: "Recherches", to: PATHS.recherches, icon: "searches", permission: "peut_voir_comptes" },
+  { key: "calls", label: "Appels", to: PATHS.appels, icon: "calls", permission: "peut_voir_comptes" },
+  { key: "team-calls", label: "Appels à l'équipe", to: PATHS.appelsEquipe, icon: "calls", permission: "peut_repondre_aux_appels" },
+  { key: "trends", label: "Tendances", to: PATHS.tendances, icon: "trends", permission: "peut_voir_comptes" },
+  { key: "moderation", label: "Modération", to: PATHS.moderation, icon: "moderation", permission: "peut_moderer_contenu" },
+  // Lecture : peut_voir_comptes (GET) ; le bouton d'accord exige peut_accorder_abonnement.
+  { key: "team", label: "Équipe & abonnements", to: PATHS.equipe, icon: "team", permission: "peut_voir_comptes" },
+];
+
+/** Titre de l'en-tête selon la page (maquettes). */
+export function titleFor(pathname: string): string {
+  if (pathname.startsWith(PATHS.demandes)) return "Demandes en attente";
+  if (pathname.startsWith(PATHS.comptes)) return "Comptes";
+  if (pathname.startsWith(PATHS.referentiels)) return "Référentiels";
+  if (pathname.startsWith(PATHS.reglages)) return "Réglages";
+  if (pathname.startsWith(PATHS.administrateurs)) return "Administrateurs";
+  if (pathname.startsWith(PATHS.audit)) return "Journal d'audit";
+  if (pathname.startsWith(PATHS.recherches)) return "Recherches";
+  if (pathname.startsWith(PATHS.appelsEquipe)) return "Appels à l'équipe";
+  if (pathname.startsWith(PATHS.appels)) return "Appels";
+  if (pathname.startsWith(PATHS.tendances)) return "Tendances";
+  if (pathname.startsWith(PATHS.moderation)) return "Modération";
+  if (pathname.startsWith(PATHS.equipe)) return "Équipe & abonnements";
+  return "Vue d'ensemble";
+}

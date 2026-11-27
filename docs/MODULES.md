@@ -12,7 +12,7 @@
 | `search` | Recherche **écrite** (`text/`) et **vocale** (`voice/`), suggestions, journal | A | É4 |
 | `calls` | Appel direct, WhatsApp (`wa.me`), retours, signalements | A | É4 |
 | `forum` | Fils, messages, signalements, modération | A | É7 |
-| `trends` | Produits les plus sollicités | A | É7 |
+| `trends` | Produits les plus recherchés et commerces les plus contactés par ville (`compute_trends`, `GET /api/trends/`) | A | É7 |
 | `payments` | **Vide pour l'instant.** `collect/` = réception des frais (CamPay), `payout/` = paiements sortants automatiques, `wallet/`, `packs/`, `providers/` | C | É6 |
 | `admin_panel` | API du dashboard : stats, validation commerçants, modération, audit | C | É5 |
 | `notifications` | Jetons d'appareil, push FCM, boîte de notifications | A | É8 / optionnel |

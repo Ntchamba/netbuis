@@ -18,3 +18,15 @@ class CallRateThrottle(UserRateThrottle):
     """Par compte (anti-aspiration des numéros, D-05)."""
 
     scope = "call"
+
+
+class SearchRateThrottle(UserRateThrottle):
+    """Recherches écrites et vocales, par compte (anti-aspiration du catalogue, T121)."""
+
+    scope = "search"
+
+
+class SuggestRateThrottle(UserRateThrottle):
+    """Suggestions de saisie : plus tolérant (une requête par frappe), par compte."""
+
+    scope = "suggest"
